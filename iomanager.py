@@ -1,0 +1,272 @@
+#!/usr/bin/env python2.7
+
+import os
+import re
+import uuid
+
+import ROOT
+
+from logger import logger
+
+import root_numpy as rnp
+
+import numpy as np
+from array import array
+
+
+ROOT.gROOT.SetBatch()
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+ROOT.gErrorIgnoreLevel = 2000
+
+
+class iomanager(object):
+    """Class for easy ROOT I/O.
+
+    Can be used to read from and write to ROOT files. Multiple histograms from one tree
+    can be created simultaneously using the factory subclass.
+    """
+
+    # Dictionary holding histograms and configs for factory
+    _registered_histos = {}
+
+    @staticmethod
+    def create_test_sample(path, **kwargs):
+        """Creates a ROOT file with toy data to be used for tests.
+
+        The output file contains one tree with `nevents` number of entries represented
+        by `nbranches` branches. Random numbers for each branch are drawn according to a
+        gaussian distribution centered around zero and with unit width. The name of the
+        output tree is given by `tree` and the branches are of the form 'branch_0',
+        'branch_1', ...
+
+        Numbers are drawn using numpy's random module and the output file is created
+        using root_numpy's array2root function.
+
+        :param path: path of output ROOT file
+        :type path: str
+
+        :param nevents: number of events in the output tree (default: 10000)
+        :type nevents: int
+
+        :param nbranches: number of branches (default 10)
+        :type nbranches: int
+
+        :param tree: name of the output tree (default 'tree')
+        :type tree: str
+        """
+        basedir = os.path.exists(os.path.abspath(path))
+        if not basedir:
+            logger.error("Directory '{}' does not exist!".format(basedir))
+            raise IOError("Path not found!")
+        nevents = int(kwargs.get("nevents", 1e4))
+        nbranches = int(kwargs.get("nbranches", 10))
+        treename = kwargs.get("tree", "tree")
+        array = np.core.records.fromarrays(np.random.normal(size=(nbranches, nevents)),
+            names=",".join(["branch_{}".format(i) for i in range(nbranches)]))
+        rnp.array2root(array, path, treename=treename, mode="recreate")
+        if os.path.isfile(path):
+            logger.info("Created '{}'.".format(path))
+
+    @staticmethod
+    def fill_histo(histo, infile, **kwargs):
+        """Fill a given histograms with events from a tree.
+
+        The given histogram will be filled with values for the `varexp` for all events
+        assing the `cutexpr` and weighted by `weight`. Via the `overwrite` option one can
+        decide whether the given histogram should be overwritten or if the new entries
+        should be added to its existing content. Basis for the input is the specified
+        `tree` of the `infile`.
+
+        The histogram is filled using ROOT's TTree::Project method.
+
+        :param histo: histogram object to be filled
+        :type histo: ROOT.TH1D, ROOT.TH2D
+
+        :param infile: path to the input ROOT file
+        :type infile: str
+
+        :param tree: name of the input tree
+        :type tree: str
+
+        :param varexp: name of the branch to be plotted (format: 'x' or 'x:y')
+        :type varexp: str
+
+        :param cutexpr: string or list of strings of boolean expressions, the latter\
+        will default to a logical AND of all items (default: '1')
+        :type cutexpr: str, list
+
+        :param weight: number or branch name to be applied as a weight (default: '1')
+        :type weight: str
+
+        :param overwrite: overwrite or append entries to the specified `histo` (default:\
+        True)
+        :type overwrite: bool
+        """
+        overwrite = kwargs.pop("overwrite", True)
+        kwargs.update(iomanager._get_binning(histo))
+        varexp = kwargs.get("varexp")
+        histoname = histo.GetName()
+        histotitle = histo.GetTitle()
+        histoclass = histo.ClassName()
+        if not ":" in varexp:
+            assert(histoclass.startswith("TH1"))
+        elif len(varexp.split(":") == 2):
+            assert(histoclass.startswith("TH2"))
+        else: raise NotImplementedError
+        htmp = iomanager.get_histo(infile, **kwargs)
+        if overwrite:
+            htmp.Copy(histo)
+        else:
+            histo.Add(htmp)
+        del htmp
+        histo.SetName(histoname)
+        histo.SetTitle(histotitle)
+
+    @staticmethod
+    def _convert_binning(unformatted_binning, **kwargs):
+        # Converts a binning dict or tuple/list into a "friendly" dict or list:
+        # New binning will be a list of bin low-edges.
+        csv_format = kwargs.get("csv", False)
+        if unformatted_binning is None:
+            return None
+        elif isinstance(unformatted_binning, dict):
+            formatted_binning_dict = {}
+            for label, binning in unformatted_binning.items():
+                formatted_binning_dict[label] = iomanager._convert_binning(binning,
+                    **kwargs)
+            return formatted_binning_dict
+        elif isinstance(unformatted_binning, tuple):
+            nbins, minval, maxval = unformatted_binning
+            assert(isinstance(nbins, int))
+            minval = float(minval)
+            maxval = float(maxval)
+            step = (maxval - minval) / nbins
+            formatted_binning = [minval + (i*step) for i in range(nbins + 1)]
+        elif isinstance(unformatted_binning, list):
+            formatted_binning = sorted(unformatted_binning)
+        else: raise TypeError
+        if csv_format:
+            return ",".join([str(b) for b in formatted_binning])
+        return formatted_binning
+
+    @staticmethod
+    def _get_binning(histo):
+        # Get binning (list of bin low-edges) of a histogram for all coordinates.
+        binning = {}
+        for coord in ["x", "y", "z"]:
+            axis = getattr(histo, "Get{}axis".format(coord.capitalize()))()
+            binning[coord + "binning"] = [float(axis.GetBinLowEdge(i)) for i in \
+                range(1, axis.GetNbins() + 2, 1)]
+        return binning
+
+    @staticmethod
+    def get_histo(infile, **kwargs):
+        """Create a histograms filled with events from a tree.
+
+        The created histogram will be filled with values for the `varexp` for all events
+        passing the `cutexpr` and weighted by `weight`. Basis for the input is the
+        specified `tree` of the `infile`. The name and title of the histogram can be set
+        via `name` and `title`, respectively.
+
+        The histogram is filled using ROOT's TTree::Project method.
+
+        :param infile: path to the input ROOT file
+        :type infile: str
+
+        :param name: name of the returned histogram
+        :type name: str
+
+        :param title: title of the returned histogram
+        :type title: str
+
+        :param tree: name of the input tree
+        :type tree: str
+
+        :param varexp: name of the branch to be plotted (format: 'x' or 'x:y')
+        :type varexp: str
+
+        :param cutexpr: string or list of strings of boolean expressions, the latter\
+        will default to a logical AND of all items (default: '1')
+        :type cutexpr: str, list
+
+        :param weight: number or branch name to be applied as a weight (default: '1')
+        :type weight: str
+
+        :returntype: ROOT.TH1D, ROOT.TH2D
+        """
+        for binning in ["xbinning", "ybinning"]:
+            kwargs[binning] = iomanager._convert_binning(kwargs.get(binning), csv=True)
+        return iomanager._get_histo(infile, **kwargs)
+
+    @staticmethod
+    def _get_histo(infile, **kwargs):
+        # Returns a TH1D with the given parameters and fills it via TTree::Project.
+        # Uses binning in CSV format for faster caching.
+        name = kwargs.get("name", uuid.uuid1().hex[:8])
+        title = kwargs.get("title", "")
+        xbinning = array("d", [float(x) for x in kwargs.get("xbinning").split(",")])
+        treename = kwargs.get("tree")
+        varexp = kwargs.get("varexp")
+        weight = kwargs.get("weight", "1")
+        cutexpr = kwargs.get("cutexpr", "1")
+        if isinstance(cutexpr, list):
+            cutstr = "&&".join(["({})".format(cut) for cut in cutexpr])
+        elif isinstance(cutexpr, str):
+            cutstr = cutexpr
+        if not ":" in varexp:
+            htmp = ROOT.TH1D(name, title, len(xbinning) - 1, xbinning)
+        elif len(varexp.split(":")) == 2:
+            ybinning = array("d", [float(y) for y in kwargs.get("ybinning").split(",")])
+            htmp = ROOT.TH2D(name, title, len(xbinning) - 1, xbinning,
+                len(ybinning) - 1, ybinning)
+        else: raise NotImplementedError
+        htmp.Sumw2()
+        tfile = ROOT.TFile.Open(infile, "read")
+        ttree = tfile.Get(treename)
+        ROOT.gROOT.cd()
+        nevts = ttree.Project(name, varexp, "({})*({})".format(weight, cutstr), "goff")
+        htmp.SetDirectory(0)
+        tfile.Close()
+        if nevts < 0:
+            logger.error("Failed to project varexp='{}', cutexpr={}, weight='{}' onto "
+                "histogram '{}'. Tree '{}' contains the following branches:\n{}".format(
+                    varexp, cutexpr, weight, name, treename,
+                    "'" + "', '".join(iomanager._get_list_of_branches(ttree)) + "'"))
+            tfile.Close()
+            raise TypeError("Variable compilation failed!")
+        htmp.SetEntries(nevts)
+        return htmp
+
+    @staticmethod
+    def _get_list_of_branches(tree):
+        # Returns the names of all branches of a given TTree.
+        branches = []
+        for branch in tree.GetListOfBranches():
+            branches.append(branch.GetName())
+        return branches
+
+
+
+
+def main():
+
+    if not os.path.exists("data"):
+        os.mkdir("data")
+    testfile = "data/test.root"
+    if not os.path.isfile(testfile):
+        iomanager.create_test_sample(testfile)
+
+    histo = ROOT.TH1D("histo_branch_0", "", 200, -4., 4.)
+    histo.Sumw2()
+    iomanager.fill_histo(histo, "data/test.root",
+        tree="tree",
+        varexp="branch_0",
+        cutexpr=["branch_0>0.1", "branch_1>0.25"])
+    canvas = ROOT.TCanvas()
+    canvas.cd()
+    histo.Draw("HIST")
+    canvas.SaveAs("test.pdf")
+
+
+if __name__ == '__main__':
+    main()
