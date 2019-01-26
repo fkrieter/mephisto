@@ -72,7 +72,7 @@ class iomanager(object):
         """Fill a given histograms with events from a tree.
 
         The given histogram will be filled with values for the `varexp` for all events
-        assing the `cutexpr` and weighted by `weight`. Via the `overwrite` option one can
+        assing the `cuts` and weighted by `weight`. Via the `overwrite` option one can
         decide whether the given histogram should be overwritten or if the new entries
         should be added to its existing content. Basis for the input is the specified
         `tree` of the `infile`.
@@ -91,9 +91,9 @@ class iomanager(object):
         :param varexp: name of the branch to be plotted (format: 'x' or 'x:y')
         :type varexp: str
 
-        :param cutexpr: string or list of strings of boolean expressions, the latter\
+        :param cuts: string or list of strings of boolean expressions, the latter\
         will default to a logical AND of all items (default: '1')
-        :type cutexpr: str, list
+        :type cuts: str, list
 
         :param weight: number or branch name to be applied as a weight (default: '1')
         :type weight: str
@@ -164,7 +164,7 @@ class iomanager(object):
         """Create a histograms filled with events from a tree.
 
         The created histogram will be filled with values for the `varexp` for all events
-        passing the `cutexpr` and weighted by `weight`. Basis for the input is the
+        passing the `cuts` and weighted by `weight`. Basis for the input is the
         specified `tree` of the `infile`. The name and title of the histogram can be set
         via `name` and `title`, respectively.
 
@@ -185,9 +185,9 @@ class iomanager(object):
         :param varexp: name of the branch to be plotted (format: 'x' or 'x:y')
         :type varexp: str
 
-        :param cutexpr: string or list of strings of boolean expressions, the latter\
+        :param cuts: string or list of strings of boolean expressions, the latter\
         will default to a logical AND of all items (default: '1')
-        :type cutexpr: str, list
+        :type cuts: str, list
 
         :param weight: number or branch name to be applied as a weight (default: '1')
         :type weight: str
@@ -208,11 +208,11 @@ class iomanager(object):
         treename = kwargs.get("tree")
         varexp = kwargs.get("varexp")
         weight = kwargs.get("weight", "1")
-        cutexpr = kwargs.get("cutexpr", "1")
-        if isinstance(cutexpr, list):
-            cutstr = "&&".join(["({})".format(cut) for cut in cutexpr])
-        elif isinstance(cutexpr, str):
-            cutstr = cutexpr
+        cuts = kwargs.get("cuts", "1")
+        if isinstance(cuts, list):
+            cutstr = "&&".join(["({})".format(cut) for cut in cuts])
+        elif isinstance(cuts, str):
+            cutstr = cuts
         if not ":" in varexp:
             htmp = ROOT.TH1D(name, title, len(xbinning) - 1, xbinning)
         elif len(varexp.split(":")) == 2:
@@ -223,14 +223,16 @@ class iomanager(object):
         htmp.Sumw2()
         tfile = ROOT.TFile.Open(infile, "read")
         ttree = tfile.Get(treename)
+        if not isinstance(ttree, ROOT.TTree):
+            logger.error("Specified tree='{}' not found!".format(treename))
         ROOT.gROOT.cd()
         nevts = ttree.Project(name, varexp, "({})*({})".format(weight, cutstr), "goff")
         htmp.SetDirectory(0)
         tfile.Close()
         if nevts < 0:
-            logger.error("Failed to project varexp='{}', cutexpr={}, weight='{}' onto "
+            logger.error("Failed to project varexp='{}', cuts={}, weight='{}' onto "
                 "histogram '{}'. Tree '{}' contains the following branches:\n{}".format(
-                    varexp, cutexpr, weight, name, treename,
+                    varexp, cuts, weight, name, treename,
                     "'" + "', '".join(iomanager._get_list_of_branches(ttree)) + "'"))
             tfile.Close()
             raise TypeError("Variable compilation failed!")
@@ -261,7 +263,7 @@ def main():
     iomanager.fill_histo(histo, "data/test.root",
         tree="tree",
         varexp="branch_0",
-        cutexpr=["branch_0>0.1", "branch_1>0.25"])
+        cuts=["branch_0>0.1", "branch_1>0.25"])
     canvas = ROOT.TCanvas()
     canvas.cd()
     histo.Draw("HIST")
