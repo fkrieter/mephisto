@@ -16,6 +16,7 @@ class MethodProxy(object):
         self._cache = {}
         self._templates = {}
         self._methods = []
+        self._properties = []
         childcls = self.__class__
         # Consider this:
         # 1. There are some setters for which there is no corresponding getter.
@@ -31,10 +32,15 @@ class MethodProxy(object):
         self._methods += [f for f in setter if "Get{}".format(f[3:]) not in \
             unwntd_getter] + [f for f in getter if "Set{}".format(f[3:]) in setter \
             and f not in unwntd_getter]
+        self._properties = sorted(set([f[3:].lower() for f in self._methods \
+            if f[3:] != ""]))
         jsonpath = "templates/{}_templates.json".format(self.__class__.__name__)
         if os.path.exists(jsonpath):
             self._templates = json.load(open(jsonpath))
         # print self._methods
+
+    def GetListOfProperties(self):
+        return self._properties
 
     def PrintAvailableProperties(self):
         def chunks(l, n):
@@ -42,10 +48,8 @@ class MethodProxy(object):
             # (https://stackoverflow.com/a/312464)
             for i in range(0, len(l), n):
                 yield l[i:i + n]
-        availableprops = sorted(set([f[3:].lower() for f in self._methods \
-            if f[3:] != ""]))
         print self.__class__.__name__, "has the following properties:"
-        for chunk in chunks(availableprops, 5):
+        for chunk in chunks(self._properties, 5):
             print " "*4 + "".join([format(p, '<20') for p in chunk])
 
     def CacheProperties(self):
@@ -54,6 +58,8 @@ class MethodProxy(object):
             self._cache[property] = getattr(self, getter)()
 
     def DeclareProperty(self, property, args):
+        if args is None:
+            return
         if property == "template":
             if not isinstance(args, str):
                 raise ValueError("Expected property '{}' to be of type 'str'!".format(
