@@ -1,0 +1,12 @@
+{
+    "1;0": {
+        "padposition":      [0.0, 0.0, 1.0, 1.0],
+        "topmargin":        0.065,
+        "bottommargin":     0.155,
+        "leftmargin":       0.150,
+        "rightmargin":      0.075,
+        "fillstyle":        4000,
+        "fillcolor":        0,
+        "logy":             true
+    }
+}
