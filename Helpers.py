@@ -9,7 +9,7 @@ def ColorID(color):
     # Convert a hex color code into a TColor.
     if isinstance(color, str) or isinstance(color, unicode):
         return ROOT.TColor.GetColor(color)
-    elif isinstance(color, ROOT.TColor) or isinstance(color, int):
+    elif isinstance(color, ROOT.TColor) or isinstance(color, int) or color is None:
         return color
     else:
         raise TypeError
