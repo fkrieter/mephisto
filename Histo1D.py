@@ -3,6 +3,7 @@
 import ROOT
 
 import math
+from uuid import uuid4
 from array import array
 
 from MethodProxy import *
@@ -41,7 +42,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
     def Draw(self, drawoption=None):
         if drawoption is not None:
             self.SetDrawOption(drawoption)
-        super(Histo1D, self).Draw(self.GetDrawOption() + "same")
+        self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
 
     def Print(self, path, **kwargs):
         c = ROOT.TCanvas("canvas")
