@@ -96,7 +96,7 @@ class MethodProxy(object):
         templatename = kwargs.pop("template", None)
         if templatename:
             properties.update(self._templates[templatename])
-        properties.update(kwargs)
+        properties.update({k:v for k, v in kwargs.items() if v is not None})
         for property, args in properties.items():
             self.DeclareProperty(property, args)
 
