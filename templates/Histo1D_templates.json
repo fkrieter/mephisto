@@ -21,8 +21,13 @@
         "linewidth":        2,
         "linecoloralpha":   ["#000000", 1.0],
         "fillstyle":        0,
-        "fillcolor":        ["#000000", 1.0],
+        "fillcoloralpha":   ["#000000", 1.0],
         "markerstyle":      20,
         "markercolor":      "#000000"
+    },
+    "errorband": {
+        "drawoption":       "E2",
+        "fillstyle":        3151,
+        "fillcoloralpha":   ["#000000", 0.6]
     }
 }

@@ -6,6 +6,7 @@ import math
 from uuid import uuid4
 from array import array
 
+from Plot import Plot
 from MethodProxy import *
 from iomanager import iomanager
 
@@ -26,10 +27,11 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         else:
             raise TypeError
         self.Sumw2()
-        self._lowbinedges = iomanager._get_binning(self)
+        self._lowbinedges = iomanager._get_binning(self)["xbinning"]
 
     def Fill(self, filename, **kwargs):
         iomanager.fill_histo(self, filename, **kwargs)
+        self._setDefaultsAxisTitles(varexp=kwargs.get("varexp"))
 
     def SetDrawOption(self, string):
         if not isinstance(string, str) and not isinstance(string, unicode):
@@ -40,19 +42,53 @@ class Histo1D(MethodProxy, ROOT.TH1D):
     def GetDrawOption(self):
         return self._drawoption
 
+    def GetXTitle(self):
+        return self.GetXaxis().GetTitle()
+
+    def GetYTitle(self):
+        return self.GetYaxis().GetTitle()
+
     def Draw(self, drawoption=None):
         if drawoption is not None:
             self.SetDrawOption(drawoption)
         self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
 
+    def _setDefaultsAxisTitles(self, **kwargs):
+        self.SetXTitle(kwargs.get("varexp", ""))
+        ytitle = "Entries"
+        binwidths = list(set([self._lowbinedges[i+1] - self._lowbinedges[i] for i in \
+            range(len(self._lowbinedges) - 1)]))
+        if len(binwidths) != 1:
+            self.SetYTitle(self._ytitle)
+        else:
+            binwidth = binwidths[0]
+            self.SetYTitle("{} / {}".format(ytitle, int(binwidth) if \
+                binwidth.is_integer() else round(binwidth, 1)))
+
     def Print(self, path, **kwargs):
-        c = ROOT.TCanvas("canvas")
-        with UsingProperties(self, **kwargs):
-            c.cd()
-            self.Draw()
-            c.Print(path)
-        ROOT.gROOT.GetClass(c.__class__.__name__ ).Destructor(c)
-        del c
+        template = kwargs.pop("template", "signal")
+        units = kwargs.pop("units", None)
+        drawerrorband = kwargs.pop("drawerrorband", template == "background")
+        histoproperties = {k:v for k, v in kwargs.items() if k.lower() in \
+            self.GetListOfProperties()}
+        histoproperties["template"] = template
+        xtitle, ytitle = self.GetXTitle(), self.GetYTitle()
+        if units:
+            xtitle += " [{}]".format(str(units))
+            ytitle += " {}".format(str(units))
+        histoproperties.setdefault("xtitle", xtitle)
+        histoproperties.setdefault("ytitle", ytitle)
+        plotproperties = {k:v for k, v in kwargs.items() if k.lower() not in \
+            histoproperties.keys()}
+        plot = Plot()
+        plot.Register(self, **histoproperties)
+        if drawerrorband:
+            # TODO: Make errorband configurable via Print()'s kwargs
+            errorbandcolor = histoproperties.get("linecolor")
+            errorbandcoloralpha = histoproperties.get("linecoloralpha")
+            plot.Register(self, template="errorband", fillcolor=errorbandcolor,
+                fillcoloralpha=errorbandcoloralpha)
+        plot.Print(path, **plotproperties)
 
     def Add(self, histo, scale=1):
         raw_entries = self.GetEntries() + histo.GetEntries()
@@ -81,9 +117,14 @@ def main():
     print h
     print h.Integral()
     h.Print("test_histo_data.pdf",
-        template="data")
+        template="data",
+        units="GeV")
     h.Print("test_histo_background.pdf",
-        template="background")
+        template="background",
+        units="GeV")
+    h.Print("test_histo_signal.pdf",
+        template="signal",
+        units="GeV")
 
 if __name__ == '__main__':
     main()
