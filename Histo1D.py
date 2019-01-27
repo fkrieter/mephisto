@@ -18,8 +18,9 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             if isinstance(args[0], list):
                 lowbinedges = array("d", args[0])
                 ROOT.TH1D.__init__(self, name, "", len(lowbinedges)-1, lowbinedges)
-            elif isinstance(args[0], ROOT.TH1D):
-                self = args[0].Clone(name)
+            elif isinstance(args[0], ROOT.TH1D) or isinstance(args[0], Histo1D):
+                ROOT.TH1D.__init__(self, args[0].Clone(name))
+                self.SetDirectory(0)
         elif len(args) == 3 and isinstance(args[0], int):
             ROOT.TH1D.__init__(self, name, "", *args)
         else:
