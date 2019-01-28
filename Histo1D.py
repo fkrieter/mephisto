@@ -78,9 +78,15 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             ytitle += " {}".format(str(units))
         histoproperties.setdefault("xtitle", xtitle)
         histoproperties.setdefault("ytitle", ytitle)
-        plotproperties = {k:v for k, v in kwargs.items() if k.lower() not in \
-            histoproperties.keys()}
         plot = Plot()
+        plotproperties = {k:v for k, v in kwargs.items() if k.lower() in \
+            plot.GetListOfProperties()}
+        for key in list(histoproperties.keys() + plotproperties.keys()):
+            if key in kwargs.keys():
+                del kwargs[key]
+        if kwargs:
+            raise KeyError("Unknown keyword argument(s) '{}'".format(
+                ', '.join(kwargs.keys())))
         plot.Register(self, **histoproperties)
         if drawerrorband:
             # TODO: Make errorband configurable via Print()'s kwargs

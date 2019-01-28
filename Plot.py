@@ -8,9 +8,10 @@ from Pad import Pad
 from MethodProxy import *
 
 
-class Plot(object):
+class Plot(MethodProxy):
 
     def __init__(self):
+        MethodProxy.__init__(self)
         self._store = defaultdict(list)
 
     def Register(self, object, pad=0, **kwargs):
@@ -23,11 +24,9 @@ class Plot(object):
         canvas.SetFillStyle(4000) # transparent background
         canvas.Draw()
         canvas.cd()
-        pads = []
         npads = len(self._store)
         for i, objects in self._store.items():
-            pads.append(Pad("{}_pad{}".format(canvas.GetName(), i)))
-            pad = pads[i]
+            pad = Pad("{}_pad{}".format(canvas.GetName(), i))
             pad.DeclareProperties(template="{};{}".format(npads, i))
             pad.Draw()
             pad.cd()
