@@ -10,46 +10,62 @@ from logger import logger
 from Helpers import ColorID
 
 
+def PreloadProperties(cls):
+    # Decorator for classes inheriting from MethodProxy.
+    # Loads all properties and corresponding methods class-wide
+    # before creating an instance of the class.
+    # (https://stackoverflow.com/a/13900861)
+    cls._loadProperties()
+    return cls
+    
+
 class MethodProxy(object):
 
-    def __init__(self):
-        self._cache = {}
-        self._templates = {}
-        self._methods = []
-        self._properties = []
-        childcls = self.__class__
+    _methods = []
+    _properties = []
+
+    @classmethod
+    def _loadProperties(cls):
         # Consider this:
         # 1. There are some setters for which there is no corresponding getter.
         # 2. We don't want a proxy for getters (and their corresponding setters),
         #    which require an argument.
         # 3. For each getter there should be a setter.
-        setter = [f for f in dir(childcls) if f.startswith("Set") \
-            and callable(getattr(childcls, f))]
-        getter = [f for f in dir(childcls) if f.startswith("Get") \
-            and callable(getattr(childcls, f))]
-        unwntd_getter = [f for f in getter if getattr(childcls, \
+        setter = [f for f in dir(cls) if f.startswith("Set") \
+            and callable(getattr(cls, f))]
+        getter = [f for f in dir(cls) if f.startswith("Get") \
+            and callable(getattr(cls, f))]
+        unwntd_getter = [f for f in getter if getattr(cls, \
             f).func_code.co_argcount >= 2]
-        self._methods += [f for f in setter if "Get{}".format(f[3:]) not in \
+        cls._methods = [f for f in setter if "Get{}".format(f[3:]) not in \
             unwntd_getter] + [f for f in getter if "Set{}".format(f[3:]) in setter \
             and f not in unwntd_getter]
-        self._properties = sorted(set([f[3:].lower() for f in self._methods \
+        cls._properties = sorted(set([f[3:].lower() for f in cls._methods \
             if f[3:] != ""]))
+
+    def __init__(self):
+        if len(self._methods) == 0 or len(self._properties) == 1:
+            logger.debug("Loading properties for '{}'...".format(self.__class__))
+            self._loadProperties()
+        self._cache = {}
+        self._templates = {}
         jsonpath = "templates/{}_templates.json".format(self.__class__.__name__)
         if os.path.exists(jsonpath):
             self._templates = json.load(open(jsonpath))
-        # print self._methods
 
-    def GetListOfProperties(self):
-        return self._properties
+    @classmethod
+    def GetListOfProperties(cls):
+        return cls._properties
 
-    def PrintAvailableProperties(self):
+    @classmethod
+    def PrintAvailableProperties(cls):
         def chunks(l, n):
             # Yield successive n-sized chunks from l.
             # (https://stackoverflow.com/a/312464)
             for i in range(0, len(l), n):
                 yield l[i:i + n]
-        print self.__class__.__name__, "has the following properties:"
-        for chunk in chunks(self._properties, 5):
+        print cls.__name__, "has the following properties:"
+        for chunk in chunks(cls._properties, 5):
             print " "*4 + "".join([format(p, '<20') for p in chunk])
 
     def CacheProperties(self):
@@ -73,6 +89,7 @@ class MethodProxy(object):
             raise KeyError("Ambigious property '{}'! Matched to '{}'".format(
                 property, ', '.join(match)))
         if isinstance(args, tuple) or isinstance(args, list):
+            args = list(args)
             if "color" in property.lower():
                 args[0] = ColorID(args[0])
             try:

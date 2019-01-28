@@ -11,7 +11,9 @@ from MethodProxy import *
 from iomanager import iomanager
 
 
+@PreloadProperties
 class Histo1D(MethodProxy, ROOT.TH1D):
+
     def __init__ (self, name="undefined", *args, **kwargs):
         self._drawoption = ""
         MethodProxy.__init__(self)
@@ -119,7 +121,7 @@ def main():
 
     filename = "data/ds_data18.root"
     h = Histo1D("test", 20, 0., 400.)
-    h.PrintAvailableProperties()
+    Histo1D.PrintAvailableProperties()
     h.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
     print h
     print h.Integral()

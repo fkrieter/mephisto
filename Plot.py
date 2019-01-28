@@ -6,9 +6,10 @@ from collections import defaultdict
 
 from Pad import Pad
 from Canvas import Canvas
-from MethodProxy import MethodProxy, UsingProperties
+from MethodProxy import *
 
 
+@PreloadProperties
 class Plot(MethodProxy):
 
     def __init__(self):

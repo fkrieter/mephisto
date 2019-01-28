@@ -2,9 +2,10 @@
 
 import ROOT
 
-from MethodProxy import MethodProxy
+from MethodProxy import *
 
 
+@PreloadProperties
 class Canvas(MethodProxy, ROOT.TCanvas):
 
     def __init__(self, *args, **kwargs):

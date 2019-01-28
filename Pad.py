@@ -2,9 +2,10 @@
 
 import ROOT
 
-from MethodProxy import MethodProxy
+from MethodProxy import *
 
 
+@PreloadProperties
 class Pad(MethodProxy, ROOT.TPad):
 
     def __init__(self, name="undefined", *args, **kwargs):
