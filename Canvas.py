@@ -14,5 +14,8 @@ class Canvas(MethodProxy, ROOT.TCanvas):
         self.Draw()
         self.cd()
 
+    def GetCanvasSize(self):
+        return (float(self.GetWw()), float(self.GetWh()))
+
     def Delete(self):
         ROOT.gROOT.GetClass(self.__class__.__base__.__name__).Destructor(self)

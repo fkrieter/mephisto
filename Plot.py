@@ -21,8 +21,8 @@ class Plot(MethodProxy):
     def Print(self, path):
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
-        canvas = Canvas("test", fillstyle=4000)
         npads = len(self._store)
+        canvas = Canvas("test", template=str(npads))
         for i, objects in self._store.items():
             pad = Pad("{}_pad{}".format(canvas.GetName(), i),
                 template="{};{}".format(npads, i))
@@ -32,6 +32,8 @@ class Plot(MethodProxy):
                 with UsingProperties(obj, **properties):
                     obj.Draw(obj.GetDrawOption() + suffix)
                 suffix = "same"
+                # legend = pad.BuildLegend()
+                # legend.Draw(suffix)
         canvas.Print(path)
         canvas.Delete()
 
