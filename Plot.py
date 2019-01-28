@@ -5,7 +5,8 @@ import ROOT
 from collections import defaultdict
 
 from Pad import Pad
-from MethodProxy import *
+from Canvas import Canvas
+from MethodProxy import MethodProxy, UsingProperties
 
 
 class Plot(MethodProxy):
@@ -20,16 +21,11 @@ class Plot(MethodProxy):
     def Print(self, path):
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
-        canvas = ROOT.TCanvas("test")
-        canvas.SetFillStyle(4000) # transparent background
-        canvas.Draw()
-        canvas.cd()
+        canvas = Canvas("test", fillstyle=4000)
         npads = len(self._store)
         for i, objects in self._store.items():
-            pad = Pad("{}_pad{}".format(canvas.GetName(), i))
-            pad.DeclareProperties(template="{};{}".format(npads, i))
-            pad.Draw()
-            pad.cd()
+            pad = Pad("{}_pad{}".format(canvas.GetName(), i),
+                template="{};{}".format(npads, i))
             canvas.SetSelectedPad(pad)
             suffix = ""
             for obj, properties in self._store[0]:
@@ -37,8 +33,7 @@ class Plot(MethodProxy):
                     obj.Draw(obj.GetDrawOption() + suffix)
                 suffix = "same"
         canvas.Print(path)
-        ROOT.gROOT.GetClass(canvas.__class__.__name__ ).Destructor(canvas)
-        del canvas
+        canvas.Delete()
 
 
 
