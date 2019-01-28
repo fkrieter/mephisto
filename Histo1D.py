@@ -12,7 +12,7 @@ from iomanager import iomanager
 
 
 class Histo1D(MethodProxy, ROOT.TH1D):
-    def __init__ (self, name="undefined", *args):
+    def __init__ (self, name="undefined", *args, **kwargs):
         self._drawoption = ""
         MethodProxy.__init__(self)
         if len(args) == 1:
@@ -27,6 +27,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         else:
             raise TypeError
         self.Sumw2()
+        self.DeclareProperties(**kwargs)
         self._lowbinedges = iomanager._get_binning(self)["xbinning"]
 
     def Fill(self, filename, **kwargs):
