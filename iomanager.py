@@ -7,6 +7,7 @@ import uuid
 import ROOT
 
 from logger import logger
+from Helpers import CheckPath
 
 import root_numpy as rnp
 
@@ -72,9 +73,9 @@ class iomanager(object):
         """Fill a given histograms with events from a tree.
 
         The given histogram will be filled with values for the `varexp` for all events
-        assing the `cuts` and weighted by `weight`. Via the `overwrite` option one can
+        assing the `cuts` and weighted by `weight`. Via the `append` option one can
         decide whether the given histogram should be overwritten or if the new entries
-        should be added to its existing content. Basis for the input is the specified
+        should be appended to its existing content. Basis for the input is the specified
         `tree` of the `infile`.
 
         The histogram is filled using ROOT's TTree::Project method.
@@ -98,11 +99,11 @@ class iomanager(object):
         :param weight: number or branch name to be applied as a weight (default: '1')
         :type weight: str
 
-        :param overwrite: overwrite or append entries to the specified `histo` (default:\
-        True)
-        :type overwrite: bool
+        :param append: append or overwrite entries to the specified `histo` (default:\
+        False)
+        :type append: bool
         """
-        overwrite = kwargs.pop("overwrite", True)
+        append = kwargs.pop("append", False)
         kwargs.update(iomanager._get_binning(histo))
         varexp = kwargs.get("varexp")
         histoname = histo.GetName()
@@ -114,10 +115,10 @@ class iomanager(object):
             assert(histoclass.startswith("TH2"))
         else: raise NotImplementedError
         htmp = iomanager.get_histo(infile, **kwargs)
-        if overwrite:
-            htmp.Copy(histo)
-        else:
+        if append:
             histo.Add(htmp)
+        else:
+            htmp.Copy(histo)
         del htmp
         histo.SetName(histoname)
         histo.SetTitle(histotitle)
@@ -196,9 +197,11 @@ class iomanager(object):
         """
         for binning in ["xbinning", "ybinning"]:
             kwargs[binning] = iomanager._convert_binning(kwargs.get(binning), csv=True)
+        h = iomanager._get_histo(infile, **kwargs)
         return iomanager._get_histo(infile, **kwargs)
 
     @staticmethod
+    @CheckPath(mode="r")
     def _get_histo(infile, **kwargs):
         # Returns a TH1D with the given parameters and fills it via TTree::Project.
         # Uses binning in CSV format for faster caching.
