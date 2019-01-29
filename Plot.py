@@ -15,11 +15,18 @@ class Plot(MethodProxy):
     def __init__(self):
         MethodProxy.__init__(self)
         self._store = defaultdict(list)
+        self._mkdirs = False
 
     def Register(self, object, pad=0, **kwargs):
         self._store[pad].append((object, kwargs))
 
-    def Print(self, path):
+    def SetMkdirs(self, boolean):
+        self._mkdirs = boolean
+
+    def GetMkdirs(self):
+        return self._mkdirs
+
+    def Print(self, path, **kwargs):
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
         npads = len(self._store)
