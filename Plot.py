@@ -7,6 +7,7 @@ from collections import defaultdict
 from Pad import Pad
 from Canvas import Canvas
 from MethodProxy import *
+from Helpers import CheckPath
 
 
 @PreloadProperties
@@ -26,6 +27,7 @@ class Plot(MethodProxy):
     def GetMkdirs(self):
         return self._mkdirs
 
+    @CheckPath(mode="w")
     def Print(self, path, **kwargs):
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
@@ -43,6 +45,7 @@ class Plot(MethodProxy):
                 # legend = pad.BuildLegend()
                 # legend.Draw(suffix)
         canvas.Print(path)
+        logger.info("Created plot: '{}'".format(path))
         canvas.Delete()
 
 
