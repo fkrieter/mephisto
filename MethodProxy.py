@@ -17,7 +17,7 @@ def PreloadProperties(cls):
     # (https://stackoverflow.com/a/13900861)
     cls._loadProperties()
     return cls
-    
+
 
 class MethodProxy(object):
 
@@ -44,7 +44,7 @@ class MethodProxy(object):
             if f[3:] != ""]))
 
     def __init__(self):
-        if len(self._methods) == 0 or len(self._properties) == 1:
+        if len(self.__class__._methods) == 0 or len(self.__class__._properties) == 0:
             logger.debug("Loading properties for '{}'...".format(self.__class__))
             self._loadProperties()
         self._cache = {}
@@ -69,7 +69,7 @@ class MethodProxy(object):
             print " "*4 + "".join([format(p, '<20') for p in chunk])
 
     def CacheProperties(self):
-        for getter in [g for g in self._methods if g.startswith("Get")]:
+        for getter in [g for g in self.__class__._methods if g.startswith("Get")]:
             property = getter[3:].lower()
             self._cache[property] = getattr(self, getter)()
 
@@ -82,7 +82,7 @@ class MethodProxy(object):
                     property))
             self.DeclareProperties(**self._templates[args])
         regex = re.compile("Set{}$".format(property), re.IGNORECASE)
-        match = list(filter(regex.match, self._methods))
+        match = list(filter(regex.match, self.__class__._methods))
         if not match:
             raise KeyError("Unknown property '{}'!".format(property))
         elif len(match) > 1:
