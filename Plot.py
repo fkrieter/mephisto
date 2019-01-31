@@ -16,10 +16,24 @@ class Plot(MethodProxy):
     def __init__(self):
         MethodProxy.__init__(self)
         self._store = defaultdict(list)
+        self._padproperties = defaultdict(dict)
         self._mkdirs = False
+        # TODO:
+        # * Infer axis ranges before DrawFrame
+        # * Helper function to disentangle kwargs and check for unknown ones
+        # * set default x/y minimum with respect to log flag
 
     def Register(self, object, pad=0, **kwargs):
-        self._store[pad].append((object, kwargs))
+        assert(isinstance(pad, int))
+        objectproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
+            object.GetListOfProperties() + ["template"]}
+        padproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
+            Pad.GetListOfProperties()}
+        if set(objectproperties.keys()) & set(["xtitle", "ytitle"]):
+            padproperties.setdefault("title", ";{};{}".format(
+                objectproperties.get("xtitle"), objectproperties.get("ytitle")))
+        self._store[pad].append((object, objectproperties))
+        self._padproperties[pad].update(padproperties)
 
     def SetMkdirs(self, boolean):
         self._mkdirs = boolean
@@ -29,19 +43,22 @@ class Plot(MethodProxy):
 
     @CheckPath(mode="w")
     def Print(self, path, **kwargs):
+        plotproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
+            Plot.GetListOfProperties() + ["template"]}
+        canvasproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
+            Canvas.GetListOfProperties()}
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
         npads = len(self._store)
-        canvas = Canvas("test", template=str(npads))
-        for i, objects in self._store.items():
+        canvas = Canvas("test", template=str(npads), **canvasproperties)
+        for i, store in self._store.items():
             pad = Pad("{}_pad{}".format(canvas.GetName(), i),
-                template="{};{}".format(npads, i))
+                template="{};{}".format(npads, i), **self._padproperties[i])
+            pad.DrawFrame(0., 1., 400, 1000.)
             canvas.SetSelectedPad(pad)
-            suffix = ""
-            for obj, properties in self._store[0]:
+            for obj, properties in store:
                 with UsingProperties(obj, **properties):
-                    obj.Draw(obj.GetDrawOption() + suffix)
-                suffix = "same"
+                    obj.Draw(obj.GetDrawOption() + "same")
                 # legend = pad.BuildLegend()
                 # legend.Draw(suffix)
         canvas.Print(path)

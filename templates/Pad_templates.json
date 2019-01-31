@@ -7,6 +7,13 @@
         "rightmargin":      0.075,
         "fillstyle":        4000,
         "fillcolor":        0,
+        "xmin":             1e-2,
+        "xmax":             1.0,
+        "ymin":             1e-2,
+        "ymax":             1.0,
+        "gridx":            0,
+        "gridy":            0,
+        "logx":             false,
         "logy":             true
     }
 }
