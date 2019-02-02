@@ -42,16 +42,20 @@ class MethodProxy(object):
             and f not in unwntd_getter]
         cls._properties = sorted(set([f[3:].lower() for f in cls._methods \
             if f[3:] != ""]))
+        cls._templates = {}
+        jsonpath = "templates/{}_templates.json".format(cls.__name__)
+        if os.path.exists(jsonpath):
+            cls._templates = json.load(open(jsonpath))
 
     def __init__(self):
         if len(self.__class__._methods) == 0 or len(self.__class__._properties) == 0:
             logger.debug("Loading properties for '{}'...".format(self.__class__))
             self._loadProperties()
         self._cache = {}
-        self._templates = {}
-        jsonpath = "templates/{}_templates.json".format(self.__class__.__name__)
-        if os.path.exists(jsonpath):
-            self._templates = json.load(open(jsonpath))
+
+    @classmethod
+    def GetTemplate(cls, template):
+        return cls._templates[template]
 
     @classmethod
     def GetListOfProperties(cls):
@@ -68,6 +72,10 @@ class MethodProxy(object):
         for chunk in chunks(cls._properties, 5):
             print " "*4 + "".join([format(p, '<20') for p in chunk])
 
+    @classmethod
+    def GetClassName(cls):
+        return cls.__name__
+
     def CacheProperties(self):
         for getter in [g for g in self.__class__._methods if g.startswith("Get")]:
             property = getter[3:].lower()
@@ -80,7 +88,7 @@ class MethodProxy(object):
             if not isinstance(args, str):
                 raise ValueError("Expected property '{}' to be of type 'str'!".format(
                     property))
-            self.DeclareProperties(**self._templates[args])
+            self.DeclareProperties(**cls._templates[args])
         regex = re.compile("Set{}$".format(property), re.IGNORECASE)
         match = list(filter(regex.match, self.__class__._methods))
         if not match:
