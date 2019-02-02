@@ -17,6 +17,22 @@ def ColorID(color):
     else:
         raise TypeError
 
+def DissectProperties(propdict, listofobj):
+    # Disentangles a dictionary of properties and associates the entries to the given
+    # list of objects or classes (must inherit from MethodProxy) in a consecutive
+    # manner. The key 'template' will be associated to the first entry in the list.
+    properties = {}
+    for obj in listofobj:
+        clsname = obj.GetClassName()
+        clsprops = obj.GetListOfProperties()
+        clsprops += ["template"]
+        properties[clsname] = {k:propdict.pop(k) for k, v in propdict.items() if k in
+            clsprops}
+    if propdict:
+        raise KeyError("Unknown keyword argument(s) '{}'".format(
+            ', '.join(propdict.keys())))
+    return properties
+
 
 def CheckPath(mode="r"):
     # Decorator for functions and methods with a filepath as their first argument (not
@@ -65,3 +81,12 @@ def CheckPath(mode="r"):
 
         return wrapper
     return decorator
+
+
+def MergeDicts(*dicts):
+    # Merge an arbitrary number of dictionaries. If multiple dictionaries contain the
+    # same key, the last one in the list will define the final value in the output.
+    merged = dicts[0].copy()
+    for d in dicts[1:]:
+        merged.update(d)
+    return merged
