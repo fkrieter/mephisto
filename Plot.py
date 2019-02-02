@@ -7,7 +7,7 @@ from collections import defaultdict
 from Pad import Pad
 from Canvas import Canvas
 from MethodProxy import *
-from Helpers import CheckPath
+from Helpers import CheckPath, DissectProperties
 
 
 @PreloadProperties
@@ -20,20 +20,18 @@ class Plot(MethodProxy):
         self._mkdirs = False
         # TODO:
         # * Infer axis ranges before DrawFrame
-        # * Helper function to disentangle kwargs and check for unknown ones
         # * set default x/y minimum with respect to log flag
 
     def Register(self, object, pad=0, **kwargs):
         assert(isinstance(pad, int))
-        objectproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
-            object.GetListOfProperties() + ["template"]}
-        padproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
-            Pad.GetListOfProperties()}
-        if set(objectproperties.keys()) & set(["xtitle", "ytitle"]):
-            padproperties.setdefault("title", ";{};{}".format(
-                objectproperties.get("xtitle"), objectproperties.get("ytitle")))
-        self._store[pad].append((object, objectproperties))
-        self._padproperties[pad].update(padproperties)
+        properties = DissectProperties(kwargs, [object, Pad])
+        objclsname = object.__class__.__name__
+        if set(properties[objclsname].keys()) & set(["xtitle", "ytitle"]):
+            properties["Pad"].setdefault("title", ";{};{}".format(
+                properties[objclsname].get("xtitle"),
+                properties[objclsname].get("ytitle")))
+        self._store[pad].append((object, properties[objclsname]))
+        self._padproperties[pad].update(properties["Pad"])
 
     def SetMkdirs(self, boolean):
         self._mkdirs = boolean
@@ -43,14 +41,11 @@ class Plot(MethodProxy):
 
     @CheckPath(mode="w")
     def Print(self, path, **kwargs):
-        plotproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
-            Plot.GetListOfProperties() + ["template"]}
-        canvasproperties = {k:kwargs.pop(k) for k,v in list(kwargs.items()) if k in
-            Canvas.GetListOfProperties()}
+        properties = DissectProperties(kwargs, [Plot, Canvas])
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
         npads = len(self._store)
-        canvas = Canvas("test", template=str(npads), **canvasproperties)
+        canvas = Canvas("test", template=str(npads), **properties["Canvas"])
         for i, store in self._store.items():
             pad = Pad("{}_pad{}".format(canvas.GetName(), i),
                 template="{};{}".format(npads, i), **self._padproperties[i])
