@@ -8,15 +8,18 @@ from array import array
 
 from Plot import Plot
 from MethodProxy import *
+from Canvas import Canvas
 from iomanager import iomanager
+from Helpers import DissectProperties, MergeDicts
 
 
 @PreloadProperties
 class Histo1D(MethodProxy, ROOT.TH1D):
 
     def __init__ (self, name="undefined", *args, **kwargs):
-        self._drawoption = ""
         MethodProxy.__init__(self)
+        self._drawoption = ""
+        self._drawerrorband = False
         if len(args) == 1:
             if isinstance(args[0], list):
                 lowbinedges = array("d", args[0])
@@ -45,6 +48,12 @@ class Histo1D(MethodProxy, ROOT.TH1D):
     def GetDrawOption(self):
         return self._drawoption
 
+    def SetDrawErrorband(self, boolean):
+        self._drawerrorband = boolean
+
+    def GetDrawErrorband(self):
+        return self._drawerrorband
+
     def GetXTitle(self):
         return self.GetXaxis().GetTitle()
 
@@ -69,35 +78,24 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 binwidth.is_integer() else round(binwidth, 1)))
 
     def Print(self, path, **kwargs):
-        template = kwargs.pop("template", "signal")
         units = kwargs.pop("units", None)
-        drawerrorband = kwargs.pop("drawerrorband", template == "background")
-        histoproperties = {k:v for k, v in kwargs.items() if k.lower() in \
-            self.GetListOfProperties()}
-        histoproperties["template"] = template
+        properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas])
         xtitle, ytitle = self.GetXTitle(), self.GetYTitle()
         if units:
             xtitle += " [{}]".format(str(units))
             ytitle += " {}".format(str(units))
-        histoproperties.setdefault("xtitle", xtitle)
-        histoproperties.setdefault("ytitle", ytitle)
+        properties["Histo1D"].setdefault("xtitle", xtitle)
+        properties["Histo1D"].setdefault("ytitle", ytitle)
         plot = Plot()
-        plotproperties = {k:v for k, v in kwargs.items() if k.lower() in \
-            plot.GetListOfProperties()}
-        for key in list(histoproperties.keys() + plotproperties.keys()):
-            if key in kwargs.keys():
-                del kwargs[key]
-        if kwargs:
-            raise KeyError("Unknown keyword argument(s) '{}'".format(
-                ', '.join(kwargs.keys())))
-        plot.Register(self, **histoproperties)
-        if drawerrorband:
-            # TODO: Make errorband configurable via Print()'s kwargs
-            errorbandcolor = histoproperties.get("linecolor")
-            errorbandcoloralpha = histoproperties.get("linecoloralpha")
+        plot.Register(self, **properties["Histo1D"])
+        print self.GetTemplate(properties["Histo1D"]["template"])
+        if properties["Histo1D"].get("drawerrorband", \
+            self.GetTemplate(properties["Histo1D"]["template"])["drawerrorband"]):
+            errorbandcolor = properties["Histo1D"].get("linecolor")
+            errorbandcoloralpha = properties["Histo1D"].get("linecoloralpha")
             plot.Register(self, template="errorband", fillcolor=errorbandcolor,
                 fillcoloralpha=errorbandcoloralpha)
-        plot.Print(path, **plotproperties)
+        plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
     def Add(self, histo, scale=1):
         raw_entries = self.GetEntries() + histo.GetEntries()

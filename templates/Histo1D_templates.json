@@ -5,7 +5,8 @@
         "linewidth":        2,
         "linecoloralpha":   ["#000000", 1.0],
         "fillstyle":        1001,
-        "fillcoloralpha":   ["#2b2bff", 1.0]
+        "fillcoloralpha":   ["#2b2bff", 1.0],
+        "drawerrorband":    true
     },
     "signal": {
         "drawoption":       "HIST",
@@ -13,7 +14,8 @@
         "linewidth":        3,
         "linecoloralpha":   ["#ff0000", 1.0],
         "fillstyle":        1001,
-        "fillcoloralpha":   ["#ffffff", 0.0]
+        "fillcoloralpha":   ["#ffffff", 0.0],
+        "drawerrorband":    false
     },
     "data": {
         "drawoption":       "P2L",
@@ -23,7 +25,8 @@
         "fillstyle":        0,
         "fillcoloralpha":   ["#000000", 1.0],
         "markerstyle":      20,
-        "markercolor":      "#000000"
+        "markercolor":      "#000000",
+        "drawerrorband":    false
     },
     "errorband": {
         "drawoption":       "E2",
