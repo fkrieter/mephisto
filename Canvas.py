@@ -8,6 +8,8 @@ from MethodProxy import *
 @PreloadProperties
 class Canvas(MethodProxy, ROOT.TCanvas):
 
+    _ignore_properties = ["logx", "logy", "logz"] # exclusive properties of Pad
+
     def __init__(self, *args, **kwargs):
         MethodProxy.__init__(self)
         ROOT.TCanvas.__init__(self, *args)
