@@ -25,6 +25,7 @@ class MethodProxy(object):
 
     _methods = []
     _properties = []
+    _ignore_properties = []
 
     @classmethod
     def _loadProperties(cls):
@@ -38,7 +39,7 @@ class MethodProxy(object):
         getter = [f for f in dir(cls) if f.startswith("Get") \
             and callable(getattr(cls, f))]
         unwntd_getter = [f for f in getter if getattr(cls, \
-            f).func_code.co_argcount >= 2]
+            f).func_code.co_argcount >= 2 or f[3:].lower() in cls._ignore_properties]
         cls._methods = [f for f in setter if "Get{}".format(f[3:]) not in \
             unwntd_getter] + [f for f in getter if "Set{}".format(f[3:]) in setter \
             and f not in unwntd_getter]
