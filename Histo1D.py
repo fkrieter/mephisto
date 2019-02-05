@@ -6,6 +6,7 @@ import math
 from uuid import uuid4
 from array import array
 
+from Pad import Pad
 from Plot import Plot
 from MethodProxy import *
 from Canvas import Canvas
@@ -34,6 +35,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self.Sumw2()
         self.DeclareProperties(**kwargs)
         self._lowbinedges = iomanager._get_binning(self)["xbinning"]
+        self._nbins = len(self._lowbinedges) - 1
 
     def Fill(self, filename, **kwargs):
         iomanager.fill_histo(self, filename, **kwargs)
@@ -77,24 +79,42 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             self.SetYTitle("{} / {}".format(ytitle, int(binwidth) if \
                 binwidth.is_integer() else round(binwidth, 1)))
 
+    def _getDefaultPadFrame(self, **kwargs):
+        template = kwargs.get("template", "1;0")
+        scale = kwargs.get("scale", 1.2) # default: frame is 20% higher than maximum
+        frame = {
+            "xmin": self._lowbinedges[0], "xmax": self._lowbinedges[self._nbins],
+            "ymin": 0.0, "ymax": self.GetMaximum()
+        }
+        if kwargs.get("logx", Pad.GetTemplate(template)["logx"]):
+            frame["xmin"] = 1e-2
+        if kwargs.get("logy", Pad.GetTemplate(template)["logy"]):
+            frame["ymin"] = 1e-2
+            frame["ymax"] = 10**(scale*math.log10(10**(math.log10(frame["ymax"]) - \
+                math.log10(frame["ymin"]))) + math.log10(frame["ymin"]))
+        else:
+            frame["ymax"] *= scale
+        return frame
+
     def Print(self, path, **kwargs):
         units = kwargs.pop("units", None)
-        properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas])
+        properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas, Pad])
         xtitle, ytitle = self.GetXTitle(), self.GetYTitle()
         if units:
             xtitle += " [{}]".format(str(units))
             ytitle += " {}".format(str(units))
         properties["Histo1D"].setdefault("xtitle", xtitle)
         properties["Histo1D"].setdefault("ytitle", ytitle)
+        properties["Pad"].update(self._getDefaultPadFrame(template="1;0",
+            **properties["Pad"]))
         plot = Plot()
-        plot.Register(self, **properties["Histo1D"])
-        print self.GetTemplate(properties["Histo1D"]["template"])
+        plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
         if properties["Histo1D"].get("drawerrorband", \
             self.GetTemplate(properties["Histo1D"]["template"])["drawerrorband"]):
             errorbandcolor = properties["Histo1D"].get("linecolor")
             errorbandcoloralpha = properties["Histo1D"].get("linecoloralpha")
             plot.Register(self, template="errorband", fillcolor=errorbandcolor,
-                fillcoloralpha=errorbandcoloralpha)
+                fillcoloralpha=errorbandcoloralpha, **properties["Pad"])
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
     def Add(self, histo, scale=1):
@@ -125,13 +145,16 @@ def main():
     print h.Integral()
     h.Print("test_histo_data.pdf",
         template="data",
-        units="GeV")
+        units="GeV",
+        logy=False)
     h.Print("test_histo_background.pdf",
         template="background",
-        units="GeV")
+        units="GeV",
+        logy=False)
     h.Print("test_histo_signal.pdf",
         template="signal",
-        units="GeV")
+        units="GeV",
+        logy=True)
 
 if __name__ == '__main__':
     main()

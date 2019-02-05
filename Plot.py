@@ -49,7 +49,7 @@ class Plot(MethodProxy):
         for i, store in self._store.items():
             pad = Pad("{}_pad{}".format(canvas.GetName(), i),
                 template="{};{}".format(npads, i), **self._padproperties[i])
-            pad.DrawFrame(0., 1., 400, 1000.)
+            pad.DrawFrame()
             canvas.SetSelectedPad(pad)
             for obj, properties in store:
                 with UsingProperties(obj, **properties):
