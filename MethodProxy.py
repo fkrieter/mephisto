@@ -91,7 +91,7 @@ class MethodProxy(object):
             if not isinstance(args, str):
                 raise ValueError("Expected property '{}' to be of type 'str'!".format(
                     property))
-            self.DeclareProperties(**cls._templates[args])
+            self.DeclareProperties(**self.__class__._templates[args])
         regex = re.compile("Set{}$".format(property), re.IGNORECASE)
         match = list(filter(regex.match, self.__class__._methods))
         if not match:
