@@ -18,9 +18,7 @@ class Plot(MethodProxy):
         self._store = defaultdict(list)
         self._padproperties = defaultdict(dict)
         self._mkdirs = False
-        # TODO:
-        # * Infer axis ranges before DrawFrame
-        # * set default x/y minimum with respect to log flag
+        self._style = "Classic"
 
     def Register(self, object, pad=0, **kwargs):
         assert(isinstance(pad, int))
@@ -39,6 +37,13 @@ class Plot(MethodProxy):
     def GetMkdirs(self):
         return self._mkdirs
 
+    def SetStyle(self, style):
+        self._style = style
+        ROOT.gROOT.SetStyle(style)
+
+    def GetStyle(self):
+        return self._style
+
     @CheckPath(mode="w")
     def Print(self, path, **kwargs):
         properties = DissectProperties(kwargs, [Plot, Canvas])
@@ -56,6 +61,7 @@ class Plot(MethodProxy):
                     obj.Draw(obj.GetDrawOption() + "same")
                 # legend = pad.BuildLegend()
                 # legend.Draw(suffix)
+            pad.RedrawAxis()
         canvas.Print(path)
         logger.info("Created plot: '{}'".format(path))
         canvas.Delete()

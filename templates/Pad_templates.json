@@ -1,10 +1,10 @@
 {
     "1;0": {
         "padposition":      [0.0, 0.0, 1.0, 1.0],
-        "topmargin":        0.065,
-        "bottommargin":     0.155,
-        "leftmargin":       0.150,
-        "rightmargin":      0.075,
+        "topmargin":        0.05,
+        "bottommargin":     0.1,
+        "leftmargin":       0.1,
+        "rightmargin":      0.05,
         "fillstyle":        4000,
         "fillcolor":        0,
         "xmin":             1e-2,
