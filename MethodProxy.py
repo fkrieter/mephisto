@@ -4,6 +4,8 @@ import os
 import re
 import json
 
+from collections import OrderedDict
+
 import logging
 from logger import logger
 
@@ -120,7 +122,7 @@ class MethodProxy(object):
                 pass
 
     def DeclareProperties(self, **kwargs):
-        properties = {}
+        properties = OrderedDict() # template props are overwritten if set manually
         templatename = kwargs.pop("template", None)
         if templatename:
             properties.update(self._templates[templatename])
