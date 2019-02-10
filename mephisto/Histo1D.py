@@ -181,7 +181,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
 def main():
 
-    filename = "data/ds_data18.root"
+    filename = "../data/ds_data18.root"
     h = Histo1D("test", 20, 0., 400.)
     Histo1D.PrintAvailableProperties()
     h.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")

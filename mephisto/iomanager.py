@@ -255,15 +255,15 @@ class iomanager(object):
 
 def main():
 
-    if not os.path.exists("data"):
-        os.mkdir("data")
-    testfile = "data/test.root"
+    if not os.path.exists("../data"):
+        os.mkdir("../data")
+    testfile = "../data/test.root"
     if not os.path.isfile(testfile):
         iomanager.create_test_sample(testfile)
 
     histo = ROOT.TH1D("histo_branch_0", "", 200, -4., 4.)
     histo.Sumw2()
-    iomanager.fill_histo(histo, "data/test.root",
+    iomanager.fill_histo(histo, testfile,
         tree="tree",
         varexp="branch_0",
         cuts=["branch_0>0.1", "branch_1>0.25"])

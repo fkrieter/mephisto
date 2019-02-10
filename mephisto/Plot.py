@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     from Histo1D import Histo1D
 
-    filename = "data/ds_data18.root"
+    filename = "../data/ds_data18.root"
     h1 = Histo1D("test1", 20, 0., 400.)
     h2 = Histo1D("test2", 20, 0., 400.)
     h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
