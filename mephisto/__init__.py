@@ -14,3 +14,8 @@ ROOT.gErrorIgnoreLevel = 2000
     # kBreak    =   4000
     # kSysError =   5000
     # kFatal    =   6000
+
+from Pad import Pad
+from Plot import Plot
+from Canvas import Canvas
+from Histo1D import Histo1D
