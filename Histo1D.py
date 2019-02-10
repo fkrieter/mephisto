@@ -5,6 +5,7 @@ import ROOT
 import math
 from uuid import uuid4
 from array import array
+from collections import defaultdict
 
 from Pad import Pad
 from Plot import Plot
@@ -32,13 +33,38 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             ROOT.TH1D.__init__(self, name, "", *args)
         else:
             raise TypeError
+        if not name.endswith("_errorband"):
+            self._errorband = Histo1D("{}_errorband".format(self.GetName()), self)
+            self.__class__._properties += ["errorband{}".format(p) for p in
+                self.__class__._properties] # *append* properties of members!
         self.Sumw2()
         self.DeclareProperties(**kwargs)
         self._lowbinedges = iomanager._get_binning(self)["xbinning"]
         self._nbins = len(self._lowbinedges) - 1
+        self._attalpha = defaultdict(lambda:1.0)
+
+    def DeclareProperty(self, property, args):
+        # Properties starting with "errorband" will be applied to self._errorband.
+        # All errorband properties will be applied after the main histo properties.
+        # By default the errorband fillcolor and markercolor matches the histograms
+        # linecolor.
+        property = property.lower()
+        if property.startswith("errorband"):
+            super(Histo1D, self._errorband).DeclareProperty(property[9:], args)
+        else:
+            super(Histo1D, self).DeclareProperty(property, args)
+            if property == "linecolor":
+                errbndcol = args
+            elif property == "linecoloralpha":
+                errbndcol = args[0]
+            else:
+                return
+            super(Histo1D, self._errorband).DeclareProperty("fillcolor", errbndcol)
+            super(Histo1D, self._errorband).DeclareProperty("markercolor", errbndcol)
 
     def Fill(self, filename, **kwargs):
         iomanager.fill_histo(self, filename, **kwargs)
+        self._errorband.Add(self)
         self._setDefaultsAxisTitles(varexp=kwargs.get("varexp"))
 
     def SetDrawOption(self, string):
@@ -66,6 +92,9 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         if drawoption is not None:
             self.SetDrawOption(drawoption)
         self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
+        if self._drawerrorband:
+            self._errorband.DrawCopy(self._errorband.GetDrawOption() + "SAME",
+                "_{}".format(uuid4().hex[:8]))
 
     def _setDefaultsAxisTitles(self, **kwargs):
         self.SetXTitle(kwargs.get("varexp", ""))
@@ -109,12 +138,6 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             **properties["Pad"]))
         plot = Plot()
         plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
-        if properties["Histo1D"].get("drawerrorband", \
-            self.GetTemplate(properties["Histo1D"]["template"])["drawerrorband"]):
-            errorbandcolor = properties["Histo1D"].get("linecolor")
-            errorbandcoloralpha = properties["Histo1D"].get("linecoloralpha")
-            plot.Register(self, template="errorband", fillcolor=errorbandcolor,
-                fillcoloralpha=errorbandcoloralpha, **properties["Pad"])
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
     def Add(self, histo, scale=1):
@@ -132,6 +155,27 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         xaxis.SetLabelSize(xaxis.GetLabelSize() * scale )
         xaxis.SetBinLabel(index, label)
         self.LabelsOption(option)
+
+    def SetLineAlpha(self, alpha):
+        self._attalpha["line"] = alpha
+        self.SetLineColorAlpha(self.GetLineColor(), alpha)
+
+    def SetFillAlpha(self, alpha):
+        self._attalpha["fill"] = alpha
+        self.SetFillColorAlpha(self.GetFillColor(), alpha)
+
+    def SetMarkerAlpha(self, alpha):
+        self._attalpha["marker"] = alpha
+        self.SetMarkerColorAlpha(self.GetMarkerColor(), alpha)
+
+    def SetLineColor(self, color):
+        self.SetLineColorAlpha(color, self._attalpha["line"])
+
+    def SetFillColor(self, color):
+        self.SetFillColorAlpha(color, self._attalpha["fill"])
+
+    def SetMarkerColor(self, color):
+        self.SetMarkerColorAlpha(color, self._attalpha["marker"])
 
 
 
@@ -154,6 +198,8 @@ def main():
     h.Print("test_histo_signal.pdf",
         template="signal",
         units="GeV",
+        linecolor=ROOT.kViolet,
+        drawerrorband=True,
         logy=True)
 
 if __name__ == '__main__':
