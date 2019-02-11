@@ -36,9 +36,9 @@ class iomanager(object):
 
         The output file contains one tree with `nevents` number of entries represented
         by `nbranches` branches. Random numbers for each branch are drawn according to a
-        gaussian distribution centered around zero and with unit width. The name of the
-        output tree is given by `tree` and the branches are of the form 'branch_0',
-        'branch_1', ...
+        chisquare distribution with a mean indicated by the branch index. The name of the
+        output tree is given by `tree` and the branches are of the form 'branch_1',
+        'branch_2', ...
 
         Numbers are drawn using numpy's random module and the output file is created
         using root_numpy's array2root function.
@@ -55,15 +55,16 @@ class iomanager(object):
         :param tree: name of the output tree (default 'tree')
         :type tree: str
         """
-        basedir = os.path.exists(os.path.abspath(path))
+        basedir = os.path.abspath(path)
         if not basedir:
             logger.error("Directory '{}' does not exist!".format(basedir))
             raise IOError("Path not found!")
         nevents = int(kwargs.get("nevents", 1e4))
         nbranches = int(kwargs.get("nbranches", 10))
         treename = kwargs.get("tree", "tree")
-        array = np.core.records.fromarrays(np.random.normal(size=(nbranches, nevents)),
-            names=",".join(["branch_{}".format(i) for i in range(nbranches)]))
+        array = np.core.records.fromarrays(np.transpose(np.random.chisquare( \
+            range(1, nbranches+1, 1), size=(nevents, nbranches))), \
+            names=",".join(["branch_{}".format(i+1) for i in range(nbranches)]))
         rnp.array2root(array, path, treename=treename, mode="recreate")
         if os.path.isfile(path):
             logger.info("Created '{}'.".format(path))
@@ -258,15 +259,14 @@ def main():
     if not os.path.exists("../data"):
         os.mkdir("../data")
     testfile = "../data/test.root"
-    if not os.path.isfile(testfile):
-        iomanager.create_test_sample(testfile)
+    iomanager.create_test_sample(testfile)
 
-    histo = ROOT.TH1D("histo_branch_0", "", 200, -4., 4.)
+    histo = ROOT.TH1D("histo_branch_1", "", 200, 0., 10.)
     histo.Sumw2()
     iomanager.fill_histo(histo, testfile,
         tree="tree",
-        varexp="branch_0",
-        cuts=["branch_0>0.1", "branch_1>0.25"])
+        varexp="branch_5",
+        cuts=["branch_1>0.1", "branch_2>0.25"])
     canvas = ROOT.TCanvas()
     canvas.cd()
     histo.Draw("HIST")
