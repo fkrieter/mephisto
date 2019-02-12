@@ -12,12 +12,14 @@ from Helpers import CheckPath, DissectProperties
 
 @PreloadProperties
 class Plot(MethodProxy):
-    def __init__(self):
+    def __init__(self, **kwargs):
         MethodProxy.__init__(self)
         self._store = defaultdict(list)
         self._padproperties = defaultdict(dict)
         self._mkdirs = False
         self._style = "Classic"
+        kwargs.setdefault("template", "ATLAS")
+        self.DeclareProperties(**kwargs)
 
     def Register(self, object, pad=0, **kwargs):
         assert isinstance(pad, int)
