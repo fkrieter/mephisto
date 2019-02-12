@@ -61,7 +61,7 @@ class MethodProxy(object):
             set([f[3:].lower() for f in cls._methods if f[3:] != ""])
         )
         cls._templates = {}
-        jsonpath = "{}/../templates/{}_templates.json".format(__filedir__, cls.__name__)
+        jsonpath = "{}/templates/{}_templates.json".format(__filedir__, cls.__name__)
         if os.path.exists(jsonpath):
             cls._templates = json.load(open(jsonpath))
 
