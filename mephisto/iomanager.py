@@ -31,6 +31,7 @@ class iomanager(object):
     _registered_histos = {}
 
     @staticmethod
+    @CheckPath(mode="w")
     def create_test_sample(path, **kwargs):
         """Creates a ROOT file with toy data to be used for tests.
 
