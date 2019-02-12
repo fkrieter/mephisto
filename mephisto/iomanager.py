@@ -36,8 +36,8 @@ class iomanager(object):
 
         The output file contains one tree with `nevents` number of entries represented
         by `nbranches` branches. Random numbers for each branch are drawn according to a
-        chisquare distribution with a mean indicated by the branch index. The name of the
-        output tree is given by `tree` and the branches are of the form 'branch_1',
+        chisquare distribution with a mean indicated by the branch index. The name of
+        the output tree is given by `tree` and the branches are of the form 'branch_1',
         'branch_2', ...
 
         Numbers are drawn using numpy's random module and the output file is created
@@ -62,9 +62,14 @@ class iomanager(object):
         nevents = int(kwargs.get("nevents", 1e4))
         nbranches = int(kwargs.get("nbranches", 10))
         treename = kwargs.get("tree", "tree")
-        array = np.core.records.fromarrays(np.transpose(np.random.chisquare( \
-            range(1, nbranches+1, 1), size=(nevents, nbranches))), \
-            names=",".join(["branch_{}".format(i+1) for i in range(nbranches)]))
+        array = np.core.records.fromarrays(
+            np.transpose(
+                np.random.chisquare(
+                    range(1, nbranches + 1, 1), size=(nevents, nbranches)
+                )
+            ),
+            names=",".join(["branch_{}".format(i + 1) for i in range(nbranches)]),
+        )
         rnp.array2root(array, path, treename=treename, mode="recreate")
         if os.path.isfile(path):
             logger.info("Created '{}'.".format(path))
@@ -111,10 +116,11 @@ class iomanager(object):
         histotitle = histo.GetTitle()
         histoclass = histo.ClassName()
         if not ":" in varexp:
-            assert(histoclass.startswith("TH1"))
+            assert histoclass.startswith("TH1")
         elif len(varexp.split(":") == 2):
-            assert(histoclass.startswith("TH2"))
-        else: raise NotImplementedError
+            assert histoclass.startswith("TH2")
+        else:
+            raise NotImplementedError
         htmp = iomanager.get_histo(infile, **kwargs)
         if append:
             histo.Add(htmp)
@@ -134,19 +140,21 @@ class iomanager(object):
         elif isinstance(unformatted_binning, dict):
             formatted_binning_dict = {}
             for label, binning in unformatted_binning.items():
-                formatted_binning_dict[label] = iomanager._convert_binning(binning,
-                    **kwargs)
+                formatted_binning_dict[label] = iomanager._convert_binning(
+                    binning, **kwargs
+                )
             return formatted_binning_dict
         elif isinstance(unformatted_binning, tuple):
             nbins, minval, maxval = unformatted_binning
-            assert(isinstance(nbins, int))
+            assert isinstance(nbins, int)
             minval = float(minval)
             maxval = float(maxval)
             step = (maxval - minval) / nbins
-            formatted_binning = [minval + (i*step) for i in range(nbins + 1)]
+            formatted_binning = [minval + (i * step) for i in range(nbins + 1)]
         elif isinstance(unformatted_binning, list):
             formatted_binning = sorted(unformatted_binning)
-        else: raise TypeError
+        else:
+            raise TypeError
         if csv_format:
             return ",".join([str(b) for b in formatted_binning])
         return formatted_binning
@@ -157,8 +165,9 @@ class iomanager(object):
         binning = {}
         for coord in ["x", "y", "z"]:
             axis = getattr(histo, "Get{}axis".format(coord.capitalize()))()
-            binning[coord + "binning"] = [float(axis.GetBinLowEdge(i)) for i in \
-                range(1, axis.GetNbins() + 2, 1)]
+            binning[coord + "binning"] = [
+                float(axis.GetBinLowEdge(i)) for i in range(1, axis.GetNbins() + 2, 1)
+            ]
         return binning
 
     @staticmethod
@@ -221,9 +230,11 @@ class iomanager(object):
             htmp = ROOT.TH1D(name, title, len(xbinning) - 1, xbinning)
         elif len(varexp.split(":")) == 2:
             ybinning = array("d", [float(y) for y in kwargs.get("ybinning").split(",")])
-            htmp = ROOT.TH2D(name, title, len(xbinning) - 1, xbinning,
-                len(ybinning) - 1, ybinning)
-        else: raise NotImplementedError
+            htmp = ROOT.TH2D(
+                name, title, len(xbinning) - 1, xbinning, len(ybinning) - 1, ybinning
+            )
+        else:
+            raise NotImplementedError
         htmp.Sumw2()
         tfile = ROOT.TFile.Open(infile, "read")
         ttree = tfile.Get(treename)
@@ -234,10 +245,17 @@ class iomanager(object):
         htmp.SetDirectory(0)
         tfile.Close()
         if nevts < 0:
-            logger.error("Failed to project varexp='{}', cuts={}, weight='{}' onto "
+            logger.error(
+                "Failed to project varexp='{}', cuts={}, weight='{}' onto "
                 "histogram '{}'. Tree '{}' contains the following branches:\n{}".format(
-                    varexp, cuts, weight, name, treename,
-                    "'" + "', '".join(iomanager._get_list_of_branches(ttree)) + "'"))
+                    varexp,
+                    cuts,
+                    weight,
+                    name,
+                    treename,
+                    "'" + "', '".join(iomanager._get_list_of_branches(ttree)) + "'",
+                )
+            )
             tfile.Close()
             raise TypeError("Variable compilation failed!")
         htmp.SetEntries(nevts)
@@ -252,8 +270,6 @@ class iomanager(object):
         return branches
 
 
-
-
 def main():
 
     if not os.path.exists("../data"):
@@ -261,17 +277,20 @@ def main():
     testfile = "../data/test.root"
     iomanager.create_test_sample(testfile)
 
-    histo = ROOT.TH1D("histo_branch_1", "", 200, 0., 10.)
+    histo = ROOT.TH1D("histo_branch_1", "", 200, 0.0, 10.0)
     histo.Sumw2()
-    iomanager.fill_histo(histo, testfile,
+    iomanager.fill_histo(
+        histo,
+        testfile,
         tree="tree",
         varexp="branch_5",
-        cuts=["branch_1>0.1", "branch_2>0.25"])
+        cuts=["branch_1>0.1", "branch_2>0.25"],
+    )
     canvas = ROOT.TCanvas()
     canvas.cd()
     histo.Draw("HIST")
     canvas.SaveAs("test.pdf")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

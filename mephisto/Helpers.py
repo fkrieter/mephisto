@@ -17,6 +17,7 @@ def ColorID(color):
     else:
         raise TypeError
 
+
 def DissectProperties(propdict, listofobj):
     # Disentangles a dictionary of properties and associates the entries to the given
     # list of objects or classes (must inherit from MethodProxy) in a consecutive
@@ -26,11 +27,13 @@ def DissectProperties(propdict, listofobj):
         clsname = obj.GetClassName()
         clsprops = obj.GetListOfProperties()
         clsprops += ["template"]
-        properties[clsname] = {k:propdict.pop(k) for k, v in propdict.items() if k in
-            clsprops}
+        properties[clsname] = {
+            k: propdict.pop(k) for k, v in propdict.items() if k in clsprops
+        }
     if propdict:
-        raise KeyError("Unknown keyword argument(s) '{}'".format(
-            ', '.join(propdict.keys())))
+        raise KeyError(
+            "Unknown keyword argument(s) '{}'".format(", ".join(propdict.keys()))
+        )
     return properties
 
 
@@ -38,10 +41,9 @@ def CheckPath(mode="r"):
     # Decorator for functions and methods with a filepath as their first argument (not
     # counting 'self' etc.).
 
-    assert(mode in ["r", "w"]) # read / write
+    assert mode in ["r", "w"]  # read / write
 
     def decorator(func):
-
         def check(filepath, overwrite=True, mkdir=False):
             # If the file exists and overwrite=False raise an exception.
             # If file does not exist check if all directories in the given path exist.
@@ -51,9 +53,11 @@ def CheckPath(mode="r"):
             if os.path.isfile(filepath):
                 if mode == "w":
                     if overwrite:
-                        logger.debug("Existing file '{}' will be overwritten".format(
-                            filepath))
-                    else: raise IOError("File already exists: '{}'".format(filepath))
+                        logger.debug(
+                            "Existing file '{}' will be overwritten".format(filepath)
+                        )
+                    else:
+                        raise IOError("File already exists: '{}'".format(filepath))
             else:
                 if mode == "r":
                     raise IOError("File does not exist: '{}'".format(filepath))
@@ -72,14 +76,15 @@ def CheckPath(mode="r"):
             args = list(args)
             if args:
                 if bool(func.__name__ in dir(args[0])):
-                    if len(args) > 1: idx = 1
-                else: idx = 0
-                args[idx] = check(args[idx],
-                    overwrite=overwrite,
-                    mkdir=mkdir)
+                    if len(args) > 1:
+                        idx = 1
+                else:
+                    idx = 0
+                args[idx] = check(args[idx], overwrite=overwrite, mkdir=mkdir)
             return func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 

@@ -7,7 +7,6 @@ from MethodProxy import *
 
 @PreloadProperties
 class Pad(MethodProxy, ROOT.TPad):
-
     def __init__(self, name="undefined", *args, **kwargs):
         self._xmin = self._ymin = 1e-2
         self._xmax = self._ymax = 1.0
@@ -17,7 +16,12 @@ class Pad(MethodProxy, ROOT.TPad):
             self._xposup, self._yposup = args[2:4]
             ROOT.TPad.__init__(self, name, "", *args)
         else:
-            self._xposlow, self._yposlow, self._xposup, self._yposup = 0., 0., 1., 1.
+            self._xposlow, self._yposlow, self._xposup, self._yposup = (
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+            )
             ROOT.TPad.__init__(self)
             self.SetName(name)
         self.DeclareProperties(**kwargs)
@@ -65,15 +69,19 @@ class Pad(MethodProxy, ROOT.TPad):
         self._ymax = ymax
 
     def SetLogx(self, boolean):
-        if boolean and self.GetXMin()*self.GetXMax() <= 0:
-            raise ValueError("Cannot set 'logx' to '{}' on axis with negative"
-                " values!".format(boolean))
+        if boolean and self.GetXMin() * self.GetXMax() <= 0:
+            raise ValueError(
+                "Cannot set 'logx' to '{}' on axis with negative"
+                " values!".format(boolean)
+            )
         super(Pad, self).SetLogx(boolean)
 
     def SetLogy(self, boolean):
-        if boolean and self.GetYMin()*self.GetYMax() <= 0:
-            raise ValueError("Cannot set 'logy' to '{}' on axis with negative"
-                " values!".format(boolean))
+        if boolean and self.GetYMin() * self.GetYMax() <= 0:
+            raise ValueError(
+                "Cannot set 'logy' to '{}' on axis with negative"
+                " values!".format(boolean)
+            )
         super(Pad, self).SetLogy(boolean)
 
     def DrawFrame(self, *args):
@@ -81,9 +89,12 @@ class Pad(MethodProxy, ROOT.TPad):
             for i, prop in enumerate(["xmin", "ymin", "xmax", "ymax"]):
                 self.DeclareProperty(prop, args[i])
         elif len(args) != 0:
-            raise TypeError("DrawFrame() takes exactly 0 or 4 arguments"
-                " ({} given)".format(len(args)))
-        assert(self._xmin < self._xmax)
-        assert(self._ymin < self._ymax)
-        super(Pad, self).DrawFrame(self._xmin, self._ymin, self._xmax, self._ymax,
-            self.GetTitle())
+            raise TypeError(
+                "DrawFrame() takes exactly 0 or 4 arguments"
+                " ({} given)".format(len(args))
+            )
+        assert self._xmin < self._xmax
+        assert self._ymin < self._ymax
+        super(Pad, self).DrawFrame(
+            self._xmin, self._ymin, self._xmax, self._ymax, self.GetTitle()
+        )

@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
 
+from __future__ import print_function
+
 import os
 import re
 import json
@@ -36,17 +38,28 @@ class MethodProxy(object):
         # 2. We don't want a proxy for getters (and their corresponding setters),
         #    which require an argument.
         # 3. For each getter there should be a setter.
-        setter = [f for f in dir(cls) if f.startswith("Set") \
-            and callable(getattr(cls, f))]
-        getter = [f for f in dir(cls) if f.startswith("Get") \
-            and callable(getattr(cls, f))]
-        unwntd_getter = [f for f in getter if getattr(cls, \
-            f).func_code.co_argcount >= 2 or f[3:].lower() in cls._ignore_properties]
-        cls._methods = [f for f in setter if "Get{}".format(f[3:]) not in \
-            unwntd_getter] + [f for f in getter if "Set{}".format(f[3:]) in setter \
-            and f not in unwntd_getter]
-        cls._properties = sorted(set([f[3:].lower() for f in cls._methods \
-            if f[3:] != ""]))
+        setter = [
+            f for f in dir(cls) if f.startswith("Set") and callable(getattr(cls, f))
+        ]
+        getter = [
+            f for f in dir(cls) if f.startswith("Get") and callable(getattr(cls, f))
+        ]
+        unwntd_getter = [
+            f
+            for f in getter
+            if getattr(cls, f).func_code.co_argcount >= 2
+            or f[3:].lower() in cls._ignore_properties
+        ]
+        cls._methods = [
+            f for f in setter if "Get{}".format(f[3:]) not in unwntd_getter
+        ] + [
+            f
+            for f in getter
+            if "Set{}".format(f[3:]) in setter and f not in unwntd_getter
+        ]
+        cls._properties = sorted(
+            set([f[3:].lower() for f in cls._methods if f[3:] != ""])
+        )
         cls._templates = {}
         jsonpath = "{}/../templates/{}_templates.json".format(__filedir__, cls.__name__)
         if os.path.exists(jsonpath):
@@ -72,10 +85,11 @@ class MethodProxy(object):
             # Yield successive n-sized chunks from l.
             # (https://stackoverflow.com/a/312464)
             for i in range(0, len(l), n):
-                yield l[i:i + n]
-        print cls.__name__, "has the following properties:"
+                yield l[i : i + n]
+
+        print(cls.__name__, "has the following properties:")
         for chunk in chunks(cls._properties, 5):
-            print " "*4 + "".join([format(p, '<20') for p in chunk])
+            print(" " * 4 + "".join([format(p, "<20") for p in chunk]))
 
     @classmethod
     def GetClassName(cls):
@@ -91,16 +105,20 @@ class MethodProxy(object):
             return
         if property == "template":
             if not isinstance(args, str):
-                raise ValueError("Expected property '{}' to be of type 'str'!".format(
-                    property))
+                raise ValueError(
+                    "Expected property '{}' to be of type 'str'!".format(property)
+                )
             self.DeclareProperties(**self.__class__._templates[args])
         regex = re.compile("Set{}$".format(property), re.IGNORECASE)
         match = list(filter(regex.match, self.__class__._methods))
         if not match:
             raise KeyError("Unknown property '{}'!".format(property))
         elif len(match) > 1:
-            raise KeyError("Ambigious property '{}'! Matched to '{}'".format(
-                property, ', '.join(match)))
+            raise KeyError(
+                "Ambigious property '{}'! Matched to '{}'".format(
+                    property, ", ".join(match)
+                )
+            )
         if isinstance(args, tuple) or isinstance(args, list):
             args = list(args)
             if "color" in property.lower():
@@ -123,13 +141,16 @@ class MethodProxy(object):
 
     def DeclareProperties(self, **kwargs):
         # The oder of application matches the one in cls._properties.
-        properties = {} # template props are overwritten if set manually
+        properties = {}  # template props are overwritten if set manually
         templatename = kwargs.pop("template", None)
         if templatename:
             properties.update(self._templates[templatename])
-        properties.update({k.lower():v for k, v in kwargs.items() if v is not None})
-        properties = OrderedDict(sorted(properties.items(), key=lambda x: \
-            self.__class__._properties.index(x[0])))
+        properties.update({k.lower(): v for k, v in kwargs.items() if v is not None})
+        properties = OrderedDict(
+            sorted(
+                properties.items(), key=lambda x: self.__class__._properties.index(x[0])
+            )
+        )
         for property, args in properties.items():
             self.DeclareProperty(property, args)
 
@@ -142,7 +163,6 @@ class MethodProxy(object):
 
 
 class UsingProperties(object):
-
     def __init__(self, object, **kwargs):
         self._object = object
         self._object.CacheProperties()

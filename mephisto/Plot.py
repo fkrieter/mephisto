@@ -12,7 +12,6 @@ from Helpers import CheckPath, DissectProperties
 
 @PreloadProperties
 class Plot(MethodProxy):
-
     def __init__(self):
         MethodProxy.__init__(self)
         self._store = defaultdict(list)
@@ -21,13 +20,17 @@ class Plot(MethodProxy):
         self._style = "Classic"
 
     def Register(self, object, pad=0, **kwargs):
-        assert(isinstance(pad, int))
+        assert isinstance(pad, int)
         properties = DissectProperties(kwargs, [object, Pad])
         objclsname = object.__class__.__name__
         if set(properties[objclsname].keys()) & set(["xtitle", "ytitle"]):
-            properties["Pad"].setdefault("title", ";{};{}".format(
-                properties[objclsname].get("xtitle"),
-                properties[objclsname].get("ytitle")))
+            properties["Pad"].setdefault(
+                "title",
+                ";{};{}".format(
+                    properties[objclsname].get("xtitle"),
+                    properties[objclsname].get("ytitle"),
+                ),
+            )
         self._store[pad].append((object, properties[objclsname]))
         self._padproperties[pad].update(properties["Pad"])
 
@@ -52,8 +55,11 @@ class Plot(MethodProxy):
         npads = len(self._store)
         canvas = Canvas("test", template=str(npads), **properties["Canvas"])
         for i, store in self._store.items():
-            pad = Pad("{}_pad{}".format(canvas.GetName(), i),
-                template="{};{}".format(npads, i), **self._padproperties[i])
+            pad = Pad(
+                "{}_pad{}".format(canvas.GetName(), i),
+                template="{};{}".format(npads, i),
+                **self._padproperties[i]
+            )
             pad.DrawFrame()
             canvas.SetSelectedPad(pad)
             for obj, properties in store:
@@ -67,14 +73,13 @@ class Plot(MethodProxy):
         canvas.Delete()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     from Histo1D import Histo1D
 
     filename = "../data/ds_data18.root"
-    h1 = Histo1D("test1", 20, 0., 400.)
-    h2 = Histo1D("test2", 20, 0., 400.)
+    h1 = Histo1D("test1", 20, 0.0, 400.0)
+    h2 = Histo1D("test2", 20, 0.0, 400.0)
     h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
     h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750")
 
