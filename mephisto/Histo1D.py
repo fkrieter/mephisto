@@ -19,6 +19,9 @@ from Helpers import DissectProperties, MergeDicts
 
 @PreloadProperties
 class Histo1D(MethodProxy, ROOT.TH1D):
+
+    ROOT.TH1.SetDefaultSumw2(True)
+
     def __init__(self, name="undefined", *args, **kwargs):
         MethodProxy.__init__(self)
         self._drawoption = ""
@@ -39,7 +42,6 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             self.__class__._properties += [
                 "errorband{}".format(p) for p in self.__class__._properties
             ]  # *append* properties of members!
-        self.Sumw2()
         self.DeclareProperties(**kwargs)
         self._lowbinedges = iomanager._get_binning(self)["xbinning"]
         self._nbins = len(self._lowbinedges) - 1
