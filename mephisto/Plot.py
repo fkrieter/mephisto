@@ -7,7 +7,7 @@ from collections import defaultdict
 from Pad import Pad
 from Canvas import Canvas
 from MethodProxy import *
-from Helpers import CheckPath, DissectProperties
+from Helpers import CheckPath, DissectProperties, MephistofyObject
 
 
 @PreloadProperties
@@ -21,11 +21,9 @@ class Plot(MethodProxy):
         kwargs.setdefault("template", "ATLAS")
         self.DeclareProperties(**kwargs)
 
+    @MephistofyObject()
     def Register(self, object, pad=0, **kwargs):
         assert isinstance(pad, int)
-        # TODO: Write a helper function for ROOT->MEPHISTO class substitution
-        if object.__class__.__name__.startswith("TH1"):
-            object = Histo1D("{}_Histo1D".format(object.GetName()), object)
         properties = DissectProperties(kwargs, [object, Pad])
         objclsname = object.__class__.__name__
         if set(properties[objclsname].keys()) & set(["xtitle", "ytitle"]):
@@ -85,19 +83,19 @@ if __name__ == "__main__":
 
     filename = "../data/ds_data18.root"
 
-    h1 = Histo1D("test1", 20, 0.0, 400.0)
-    h2 = Histo1D("test2", 20, 0.0, 400.0)
-    h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
-    h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750")
+    # h1 = Histo1D("test1", 20, 0.0, 400.0)
+    # h2 = Histo1D("test2", 20, 0.0, 400.0)
+    # h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
+    # h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750")
 
-    # h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
-    # h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
-    # iomanager.fill_histo(
-    #     h1, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650"
-    # )
-    # iomanager.fill_histo(
-    #     h2, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750"
-    # )
+    h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
+    h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
+    iomanager.fill_histo(
+        h1, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650"
+    )
+    iomanager.fill_histo(
+        h2, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750"
+    )
 
     p = Plot()
     p.Register(h1, 0, template="background", frame=[0, 0, 400, 1e3], logy=False)

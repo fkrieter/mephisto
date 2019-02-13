@@ -4,7 +4,6 @@ import ROOT
 
 import os
 
-import logging
 from logger import logger
 
 
@@ -95,3 +94,42 @@ def MergeDicts(*dicts):
     for d in dicts[1:]:
         merged.update(d)
     return merged
+
+
+def MephistofyObject():
+    # Decorator for functions and methods with a ROOT (or MEPHISTO) object as their
+    # first argument (not counting 'self' etc.).
+
+    def decorator(func):
+        def mephistofy(object):
+            # If the object class inherits from MethodProxy return the original object.
+            # If not substitute the object with an instance of the corresponding
+            # MEPHISTO class - imported here to avoid circular imports - by calling the
+            # copy constructor.
+            from Histo1D import Histo1D
+
+            clsname = object.__class__.__name__
+            if "MethodProxy" in [
+                basecls.__name__ for basecls in object.__class__.__bases__
+            ]:
+                return object
+            if clsname.startswith("TH1"):
+                return Histo1D("{}_mephistofied", object)
+            raise NotImplementedError
+
+        def wrapper(*args, **kwargs):
+            mkdir = kwargs.pop("mkdir", False)
+            overwrite = kwargs.pop("overwrite", True)
+            args = list(args)
+            if args:
+                if bool(func.__name__ in dir(args[0])):
+                    if len(args) > 1:
+                        idx = 1
+                else:
+                    idx = 0
+                args[idx] = mephistofy(args[idx])
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
