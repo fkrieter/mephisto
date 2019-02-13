@@ -66,10 +66,15 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             super(Histo1D, self._errorband).DeclareProperty("fillcolor", errbndcol)
             super(Histo1D, self._errorband).DeclareProperty("markercolor", errbndcol)
 
-    def Fill(self, filename, **kwargs):
-        iomanager.fill_histo(self, filename, **kwargs)
-        self._errorband.Add(self)
-        self._setDefaultsAxisTitles(varexp=kwargs.get("varexp"))
+    def Fill(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], str):
+            iomanager.fill_histo(self, args[0], **kwargs)
+            if not kwargs.get("append", False):
+                self._errorband.Reset()
+            self._errorband.Add(self)
+            self._setDefaultsAxisTitles(varexp=kwargs.get("varexp"))
+        else:
+            super(Histo1D, self).Fill(*args)
 
     def SetDrawOption(self, string):
         if not isinstance(string, str) and not isinstance(string, unicode):
