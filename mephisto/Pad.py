@@ -84,6 +84,15 @@ class Pad(MethodProxy, ROOT.TPad):
             )
         super(Pad, self).SetLogy(boolean)
 
+    def SetFrame(self, xmin, ymin, xmax, ymax):
+        self._xmin = xmin
+        self._ymin = ymin
+        self._xmax = xmax
+        self._ymax = ymax
+
+    def GetFrame(self):
+        return (self._xmin, self._ymin, self._xmax, self._ymax)
+
     def DrawFrame(self, *args):
         if len(args) == 4:
             for i, prop in enumerate(["xmin", "ymin", "xmax", "ymax"]):
