@@ -23,6 +23,9 @@ class Plot(MethodProxy):
 
     def Register(self, object, pad=0, **kwargs):
         assert isinstance(pad, int)
+        # TODO: Write a helper function for ROOT->MEPHISTO class substitution
+        if object.__class__.__name__.startswith("TH1"):
+            object = Histo1D("{}_Histo1D".format(object.GetName()), object)
         properties = DissectProperties(kwargs, [object, Pad])
         objclsname = object.__class__.__name__
         if set(properties[objclsname].keys()) & set(["xtitle", "ytitle"]):
@@ -78,14 +81,25 @@ class Plot(MethodProxy):
 if __name__ == "__main__":
 
     from Histo1D import Histo1D
+    from iomanager import iomanager
 
     filename = "../data/ds_data18.root"
+
     h1 = Histo1D("test1", 20, 0.0, 400.0)
     h2 = Histo1D("test2", 20, 0.0, 400.0)
     h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
     h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750")
 
+    # h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
+    # h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
+    # iomanager.fill_histo(
+    #     h1, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650"
+    # )
+    # iomanager.fill_histo(
+    #     h2, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750"
+    # )
+
     p = Plot()
-    p.Register(h1, 0, template="background")
+    p.Register(h1, 0, template="background", frame=[0, 0, 400, 1e3], logy=False)
     p.Register(h2, 0, template="signal")
     p.Print("plot_test.pdf")
