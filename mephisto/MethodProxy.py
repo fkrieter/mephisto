@@ -140,15 +140,23 @@ class MethodProxy(object):
                 pass
 
     def DeclareProperties(self, **kwargs):
-        # The oder of application matches the one in cls._properties.
-        properties = {}  # template props are overwritten if set manually
+        # First all template properties are updated with kwargs and then applied first.
+        # Secondly the residual kwargs are applied in the oder given by cls._properties.
+        properties = {}
         templatename = kwargs.pop("template", None)
         if templatename:
             properties.update(self._templates[templatename])
-        properties.update({k.lower(): v for k, v in kwargs.items() if v is not None})
+        properties.update(
+            {
+                k.lower(): v
+                for k, v in kwargs.items()
+                if k in list(properties.keys()) and v is not None
+            }
+        )
         properties = OrderedDict(
-            sorted(
-                properties.items(), key=lambda x: self.__class__._properties.index(x[0])
+            list(properties.items())
+            + sorted(
+                kwargs.items(), key=lambda x: self.__class__._properties.index(x[0])
             )
         )
         for property, args in properties.items():
