@@ -114,7 +114,7 @@ def MephistofyObject():
             ]:
                 return object
             if clsname.startswith("TH1"):
-                return Histo1D("{}_mephistofied", object)
+                return Histo1D("{}_mephistofied".format(object.GetName()), object)
             raise NotImplementedError
 
         def wrapper(*args, **kwargs):
