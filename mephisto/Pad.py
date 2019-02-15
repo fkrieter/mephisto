@@ -107,3 +107,6 @@ class Pad(MethodProxy, ROOT.TPad):
         super(Pad, self).DrawFrame(
             self._xmin, self._ymin, self._xmax, self._ymax, self.GetTitle()
         )
+
+    def SetYPadding(self, value):
+        pass

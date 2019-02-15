@@ -128,18 +128,21 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 )
             )
 
-    def _getDefaultPadFrame(self, **kwargs):
-        template = kwargs.get("template", "1;0")
-        scale = kwargs.get("scale", 1.2)  # default: frame is 20% higher than maximum
+    def BuildFrame(self, **kwargs):
+        scale = 1.0 + kwargs.get(
+            "ypadding", 0.2
+        )  # default: frame is 20% higher than maximum
+        logx = kwargs.get("logx", False)
+        logy = kwargs.get("logy", False)
         frame = {
             "xmin": self._lowbinedges[0],
             "xmax": self._lowbinedges[self._nbins],
             "ymin": 0.0,
             "ymax": self.GetMaximum(),
         }
-        if kwargs.get("logx", Pad.GetTemplate(template)["logx"]):
+        if logx:
             frame["xmin"] = 1e-2
-        if kwargs.get("logy", Pad.GetTemplate(template)["logy"]):
+        if logy:
             frame["ymin"] = 1e-2
             frame["ymax"] = 10 ** (
                 scale
@@ -161,9 +164,6 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             ytitle += " {}".format(str(units))
         properties["Histo1D"].setdefault("xtitle", xtitle)
         properties["Histo1D"].setdefault("ytitle", ytitle)
-        properties["Pad"].update(
-            self._getDefaultPadFrame(template="1;0", **properties["Pad"])
-        )
         plot = Plot()
         plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))

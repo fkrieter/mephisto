@@ -1,5 +1,10 @@
 {
+    "Classic": {
+        "style":    "Classic",
+        "npads":    1
+    },
     "ATLAS": {
-        "style":    "ATLAS"
+        "style":    "ATLAS",
+        "npads":    1
     }
 }
