@@ -30,9 +30,10 @@ def DissectProperties(propdict, listofobj):
             k: propdict.pop(k) for k, v in propdict.items() if k in clsprops
         }
     if propdict:
-        raise KeyError(
+        logger.error(
             "Unknown keyword argument(s) '{}'".format(", ".join(propdict.keys()))
         )
+        raise KeyError
     return properties
 
 
@@ -56,17 +57,20 @@ def CheckPath(mode="r"):
                             "Existing file '{}' will be overwritten".format(filepath)
                         )
                     else:
-                        raise IOError("File already exists: '{}'".format(filepath))
+                        logger.error("File already exists: '{}'".format(filepath))
+                        raise IOError
             else:
                 if mode == "r":
-                    raise IOError("File does not exist: '{}'".format(filepath))
+                    logger.error("File does not exist: '{}'".format(filepath))
+                    raise IOError
                 dir = os.path.dirname(filepath)
                 if not os.path.isdir(dir):
                     if mkdir:
                         os.makedirs(dir)
                         logger.info("Created directory '{}'".format(dir))
                     else:
-                        raise IOError("Directory '{}' does not exist!".format(dir))
+                        logger.error("Directory '{}' does not exist!".format(dir))
+                        raise IOError
             return filepath
 
         def wrapper(*args, **kwargs):
