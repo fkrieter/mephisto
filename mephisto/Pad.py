@@ -64,7 +64,7 @@ class Pad(MethodProxy, ROOT.TPad):
         self._ymin = ymin
 
     def SetYMax(self, ymax):
-        if self.GetLogx() and ymax <= 0:
+        if self.GetLogy() and ymax <= 0:
             raise ValueError("Cannot set 'ymax' to {} on log-axis!".format(ymax))
         self._ymax = ymax
 
