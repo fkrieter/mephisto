@@ -7,6 +7,7 @@
         "rightmargin":      0.05,
         "fillstyle":        4000,
         "fillcolor":        0,
+        "ytitle":           "Entries",
         "xmin":             1e-2,
         "xmax":             1.0,
         "ymin":             1e-2,

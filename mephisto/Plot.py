@@ -30,39 +30,31 @@ class Plot(MethodProxy):
     def GetNPads(self):
         return self._npads
 
-    @MephistofyObject()
-    def Register(self, object, pad=0, **kwargs):
-        assert isinstance(pad, int)
-        if pad >= self._npads:
+    def AssertPadIndex(self, idx):
+        assert isinstance(idx, int)
+        if idx >= self._npads:
             raise IndexError(
                 "Cannot register object '{}' to pad '{}': ".format(
-                    object.GetName(), pad
+                    object.GetName(), idx
                 )
                 + "Plot was initialized with 'npads={}' (default: 1)".format(
                     self._npads
                 )
             )
+
+    @MephistofyObject()
+    def Register(self, object, pad=0, **kwargs):
+        self.AssertPadIndex(pad)
         properties = DissectProperties(kwargs, [object, Pad])
         properties["Pad"]["template"] = "{};{}".format(self._npads, pad)
+        padtemplate = Pad.GetTemplate(properties["Pad"]["template"])
         objclsname = object.__class__.__name__
-        if set(properties[objclsname].keys()) & set(["xtitle", "ytitle"]):
-            properties["Pad"].setdefault(
-                "title",
-                ";{};{}".format(
-                    properties[objclsname].get("xtitle", ""),
-                    properties[objclsname].get("ytitle", ""),
-                ),
-            )
-        for key in ["logx", "logy"]:
-            self._padproperties[pad].setdefault(
-                key, Pad.GetTemplate(properties["Pad"]["template"])[key]
-            )
+        for key in ["logx", "logy", "xtitle", "ytitle", "xunits", "yunits"]:
+            self._padproperties[pad].setdefault(key, padtemplate.get(key, None))
             if key in properties["Pad"].keys():
                 self._padproperties[pad][key] = properties["Pad"][key]
-            else:
-                properties["Pad"].setdefault(key, self._padproperties[pad][key])
         try:
-            for key, value in object.BuildFrame(**properties["Pad"]).items():
+            for key, value in object.BuildFrame(**self._padproperties[pad]).items():
                 if (
                     key.endswith("max")
                     and self._padproperties[pad].get(key, value - 1) < value
@@ -71,6 +63,10 @@ class Plot(MethodProxy):
                     and self._padproperties[pad].get(key, value + 1) > value
                 ):
                     self._padproperties[pad][key] = value
+                if key.endswith("title"):
+                    tmpltval = padtemplate.get(key, None)
+                    if self._padproperties[pad].get(key, tmpltval) == tmpltval:
+                        self._padproperties[pad][key] = value
         except AttributeError:
             logger.warning(
                 "Cannot infer frame value ranges from {} object '{}'".format(
@@ -137,6 +133,6 @@ if __name__ == "__main__":
     )
 
     p = Plot()
-    p.Register(h1, 0, template="background", logy=False)
+    p.Register(h1, 0, template="background", logy=False, xunits="GeV")
     p.Register(h2, 0, template="signal")
     p.Print("plot_test.pdf")

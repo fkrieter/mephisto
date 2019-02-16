@@ -24,6 +24,9 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
     def __init__(self, name="undefined", *args, **kwargs):
         MethodProxy.__init__(self)
+        self._varexp = None
+        self._cuts = None
+        self._weight = None
         self._drawoption = ""
         self._drawerrorband = False
         if len(args) == 1:
@@ -67,12 +70,14 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             super(Histo1D, self._errorband).DeclareProperty("markercolor", errbndcol)
 
     def Fill(self, *args, **kwargs):
+        self._varexp = kwargs.get("varexp")
+        self._cuts = kwargs.get("cuts", [])
+        self._weight = kwargs.get("weight", "1")
         if len(args) == 1 and isinstance(args[0], str):
             iomanager.fill_histo(self, args[0], **kwargs)
             if not kwargs.get("append", False):
                 self._errorband.Reset()
             self._errorband.Add(self)
-            self._setDefaultsAxisTitles(varexp=kwargs.get("varexp"))
         else:
             super(Histo1D, self).Fill(*args)
 
@@ -106,27 +111,12 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 self._errorband.GetDrawOption() + "SAME", "_{}".format(uuid4().hex[:8])
             )
 
-    def _setDefaultsAxisTitles(self, **kwargs):
-        self.SetXTitle(kwargs.get("varexp", ""))
-        ytitle = "Entries"
-        binwidths = list(
-            set(
-                [
-                    self._lowbinedges[i + 1] - self._lowbinedges[i]
-                    for i in range(len(self._lowbinedges) - 1)
-                ]
-            )
-        )
-        if len(binwidths) != 1:
-            self.SetYTitle(self._ytitle)
-        else:
-            binwidth = binwidths[0]
-            self.SetYTitle(
-                "{} / {}".format(
-                    ytitle,
-                    int(binwidth) if binwidth.is_integer() else round(binwidth, 1),
-                )
-            )
+    def GetBinWidths(self):
+        binwidths = [
+            self._lowbinedges[i + 1] - self._lowbinedges[i]
+            for i in range(len(self._lowbinedges) - 1)
+        ]
+        return binwidths
 
     def BuildFrame(self, **kwargs):
         scale = 1.0 + kwargs.get(
@@ -134,11 +124,26 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         )  # default: frame is 20% higher than maximum
         logx = kwargs.get("logx", False)
         logy = kwargs.get("logy", False)
+        xtitle = kwargs.get("xtitle", None)
+        ytitle = kwargs.get("ytitle", "Entries")
+        xunits = kwargs.get("xunits", None)
+        if xtitle is None:
+            xtitle = self._varexp if self._varexp is not None else ""
+        binwidths = self.GetBinWidths()
+        if len(set(binwidths)) == 1:
+            binwidth = binwidths[0]
+            ytitle += " / {}".format(
+                int(binwidth) if binwidth.is_integer() else round(binwidth, 1)
+            )
+            if xunits:
+                ytitle += " {}".format(xunits)
         frame = {
             "xmin": self._lowbinedges[0],
             "xmax": self._lowbinedges[self._nbins],
             "ymin": 0.0,
             "ymax": self.GetMaximum(),
+            "xtitle": xtitle,
+            "ytitle": ytitle,
         }
         if logx:
             frame["xmin"] = 1e-2
@@ -218,8 +223,16 @@ def main():
     h.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
     print(h)
     print(h.Integral())
-    h.Print("test_histo_data.pdf", template="data", units="GeV", logy=False)
-    h.Print("test_histo_background.pdf", template="background", units="GeV", logy=False)
+    h.Print(
+        "test_histo_data.pdf", template="data", units="GeV", logy=False, xunits="GeV"
+    )
+    h.Print(
+        "test_histo_background.pdf",
+        template="background",
+        units="GeV",
+        logy=False,
+        xunits="GeV",
+    )
     h.Print(
         "test_histo_signal.pdf",
         template="signal",
@@ -227,6 +240,7 @@ def main():
         linecolor=ROOT.kViolet,
         drawerrorband=True,
         logy=True,
+        xunits="GeV",
     )
 
 
