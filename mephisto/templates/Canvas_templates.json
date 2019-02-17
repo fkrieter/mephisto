@@ -1,6 +1,14 @@
 {
-    "1": {
-        "canvassize":   [700, 500],
+    "common": {
         "fillstyle":    4000
+    },
+    "1": {
+        "canvassize":   [700, 500]
+    },
+    "2": {
+        "canvassize":   [700, 700]
+    },
+    "3": {
+        "canvassize":   [700, 900]
     }
 }

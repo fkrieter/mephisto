@@ -1,13 +1,11 @@
 {
-    "1;0": {
-        "padposition":      [0.0, 0.0, 1.0, 1.0],
+    "common": {
         "topmargin":        0.05,
         "bottommargin":     0.175,
         "leftmargin":       0.175,
         "rightmargin":      0.05,
         "fillstyle":        4000,
         "fillcolor":        0,
-        "ytitle":           "Entries",
         "xmin":             1e-2,
         "xmax":             1.0,
         "ymin":             1e-2,
@@ -16,5 +14,18 @@
         "gridy":            0,
         "logx":             false,
         "logy":             true
+    },
+    "1;0": {
+        "padposition":      [0.0, 0.0, 1.0, 1.0],
+        "ytitle":           "Entries"
+    },
+    "2;0": {
+        "padposition":      [0.0, 0.4, 1.0, 1.0],
+        "bottommargin":     0.0,
+        "ytitle":           "Entries"
+    },
+    "2;1": {
+        "padposition":      [0.0, 0.0, 1.0, 0.4],
+        "ytitle":           "Contribution"
     }
 }
