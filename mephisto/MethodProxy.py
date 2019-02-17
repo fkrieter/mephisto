@@ -73,7 +73,9 @@ class MethodProxy(object):
 
     @classmethod
     def GetTemplate(cls, template):
-        return cls._templates[template]
+        tmpltdict = dict(cls._templates.get("common", {}))
+        tmpltdict.update(cls._templates[template])
+        return tmpltdict
 
     @classmethod
     def GetListOfProperties(cls):
@@ -108,7 +110,7 @@ class MethodProxy(object):
                 raise ValueError(
                     "Expected property '{}' to be of type 'str'!".format(property)
                 )
-            self.DeclareProperties(**self.__class__._templates[args])
+            self.DeclareProperties(**self.GetTemplate(args))
         regex = re.compile("Set{}$".format(property), re.IGNORECASE)
         match = list(filter(regex.match, self.__class__._methods))
         if not match:
@@ -145,7 +147,7 @@ class MethodProxy(object):
         properties = {}
         templatename = kwargs.pop("template", None)
         if templatename:
-            properties.update(self._templates[templatename])
+            properties.update(self.GetTemplate(templatename))
         properties.update(
             {
                 k.lower(): v
