@@ -114,7 +114,7 @@ class Plot(MethodProxy):
 if __name__ == "__main__":
 
     from Histo1D import Histo1D
-    from iomanager import iomanager
+    from IOManager import IOManager
 
     filename = "../data/ds_data18.root"
 
@@ -125,10 +125,10 @@ if __name__ == "__main__":
 
     h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
     h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
-    iomanager.fill_histo(
+    IOManager.FillHistogram(
         h1, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650"
     )
-    iomanager.fill_histo(
+    IOManager.FillHistogram(
         h2, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750"
     )
 

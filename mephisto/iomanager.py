@@ -20,7 +20,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gErrorIgnoreLevel = 2000
 
 
-class iomanager(object):
+class IOManager(object):
     """Class for easy ROOT I/O.
 
     Can be used to read from and write to ROOT files. Multiple histograms from one tree
@@ -32,7 +32,7 @@ class iomanager(object):
 
     @staticmethod
     @CheckPath(mode="w")
-    def create_test_sample(path, **kwargs):
+    def CreateTestSample(path, **kwargs):
         """Creates a ROOT file with toy data to be used for tests.
 
         The output file contains one tree with `nevents` number of entries represented
@@ -76,7 +76,7 @@ class iomanager(object):
             logger.info("Created '{}'.".format(path))
 
     @staticmethod
-    def fill_histo(histo, infile, **kwargs):
+    def FillHistogram(histo, infile, **kwargs):
         """Fill a given histograms with events from a tree.
 
         The given histogram will be filled with values for the `varexp` for all events
@@ -111,7 +111,7 @@ class iomanager(object):
         :type append: bool
         """
         append = kwargs.pop("append", False)
-        kwargs.update(iomanager._get_binning(histo))
+        kwargs.update(IOManager._getBinning(histo))
         varexp = kwargs.get("varexp")
         histoname = histo.GetName()
         histotitle = histo.GetTitle()
@@ -122,7 +122,7 @@ class iomanager(object):
             assert histoclass.startswith("TH2")
         else:
             raise NotImplementedError
-        htmp = iomanager.get_histo(infile, **kwargs)
+        htmp = IOManager.GetHistogram(infile, **kwargs)
         if append:
             histo.Add(htmp)
         else:
@@ -132,7 +132,7 @@ class iomanager(object):
         histo.SetTitle(histotitle)
 
     @staticmethod
-    def _convert_binning(unformatted_binning, **kwargs):
+    def _convertBinning(unformatted_binning, **kwargs):
         # Converts a binning dict or tuple/list into a "friendly" dict or list:
         # New binning will be a list of bin low-edges.
         csv_format = kwargs.get("csv", False)
@@ -141,7 +141,7 @@ class iomanager(object):
         elif isinstance(unformatted_binning, dict):
             formatted_binning_dict = {}
             for label, binning in unformatted_binning.items():
-                formatted_binning_dict[label] = iomanager._convert_binning(
+                formatted_binning_dict[label] = IOManager._convertBinning(
                     binning, **kwargs
                 )
             return formatted_binning_dict
@@ -161,7 +161,7 @@ class iomanager(object):
         return formatted_binning
 
     @staticmethod
-    def _get_binning(histo):
+    def _getBinning(histo):
         # Get binning (list of bin low-edges) of a histogram for all coordinates.
         binning = {}
         for coord in ["x", "y", "z"]:
@@ -172,7 +172,7 @@ class iomanager(object):
         return binning
 
     @staticmethod
-    def get_histo(infile, **kwargs):
+    def GetHistogram(infile, **kwargs):
         """Create a histograms filled with events from a tree.
 
         The created histogram will be filled with values for the `varexp` for all events
@@ -207,13 +207,13 @@ class iomanager(object):
         :returntype: ROOT.TH1D, ROOT.TH2D
         """
         for binning in ["xbinning", "ybinning"]:
-            kwargs[binning] = iomanager._convert_binning(kwargs.get(binning), csv=True)
-        h = iomanager._get_histo(infile, **kwargs)
-        return iomanager._get_histo(infile, **kwargs)
+            kwargs[binning] = IOManager._convertBinning(kwargs.get(binning), csv=True)
+        h = IOManager._getHistogram(infile, **kwargs)
+        return IOManager._getHistogram(infile, **kwargs)
 
     @staticmethod
     @CheckPath(mode="r")
-    def _get_histo(infile, **kwargs):
+    def _getHistogram(infile, **kwargs):
         # Returns a TH1D with the given parameters and fills it via TTree::Project.
         # Uses binning in CSV format for faster caching.
         name = kwargs.get("name", uuid.uuid1().hex[:8])
@@ -254,7 +254,7 @@ class iomanager(object):
                     weight,
                     name,
                     treename,
-                    "'" + "', '".join(iomanager._get_list_of_branches(ttree)) + "'",
+                    "'" + "', '".join(IOManager._getListOfBranches(ttree)) + "'",
                 )
             )
             tfile.Close()
@@ -263,7 +263,7 @@ class iomanager(object):
         return htmp
 
     @staticmethod
-    def _get_list_of_branches(tree):
+    def _getListOfBranches(tree):
         # Returns the names of all branches of a given TTree.
         branches = []
         for branch in tree.GetListOfBranches():
@@ -276,11 +276,11 @@ def main():
     if not os.path.exists("../data"):
         os.mkdir("../data")
     testfile = "../data/test.root"
-    iomanager.create_test_sample(testfile)
+    IOManager.CreateTestSample(testfile)
 
     histo = ROOT.TH1D("histo_branch_1", "", 200, 0.0, 10.0)
     histo.Sumw2()
-    iomanager.fill_histo(
+    IOManager.FillHistogram(
         histo,
         testfile,
         tree="tree",

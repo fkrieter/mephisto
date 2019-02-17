@@ -13,7 +13,7 @@ from Pad import Pad
 from Plot import Plot
 from MethodProxy import *
 from Canvas import Canvas
-from iomanager import iomanager
+from IOManager import IOManager
 from Helpers import DissectProperties, MergeDicts
 
 
@@ -46,7 +46,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 "errorband{}".format(p) for p in self.__class__._properties
             ]  # *append* properties of members!
         self.DeclareProperties(**kwargs)
-        self._lowbinedges = iomanager._get_binning(self)["xbinning"]
+        self._lowbinedges = IOManager._getBinning(self)["xbinning"]
         self._nbins = len(self._lowbinedges) - 1
         self._attalpha = defaultdict(lambda: 1.0)
 
@@ -74,7 +74,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._cuts = kwargs.get("cuts", [])
         self._weight = kwargs.get("weight", "1")
         if len(args) == 1 and isinstance(args[0], str):
-            iomanager.fill_histo(self, args[0], **kwargs)
+            IOManager.FillHistogram(self, args[0], **kwargs)
             if not kwargs.get("append", False):
                 self._errorband.Reset()
             self._errorband.Add(self)

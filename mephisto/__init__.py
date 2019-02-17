@@ -17,5 +17,7 @@ ROOT.gErrorIgnoreLevel = 2000
 
 from Pad import Pad
 from Plot import Plot
+from logger import logger
 from Canvas import Canvas
 from Histo1D import Histo1D
+from IOManager import IOManager
