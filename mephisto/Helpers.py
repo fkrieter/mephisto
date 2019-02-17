@@ -23,6 +23,19 @@ def DissectProperties(propdict, listofobj):
     # manner. The key 'template' will be associated to the first entry in the list.
     properties = {}
     for obj in listofobj:
+        if isinstance(obj, dict):
+            if len(obj.keys()) != 1:
+                raise KeyError(
+                    "Expected dictionary with exactly 1 key ({} given)".format(
+                        len(obj.keys())
+                    )
+                )
+            key = obj.keys()[0]
+            values = obj[key]
+            properties[key] = {
+                k: propdict.pop(k) for k, v in propdict.items() if k in values
+            }
+            continue
         clsname = obj.GetClassName()
         clsprops = obj.GetListOfProperties()
         clsprops += ["template"]
