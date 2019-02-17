@@ -13,7 +13,14 @@
         "gridx":            0,
         "gridy":            0,
         "logx":             false,
-        "logy":             true
+        "logy":             true,
+        "labelfont":        43,
+        "labelsize":        24,
+        "labelcolor":       1,
+        "titlefont":        43,
+        "titlesize":        24,
+        "titlecolor":       1,
+        "titleoffset":      1.4
     },
     "1;0": {
         "padposition":      [0.0, 0.0, 1.0, 1.0],

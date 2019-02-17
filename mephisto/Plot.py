@@ -44,13 +44,9 @@ class Plot(MethodProxy):
     def Register(self, object, pad=0, **kwargs):
         self.AssertPadIndex(pad)
         properties = DissectProperties(kwargs, [object, Pad])
-        properties["Pad"]["template"] = "{};{}".format(self._npads, pad)
-        padtemplate = Pad.GetTemplate(properties["Pad"]["template"])
+        self._padproperties[pad] = Pad.GetTemplate("{};{}".format(self._npads, pad))
         objclsname = object.__class__.__name__
-        for key in ["logx", "logy", "xtitle", "ytitle", "xunits", "yunits"]:
-            self._padproperties[pad].setdefault(key, padtemplate.get(key, None))
-            if key in properties["Pad"].keys():
-                self._padproperties[pad][key] = properties["Pad"][key]
+        self._padproperties[pad].update(properties["Pad"])
         try:
             for key, value in object.BuildFrame(**self._padproperties[pad]).items():
                 if (
@@ -62,7 +58,7 @@ class Plot(MethodProxy):
                 ):
                     self._padproperties[pad][key] = value
                 if key.endswith("title"):
-                    tmpltval = padtemplate.get(key, None)
+                    tmpltval = self._padproperties[pad].get(key, None)
                     if self._padproperties[pad].get(key, tmpltval) == tmpltval:
                         self._padproperties[pad][key] = value
         except AttributeError:
@@ -96,7 +92,6 @@ class Plot(MethodProxy):
         canvas = Canvas("test", template=str(npads), **properties["Canvas"])
         for i, store in self._store.items():
             pad = Pad("{}_pad{}".format(canvas.GetName(), i), **self._padproperties[i])
-            pad.DrawFrame()
             canvas.SetSelectedPad(pad)
             for obj, properties in store:
                 with UsingProperties(obj, **properties):
@@ -133,5 +128,5 @@ if __name__ == "__main__":
 
     p = Plot(npads=2)
     p.Register(h1, 0, template="background", logy=False, xunits="GeV")
-    p.Register(h2, 1, template="signal")
+    p.Register(h2, 1, template="signal", xunits="GeV")
     p.Print("plot_test.pdf")

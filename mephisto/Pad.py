@@ -5,15 +5,28 @@ import ROOT
 import re
 
 from MethodProxy import *
+from Helpers import DissectProperties
 
 
 @PreloadProperties
 class Pad(MethodProxy, ROOT.TPad):
+
+    _frameproperties = [
+        "labelfont",
+        "labelsize",
+        "labelcolor",
+        "titlefont",
+        "titlesize",
+        "titlecolor",
+        "titleoffset",
+    ]  # applied after frame is drawn for the first time
+
     def __init__(self, name="undefined", *args, **kwargs):
+        MethodProxy.__init__(self)
+        self._frame = None
         self._xmin = self._ymin = 1e-2
         self._xmax = self._ymax = 1.0
         self._xunits, self._yunits = None, None
-        MethodProxy.__init__(self)
         if len(args) > 0:
             self._xposlow, self._yposlow = args[0:2]
             self._xposup, self._yposup = args[2:4]
@@ -28,9 +41,19 @@ class Pad(MethodProxy, ROOT.TPad):
             ROOT.TPad.__init__(self)
             self.SetName(name)
         self.SetTitle(";;")
-        self.DeclareProperties(**kwargs)
+        properties = DissectProperties(kwargs, [{"Frame": Pad._frameproperties}, self])
+        # self.Draw()
+        # self.DeclareProperties(
+        #     **{
+        #         properties["Pad"].pop(k): v
+        #         for k, v in list(properties["Pad"].items())
+        #         if k in ["titleoffset"]
+        #     }
+        # )
+        self.DeclareProperties(**properties["Pad"])
         self.Draw()
         self.cd()
+        self.DrawFrame(**properties["Frame"])
 
     def SetPadPosition(self, xlow, ylow, xup, yup):
         self._xposlow, self._yposlow = xlow, ylow
@@ -39,6 +62,12 @@ class Pad(MethodProxy, ROOT.TPad):
 
     def GetPadPosition(self):
         return (self._xposlow, self._yposlow, self._xposup, self._yposup)
+
+    def GetPadWidth(self):
+        return self._xposup - self._xposlow
+
+    def GetPadHeight(self):
+        return self._yposup - self._yposlow
 
     def GetXMin(self):
         return self._xmin
@@ -151,7 +180,7 @@ class Pad(MethodProxy, ROOT.TPad):
     def GetFrame(self):
         return (self._xmin, self._ymin, self._xmax, self._ymax)
 
-    def DrawFrame(self, *args):
+    def DrawFrame(self, *args, **kwargs):
         if len(args) == 4:
             for i, prop in enumerate(["xmin", "ymin", "xmax", "ymax"]):
                 self.DeclareProperty(prop, args[i])
@@ -163,9 +192,81 @@ class Pad(MethodProxy, ROOT.TPad):
             raise TypeError
         assert self._xmin < self._xmax
         assert self._ymin < self._ymax
-        super(Pad, self).DrawFrame(
+        self._frame = super(Pad, self).DrawFrame(
             self._xmin, self._ymin, self._xmax, self._ymax, self.GetTitle()
         )
+        self.DeclareProperties(**kwargs)
+        self.RedrawAxis()
+
+    def SetLabelColor(self, color, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetLabelColor(color)
+
+    def SetLabelFont(self, font, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetLabelFont(font)
+
+    def SetLabelSize(self, size, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetLabelSize(size)
+
+    def SetTitleColor(self, color, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetTitleColor(color)
+
+    def SetTitleFont(self, font, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetTitleFont(font)
+
+    def SetTitleSize(self, size, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetTitleSize(size)
+
+    def SetTitleOffset(self, offset, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetTitleOffset(offset)
+            # TODO: Uniform offset and margin values for all pad and canvas sizes?
+            # Make sure to declare pad dimensions before offsets and margins...
+            # scale = {
+            #     "x": self.GetWh() * self.GetAbsHNDC() / float(self.GetCanvas().GetWh()),
+            #     "y": self.GetWw() * self.GetAbsWNDC() / float(self.GetCanvas().GetWw()),
+            # }.get(coord.lower(), 1.0)
+            # axis.SetTitleOffset(offset / scale)
 
     def SetYPadding(self, value):
         pass
