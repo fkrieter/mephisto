@@ -34,9 +34,7 @@ class Plot(MethodProxy):
         assert isinstance(idx, int)
         if idx >= self._npads:
             raise IndexError(
-                "Cannot register object '{}' to pad '{}': ".format(
-                    object.GetName(), idx
-                )
+                "Cannot register object to pad '{}': ".format(idx)
                 + "Plot was initialized with 'npads={}' (default: 1)".format(
                     self._npads
                 )
@@ -106,6 +104,7 @@ class Plot(MethodProxy):
                 # legend = pad.BuildLegend()
                 # legend.Draw(suffix)
             pad.RedrawAxis()
+            canvas.cd()
         canvas.Print(path)
         logger.info("Created plot: '{}'".format(path))
         canvas.Delete()
@@ -132,7 +131,7 @@ if __name__ == "__main__":
         h2, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750"
     )
 
-    p = Plot()
+    p = Plot(npads=2)
     p.Register(h1, 0, template="background", logy=False, xunits="GeV")
-    p.Register(h2, 0, template="signal")
+    p.Register(h2, 1, template="signal")
     p.Print("plot_test.pdf")
