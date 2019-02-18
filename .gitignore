@@ -1,5 +1,6 @@
 *.pyc
 *.pdf
+*.DS_Store
 venv/
 data/
 mephisto.egg-info/
