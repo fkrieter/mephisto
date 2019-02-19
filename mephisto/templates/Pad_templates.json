@@ -12,6 +12,8 @@
         "ymax":             1.0,
         "gridx":            0,
         "gridy":            0,
+        "tickx":            true,
+        "ticky":            true,
         "logx":             false,
         "logy":             true,
         "labelfont":        43,
