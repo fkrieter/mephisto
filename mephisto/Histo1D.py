@@ -20,6 +20,8 @@ from Helpers import DissectProperties, MergeDicts
 @PreloadProperties
 class Histo1D(MethodProxy, ROOT.TH1D):
 
+    _ignore_properties = ["xtitle", "ytitle", "ztitle"]
+
     ROOT.TH1.SetDefaultSumw2(True)
 
     def __init__(self, name="undefined", *args, **kwargs):
@@ -161,15 +163,8 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         return frame
 
     def Print(self, path, **kwargs):
-        units = kwargs.pop("units", None)
         properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas, Pad])
-        xtitle, ytitle = self.GetXTitle(), self.GetYTitle()
-        if units:
-            xtitle += " [{}]".format(str(units))
-            ytitle += " {}".format(str(units))
-        properties["Histo1D"].setdefault("xtitle", xtitle)
-        properties["Histo1D"].setdefault("ytitle", ytitle)
-        plot = Plot()
+        plot = Plot(npads=1)
         plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
@@ -224,19 +219,17 @@ def main():
     print(h)
     print(h.Integral())
     h.Print(
-        "test_histo_data.pdf", template="data", units="GeV", logy=False, xunits="GeV"
+        "test_histo_data.pdf", template="data", logy=False, xunits="GeV"
     )
     h.Print(
         "test_histo_background.pdf",
         template="background",
-        units="GeV",
         logy=False,
         xunits="GeV",
     )
     h.Print(
         "test_histo_signal.pdf",
         template="signal",
-        units="GeV",
         linecolor=ROOT.kViolet,
         drawerrorband=True,
         logy=True,
