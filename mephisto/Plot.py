@@ -119,14 +119,36 @@ if __name__ == "__main__":
 
     h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
     h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
+    h3 = ROOT.TH1D("test3", "", 20, 0.0, 400.0)
     IOManager.FillHistogram(
         h1, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650"
     )
     IOManager.FillHistogram(
         h2, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750"
     )
+    IOManager.FillHistogram(
+        h3, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>550"
+    )
 
-    p = Plot(npads=2)
-    p.Register(h1, 0, template="background", logy=False, xunits="GeV")
-    p.Register(h2, 1, template="signal", xunits="GeV")
-    p.Print("plot_test.pdf")
+    p1 = Plot(npads=1)
+    p1.Register(h1, 0, template="background", logy=False, xunits="GeV")
+    p1.Print("plot_test1.pdf")
+
+    p2 = Plot(npads=2)
+    p2.Register(h1, 0, template="background", logy=False, xunits="GeV")
+    p2.Register(h2, 1, template="signal", xunits="GeV")
+    p2.Print("plot_test2.pdf")
+
+    p3 = Plot(npads=3)
+    p3.Register(h1, 0, template="background", logy=False, xunits="GeV")
+    p3.Register(h2, 1, template="signal", logy=False, xunits="GeV")
+    p3.Register(
+        h3,
+        2,
+        template="data",
+        logy=False,
+        xunits="GeV",
+        ytitle="YTITLE",
+        xtitle="XTITLE",
+    )
+    p3.Print("plot_test3.pdf")

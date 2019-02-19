@@ -6,9 +6,9 @@
         "canvassize":   [700, 500]
     },
     "2": {
-        "canvassize":   [700, 700]
+        "canvassize":   [700, 600]
     },
     "3": {
-        "canvassize":   [700, 900]
+        "canvassize":   [700, 700]
     }
 }

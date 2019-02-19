@@ -1,8 +1,8 @@
 {
     "common": {
         "topmargin":        0.05,
-        "bottommargin":     0.175,
-        "leftmargin":       0.175,
+        "bottommargin":     0.10,
+        "leftmargin":       0.14,
         "rightmargin":      0.05,
         "fillstyle":        4000,
         "fillcolor":        0,
@@ -17,22 +17,38 @@
         "labelfont":        43,
         "labelsize":        24,
         "labelcolor":       1,
+        "labeloffset":      0.005,
         "titlefont":        43,
         "titlesize":        24,
         "titlecolor":       1,
-        "titleoffset":      1.4
+        "xtitleoffset":     1.4,
+        "ytitleoffset":     2.0
     },
     "1;0": {
         "padposition":      [0.0, 0.0, 1.0, 1.0],
         "ytitle":           "Entries"
     },
     "2;0": {
-        "padposition":      [0.0, 0.4, 1.0, 1.0],
+        "padposition":      [0.0, 0.3, 1.0, 1.0],
         "bottommargin":     0.0,
         "ytitle":           "Entries"
     },
     "2;1": {
-        "padposition":      [0.0, 0.0, 1.0, 0.4],
+        "padposition":      [0.0, 0.0, 1.0, 0.3],
         "ytitle":           "Contribution"
+    },
+    "3;0": {
+        "padposition":      [0.0, 0.4, 1.0, 1.0],
+        "bottommargin":     0.0,
+        "ytitle":           "Entries"
+    },
+    "3;1": {
+        "padposition":      [0.0, 0.25, 1.0, 0.4],
+        "bottommargin":     0.0,
+        "ytitle":           "Contribution"
+    },
+    "3;2": {
+        "padposition":      [0.0, 0.0, 1.0, 0.25],
+        "ytitle":           "Ratio"
     }
 }

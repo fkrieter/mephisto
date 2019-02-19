@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.7
 
+from __future__ import print_function
+
 import ROOT
 
 import re
@@ -10,19 +12,38 @@ from Helpers import DissectProperties
 
 @PreloadProperties
 class Pad(MethodProxy, ROOT.TPad):
-
-    _frameproperties = [
-        "labelfont",
-        "labelsize",
-        "labelcolor",
-        "titlefont",
-        "titlesize",
-        "titlecolor",
-        "titleoffset",
-    ]  # applied after frame is drawn for the first time
-
     def __init__(self, name="undefined", *args, **kwargs):
         MethodProxy.__init__(self)
+        # First collect frame properties to be applied after pad is drawn and extend Pad
+        # class with corresponsing coordinate-specific setter methods.
+        frameproperties = []
+        for prop in [
+            "LabelFont",
+            "LabelSize",
+            "LabelColor",
+            "LabelOffset",
+            "TitleFont",
+            "TitleSize",
+            "TitleColor",
+            "TitleOffset",
+        ]:
+            frameproperties.append(prop.lower())
+            for coord in "xyz":
+                frameproperties.append("{}{}".format(coord, prop.lower()))
+                setattr(
+                    self,
+                    "Set{}{}".format(coord.upper(), prop),
+                    (
+                        lambda coord=coord: lambda v: getattr(
+                            self, "Set{}".format(prop)
+                        )(v, coord)
+                    )(),
+                )
+                coordprop = "{}{}".format(coord.upper(), prop)
+                if coordprop.lower() in self._properties:
+                    continue
+                self._properties.append(coordprop.lower())
+                self._methods.append("Set{}".format(coordprop))
         self._frame = None
         self._xmin = self._ymin = 1e-2
         self._xmax = self._ymax = 1.0
@@ -41,15 +62,9 @@ class Pad(MethodProxy, ROOT.TPad):
             ROOT.TPad.__init__(self)
             self.SetName(name)
         self.SetTitle(";;")
-        properties = DissectProperties(kwargs, [{"Frame": Pad._frameproperties}, self])
-        # self.Draw()
-        # self.DeclareProperties(
-        #     **{
-        #         properties["Pad"].pop(k): v
-        #         for k, v in list(properties["Pad"].items())
-        #         if k in ["titleoffset"]
-        #     }
-        # )
+        properties = DissectProperties(kwargs, [{"Frame": frameproperties}, self])
+        self.Draw()
+        self.DeclareProperty("padposition", properties["Pad"].pop("padposition"))
         self.DeclareProperties(**properties["Pad"])
         self.Draw()
         self.cd()
@@ -225,6 +240,17 @@ class Pad(MethodProxy, ROOT.TPad):
             }.get(coord.lower(), None)
             axis.SetLabelSize(size)
 
+    def SetLabelOffset(self, offset, axes="xyz"):
+        canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            scale = 700.0 / canvaswidth
+            axis.SetLabelOffset(offset * scale)
+
     def SetTitleColor(self, color, axes="xyz"):
         for coord in axes:
             axis = {
@@ -259,14 +285,41 @@ class Pad(MethodProxy, ROOT.TPad):
                 "y": self._frame.GetYaxis(),
                 "z": self._frame.GetZaxis(),
             }.get(coord.lower(), None)
-            axis.SetTitleOffset(offset)
-            # TODO: Uniform offset and margin values for all pad and canvas sizes?
-            # Make sure to declare pad dimensions before offsets and margins...
-            # scale = {
-            #     "x": self.GetWh() * self.GetAbsHNDC() / float(self.GetCanvas().GetWh()),
-            #     "y": self.GetWw() * self.GetAbsWNDC() / float(self.GetCanvas().GetWw()),
-            # }.get(coord.lower(), 1.0)
-            # axis.SetTitleOffset(offset / scale)
+            canvasheight = self.GetCanvas().GetWh() * self.GetCanvas().GetAbsHNDC()
+            canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
+            padheight = self.GetWh() * self.GetAbsHNDC()
+            padwidth = self.GetWw() * self.GetAbsWNDC()
+            scale = {
+                "x": (canvasheight / canvaswidth) * (padwidth / padheight),
+                "y": (canvasheight / canvaswidth),
+            }.get(coord.lower(), 1.0)
+            axis.SetTitleOffset(offset * scale)
+
+    def SetTopMargin(self, margin, axes="xyz"):
+        canvasheight = self.GetCanvas().GetWh() * self.GetCanvas().GetAbsHNDC()
+        canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
+        scale = canvaswidth / canvasheight
+        scale *= 700.0 / canvaswidth
+        super(Pad, self).SetTopMargin(margin * scale)
+
+    def SetBottomMargin(self, margin, axes="xyz"):
+        canvasheight = self.GetCanvas().GetWh() * self.GetCanvas().GetAbsHNDC()
+        canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
+        padheight = self.GetWh() * self.GetAbsHNDC()
+        scale = canvaswidth / canvasheight
+        scale *= canvasheight / padheight
+        scale *= 700.0 / canvaswidth
+        super(Pad, self).SetBottomMargin(margin * scale)
+
+    def SetLeftMargin(self, margin):
+        canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
+        scale = 700.0 / canvaswidth
+        super(Pad, self).SetLeftMargin(margin * scale)
+
+    def SetRightMargin(self, margin):
+        canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
+        scale = 700.0 / canvaswidth
+        super(Pad, self).SetRightMargin(margin * scale)
 
     def SetYPadding(self, value):
         pass
