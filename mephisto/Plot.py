@@ -108,6 +108,7 @@ class Plot(MethodProxy):
 
 if __name__ == "__main__":
 
+    from Text import Text
     from Histo1D import Histo1D
     from IOManager import IOManager
 
@@ -117,6 +118,23 @@ if __name__ == "__main__":
     # h2 = Histo1D("test2", 20, 0.0, 400.0)
     # h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
     # h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750")
+
+    atlaslogo = Text(0.175, 0.875, "ATLAS ", textfont=73)
+    atlasstate = Text(
+        atlaslogo.GetX() + atlaslogo.GetXsize(), atlaslogo.GetY(), "Work in Progress"
+    )
+
+    cme = Text(
+        atlaslogo.GetX(),
+        atlaslogo.GetY() - atlaslogo.GetYsize() * 1.75,
+        "#sqrt{s} = 13 TeV",
+    )
+    lumi = lambda x: Text(
+        atlaslogo.GetX() + cme.GetXsize(),
+        cme.GetY(),
+        ", {} ".format(x) + "fb^{-1}",
+        indicesize=1.8,
+    )
 
     h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
     h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
@@ -152,4 +170,8 @@ if __name__ == "__main__":
         ytitle="YTITLE",
         xtitle="XTITLE",
     )
+    p3.Register(atlaslogo, 0)
+    p3.Register(atlasstate, 0)
+    p3.Register(cme, 0)
+    p3.Register(lumi(140), 0)
     p3.Print("plot_test3.pdf")

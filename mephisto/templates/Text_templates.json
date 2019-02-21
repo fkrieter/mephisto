@@ -1,0 +1,13 @@
+{
+    "common": {
+        "x":            0.5,
+        "y":            0.5,
+        "ndc":          true,
+        "textalign":    11,
+        "textfont":     43,
+        "textsize":     24,
+        "textcolor":    "#000000",
+        "textangle":    0.0,
+        "indicesize":   1.0
+    }
+}

@@ -123,6 +123,7 @@ def MephistofyObject():
             # If not substitute the object with an instance of the corresponding
             # MEPHISTO class - imported here to avoid circular imports - by calling the
             # copy constructor.
+            from Text import Text
             from Histo1D import Histo1D
 
             clsname = object.__class__.__name__
@@ -132,6 +133,8 @@ def MephistofyObject():
                 return object
             if clsname.startswith("TH1"):
                 return Histo1D("{}_mephistofied".format(object.GetName()), object)
+            elif clsname.startswith(("TText", "TLatex")):
+                return Text(object)
             raise NotImplementedError
 
         def wrapper(*args, **kwargs):
