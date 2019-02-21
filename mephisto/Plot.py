@@ -44,7 +44,8 @@ class Plot(MethodProxy):
     def Register(self, object, pad=0, **kwargs):
         self.AssertPadIndex(pad)
         properties = DissectProperties(kwargs, [object, Pad])
-        self._padproperties[pad] = Pad.GetTemplate("{};{}".format(self._npads, pad))
+        for prop, value in Pad.GetTemplate("{};{}".format(self._npads, pad)).items():
+            self._padproperties[pad].setdefault(prop, value)
         objclsname = object.__class__.__name__
         self._padproperties[pad].update(properties["Pad"])
         try:
@@ -62,7 +63,7 @@ class Plot(MethodProxy):
                     if self._padproperties[pad].get(key, tmpltval) == tmpltval:
                         self._padproperties[pad][key] = value
         except AttributeError:
-            logger.warning(
+            logger.debug(
                 "Cannot infer frame value ranges from {} object '{}'".format(
                     objclsname, object.GetName()
                 )
