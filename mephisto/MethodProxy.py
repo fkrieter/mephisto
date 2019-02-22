@@ -97,10 +97,16 @@ class MethodProxy(object):
     def GetClassName(cls):
         return cls.__name__
 
-    def CacheProperties(self):
+    def GetProperties(self, prefix=""):
+        properties = {}
         for getter in [g for g in self.__class__._methods if g.startswith("Get")]:
             property = getter[3:].lower()
-            self._cache[property] = getattr(self, getter)()
+            if property in self.__class__._properties:
+                properties[str(prefix) + property] = getattr(self, getter)()
+        return properties
+
+    def CacheProperties(self):
+        self._cache = self.GetProperties()
 
     def DeclareProperty(self, property, args):
         if args is None:
@@ -155,6 +161,7 @@ class MethodProxy(object):
                 if k in list(properties.keys()) and v is not None
             }
         )
+        # print(self, self.__class__._properties)
         properties = OrderedDict(
             list(properties.items())
             + sorted(
