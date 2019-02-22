@@ -117,6 +117,7 @@ class MethodProxy(object):
                     "Expected property '{}' to be of type 'str'!".format(property)
                 )
             self.DeclareProperties(**self.GetTemplate(args))
+            return
         regex = re.compile("Set{}$".format(property), re.IGNORECASE)
         match = list(filter(regex.match, self.__class__._methods))
         if not match:
