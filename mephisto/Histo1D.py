@@ -17,6 +17,13 @@ from IOManager import IOManager
 from Helpers import DissectProperties, MergeDicts
 
 
+def ExtendProperties(cls):
+    # Add properties to configure the _errorband member histogram of Histo1Ds.
+    cls._properties += ["errorband{}".format(p) for p in cls._properties]  # append!
+    return cls
+
+
+@ExtendProperties
 @PreloadProperties
 class Histo1D(MethodProxy, ROOT.TH1D):
 
@@ -29,14 +36,27 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._varexp = None
         self._cuts = None
         self._weight = None
+        self._errorband = None
         self._drawoption = ""
         self._drawerrorband = False
+        self._attalpha = defaultdict(lambda: 1.0)
         if len(args) == 1:
             if isinstance(args[0], ROOT.TH1D):
                 ROOT.TH1D.__init__(self, args[0].Clone(name))
                 self.SetDirectory(0)
-            elif isinstance(args[0], Histo1D):
-                self = args[0].Clone(name)
+            if isinstance(args[0], Histo1D):
+                self._varexp = args[0]._varexp
+                self._cuts = args[0]._cuts
+                self._weight = args[0]._cuts
+                if args[0]._errorband is not None:
+                    self._errorband = Histo1D(
+                        "{}_errorband".format(args[0].GetName()), args[0]._errorband
+                    )
+                if not name.endswith("_errorband"):
+                    self.DeclareProperties(**args[0].GetProperties())
+                    self.DeclareProperties(
+                        **args[0]._errorband.GetProperties(prefix="errorband")
+                    )
         elif len(args) == 2:
             if isinstance(args[0], list):
                 lowbinedges = array("d", args[0])
@@ -49,15 +69,11 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             ROOT.TH1D.__init__(self, name, *args)
         else:
             raise TypeError
-        if not name.endswith("_errorband"):
+        if not name.endswith("_errorband") and self._errorband is None:
             self._errorband = Histo1D("{}_errorband".format(self.GetName()), self)
-            self.__class__._properties += [
-                "errorband{}".format(p) for p in self.__class__._properties
-            ]  # *append* properties of members!
         self.DeclareProperties(**kwargs)
         self._lowbinedges = IOManager._getBinning(self)["xbinning"]
         self._nbins = len(self._lowbinedges) - 1
-        self._attalpha = defaultdict(lambda: 1.0)
 
     def DeclareProperty(self, property, args):
         # Properties starting with "errorband" will be applied to self._errorband.
@@ -115,9 +131,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         if drawoption is not None:
             self.SetDrawOption(drawoption)
         self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
-        print(self.GetName() + ":", "GetDrawErrorband =", self.GetDrawErrorband())
         if self._drawerrorband:
-            print("drawing errbnd '{}'".format(self._errorband.GetName()))
             self._errorband.Reset()
             self._errorband.Add(self)  # making sure the erroband is up-to-date
             self._errorband.DrawCopy(
@@ -200,13 +214,22 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._attalpha["line"] = alpha
         self.SetLineColorAlpha(self.GetLineColor(), alpha)
 
+    def GetLineAlpha(self):
+        return self._attalpha["line"]
+
     def SetFillAlpha(self, alpha):
         self._attalpha["fill"] = alpha
         self.SetFillColorAlpha(self.GetFillColor(), alpha)
 
+    def GetFillAlpha(self):
+        return self._attalpha["fill"]
+
     def SetMarkerAlpha(self, alpha):
         self._attalpha["marker"] = alpha
         self.SetMarkerColorAlpha(self.GetMarkerColor(), alpha)
+
+    def GetMarkerAlpha(self):
+        return self._attalpha["marker"]
 
     def SetLineColor(self, color):
         self.SetLineColorAlpha(color, self._attalpha["line"])
@@ -225,22 +248,17 @@ def main():
 
     filename = "../data/ds_data18.root"
     h = Histo1D("test", "test", 20, 0.0, 400.0)
-    Histo1D.PrintAvailableProperties()
+    # Histo1D.PrintAvailableProperties()
     h.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
-    print(h)
-    print(h.Integral())
+    # print(h)
+    # print(h.Integral())
     h.Print("test_histo_data.pdf", template="data", logy=False, xunits="GeV")
     h.Print(
         "test_histo_background.pdf", template="background", logy=False, xunits="GeV"
     )
-    h.Print(
-        "test_histo_signal.pdf",
-        template="signal",
-        linecolor=ROOT.kViolet,
-        drawerrorband=True,
-        logy=True,
-        xunits="GeV",
-    )
+    h2 = Histo1D("test2", h, template="signal", drawerrorband=True)
+    h3 = Histo1D("test3", h2, linecolor=ROOT.kGreen)
+    h3.Print("test_histo_signal.pdf", logy=True, xunits="GeV")
 
 
 if __name__ == "__main__":
