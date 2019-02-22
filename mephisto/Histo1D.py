@@ -24,7 +24,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
     ROOT.TH1.SetDefaultSumw2(True)
 
-    def __init__(self, name="undefined", *args, **kwargs):
+    def __init__(self, name, *args, **kwargs):
         MethodProxy.__init__(self)
         self._varexp = None
         self._cuts = None
@@ -32,14 +32,21 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._drawoption = ""
         self._drawerrorband = False
         if len(args) == 1:
-            if isinstance(args[0], list):
-                lowbinedges = array("d", args[0])
-                ROOT.TH1D.__init__(self, name, "", len(lowbinedges) - 1, lowbinedges)
-            elif isinstance(args[0], ROOT.TH1D) or isinstance(args[0], Histo1D):
+            if isinstance(args[0], ROOT.TH1D):
                 ROOT.TH1D.__init__(self, args[0].Clone(name))
                 self.SetDirectory(0)
-        elif len(args) == 3 and isinstance(args[0], int):
-            ROOT.TH1D.__init__(self, name, "", *args)
+            elif isinstance(args[0], Histo1D):
+                self = args[0].Clone(name)
+        elif len(args) == 2:
+            if isinstance(args[0], list):
+                lowbinedges = array("d", args[0])
+                ROOT.TH1D.__init__(
+                    self, name, args[0], len(lowbinedges) - 1, lowbinedges
+                )
+        elif len(args) == 4:
+            assert isinstance(args[0], str)
+            assert isinstance(args[1], int)
+            ROOT.TH1D.__init__(self, name, *args)
         else:
             raise TypeError
         if not name.endswith("_errorband"):
@@ -217,7 +224,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 def main():
 
     filename = "../data/ds_data18.root"
-    h = Histo1D("test", 20, 0.0, 400.0)
+    h = Histo1D("test", "test", 20, 0.0, 400.0)
     Histo1D.PrintAvailableProperties()
     h.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
     print(h)
