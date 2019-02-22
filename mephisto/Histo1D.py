@@ -108,7 +108,11 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         if drawoption is not None:
             self.SetDrawOption(drawoption)
         self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
+        print(self.GetName() + ":", "GetDrawErrorband =", self.GetDrawErrorband())
         if self._drawerrorband:
+            print("drawing errbnd '{}'".format(self._errorband.GetName()))
+            self._errorband.Reset()
+            self._errorband.Add(self)  # making sure the erroband is up-to-date
             self._errorband.DrawCopy(
                 self._errorband.GetDrawOption() + "SAME", "_{}".format(uuid4().hex[:8])
             )
@@ -218,14 +222,9 @@ def main():
     h.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
     print(h)
     print(h.Integral())
+    h.Print("test_histo_data.pdf", template="data", logy=False, xunits="GeV")
     h.Print(
-        "test_histo_data.pdf", template="data", logy=False, xunits="GeV"
-    )
-    h.Print(
-        "test_histo_background.pdf",
-        template="background",
-        logy=False,
-        xunits="GeV",
+        "test_histo_background.pdf", template="background", logy=False, xunits="GeV"
     )
     h.Print(
         "test_histo_signal.pdf",
