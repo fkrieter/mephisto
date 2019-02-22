@@ -126,9 +126,15 @@ def MephistofyObject():
             from Text import Text
             from Histo1D import Histo1D
 
+            def lookupbases(cls):
+                bases = list(cls.__bases__)
+                for base in bases:
+                    bases.extend(lookupbases(base))
+                return bases
+
             clsname = object.__class__.__name__
             if "MethodProxy" in [
-                basecls.__name__ for basecls in object.__class__.__bases__
+                basecls.__name__ for basecls in lookupbases(object.__class__)
             ]:
                 return object
             if clsname.startswith("TH1"):
