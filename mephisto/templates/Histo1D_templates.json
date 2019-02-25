@@ -11,8 +11,7 @@
         "drawerrorband":        true,
         "errorbanddrawoption":  "E2",
         "errorbandfillstyle":   3151,
-        "errorbandfillalpha":   0.6,
-        "errorbanderrorx":      0.5
+        "errorbandfillalpha":   0.6
     },
     "signal": {
         "drawoption":           "HIST",
@@ -26,11 +25,10 @@
         "drawerrorband":        false,
         "errorbanddrawoption":  "E2",
         "errorbandfillstyle":   3151,
-        "errorbandfillalpha":   0.6,
-        "errorbanderrorx":      0.5
+        "errorbandfillalpha":   0.6
         },
     "data": {
-        "drawoption":           "P2L",
+        "drawoption":           "P2LEX0",
         "linestyle":            0,
         "linewidth":            2,
         "linecolor":            "#000000",

@@ -240,9 +240,6 @@ class Histo1D(MethodProxy, ROOT.TH1D):
     def SetMarkerColor(self, color):
         self.SetMarkerColorAlpha(color, self._attalpha["marker"])
 
-    def SetErrorX(self, value=0.5):
-        ROOT.gStyle.SetErrorX(value)
-
 
 def main():
 

@@ -80,6 +80,8 @@ class Plot(MethodProxy):
     def SetStyle(self, style):
         self._style = style
         ROOT.gROOT.SetStyle(style)
+        if style == "ATLAS":
+            ROOT.gStyle.SetErrorX(0.5)
 
     def GetStyle(self):
         return self._style
