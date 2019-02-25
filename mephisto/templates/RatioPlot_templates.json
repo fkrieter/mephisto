@@ -1,0 +1,7 @@
+{
+    "common": {
+        "baselinefillalpha":            0.0,
+        "baselinelinecolor":            "#ff0000",
+        "baselineerrorbandfillcolor":   "#000000"
+    }
+}
