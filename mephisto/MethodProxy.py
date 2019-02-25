@@ -162,7 +162,6 @@ class MethodProxy(object):
                 if k in list(properties.keys()) and v is not None
             }
         )
-        # print(self, self.__class__._properties)
         properties = OrderedDict(
             list(properties.items())
             + sorted(
