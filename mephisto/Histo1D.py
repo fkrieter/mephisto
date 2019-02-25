@@ -158,11 +158,14 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             xtitle = self._varexp if self._varexp is not None else ""
         binwidths = self.GetBinWidths()
         if len(set(binwidths)) == 1:
-            binwidth = binwidths[0]
-            ytitle += " / {}".format(
-                int(binwidth) if binwidth.is_integer() else round(binwidth, 1)
+            binwidth = (
+                int(binwidths[0])
+                if binwidths[0].is_integer()
+                else round(binwidths[0], 1)
             )
-            if xunits:
+            if not ytitle.endswith((str(binwidth), str(xunits))):
+                ytitle += " / {}".format(binwidth)
+            if xunits and not ytitle.endswith(xunits):
                 ytitle += " {}".format(xunits)
         frame = {
             "xmin": self._lowbinedges[0],
