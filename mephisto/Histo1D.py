@@ -27,7 +27,7 @@ def ExtendProperties(cls):
 @PreloadProperties
 class Histo1D(MethodProxy, ROOT.TH1D):
 
-    _ignore_properties = ["xtitle", "ytitle", "ztitle"]
+    _ignore_properties = ["name", "xtitle", "ytitle", "ztitle"]
 
     ROOT.TH1.SetDefaultSumw2(True)
 
@@ -50,7 +50,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 self._weight = args[0]._cuts
                 if args[0]._errorband is not None:
                     self._errorband = Histo1D(
-                        "{}_errorband".format(args[0].GetName()), args[0]._errorband
+                        "{}_errorband".format(name), args[0]._errorband
                     )
                 if not name.endswith("_errorband"):
                     self.DeclareProperties(**args[0].GetProperties())
