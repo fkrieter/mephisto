@@ -101,6 +101,11 @@ class MethodProxy(object):
     def GetClassName(cls):
         return cls.__name__
 
+    def GetProperty(self, property):
+        if not property in self.__class__._properties:
+            raise KeyError("'{}' object has no property named '{}'!".format(self.__class__.__name__, property))
+        return getattr(self, filter(lambda m: m.lower() == "get{}".format(property), self.__class__._methods)[0])()
+
     def GetProperties(self, prefix=""):
         properties = {}
         for getter in [g for g in self.__class__._methods if g.startswith("Get")]:
