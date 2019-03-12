@@ -98,10 +98,12 @@ class Plot(MethodProxy):
             canvas.SetSelectedPad(pad)
             for obj, properties in store:
                 with UsingProperties(obj, **properties):
-                    obj.Draw(obj.GetDrawOption() + "same")
+                    suffix = "SAME" if pad.GetDrawFrame() else ""
+                    obj.Draw(obj.GetDrawOption() + suffix)
                 # legend = pad.BuildLegend()
                 # legend.Draw(suffix)
-            pad.RedrawAxis()
+            if pad.GetDrawFrame():
+                pad.RedrawAxis()
             canvas.cd()
         canvas.Print(path)
         logger.info("Created plot: '{}'".format(path))

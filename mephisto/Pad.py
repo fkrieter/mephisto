@@ -45,6 +45,7 @@ class Pad(MethodProxy, ROOT.TPad):
                 self._properties.append(coordprop.lower())
                 self._methods.append("Set{}".format(coordprop))
         self._frame = None
+        self._drawframe = False
         self._xmin = self._ymin = 1e-2
         self._xmax = self._ymax = 1.0
         self._xunits, self._yunits = None, None
@@ -68,7 +69,8 @@ class Pad(MethodProxy, ROOT.TPad):
         self.DeclareProperties(**properties["Pad"])
         self.Draw()
         self.cd()
-        self.DrawFrame(**properties["Frame"])
+        if self._drawframe:
+            self.DrawFrame(**properties["Frame"])
 
     def SetPadPosition(self, xlow, ylow, xup, yup):
         self._xposlow, self._yposlow = xlow, ylow
@@ -194,6 +196,12 @@ class Pad(MethodProxy, ROOT.TPad):
 
     def GetFrame(self):
         return (self._xmin, self._ymin, self._xmax, self._ymax)
+
+    def SetDrawFrame(self, boolean):
+        self._drawframe = boolean
+
+    def GetDrawFrame(self):
+        return self._drawframe
 
     def DrawFrame(self, *args, **kwargs):
         if len(args) == 4:
