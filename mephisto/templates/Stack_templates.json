@@ -1,0 +1,21 @@
+{
+    "common": {
+        "drawoption":                   "HIST",
+        "stacksorting":                 [
+                                            ["drawoption", false],
+                                            ["integral", true],
+                                            ["title", false]
+                                        ],
+        "drawstacksum":                 true,
+        "stacksumdrawoption":           "HIST",
+        "stacksumlinecolor":            "#000000",
+        "stacksumlinealpha":            1.0,
+        "stacksumfillstyle":            1001,
+        "stacksumfillcolor":            "#ffffff",
+        "stacksumfillalpha":            0.0,
+        "stacksumdrawerrorband":        true,
+        "stacksumerrorbanddrawoption":  "E2",
+        "stacksumerrorbandfillstyle":   3151,
+        "stacksumerrorbandfillalpha":   0.6
+    }
+}
