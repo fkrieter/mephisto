@@ -24,11 +24,8 @@ class IOManager(object):
     """Class for easy ROOT I/O.
 
     Can be used to read from and write to ROOT files. Multiple histograms from one tree
-    can be created simultaneously using the factory subclass.
+    can be created simultaneously using the Factory subclass.
     """
-
-    # Dictionary holding histograms and configs for factory
-    _registered_histos = {}
 
     @staticmethod
     @CheckPath(mode="w")
@@ -207,11 +204,12 @@ class IOManager(object):
 
         :returntype: ROOT.TH1D, ROOT.TH2D
         """
-        cuts = kwargs.get("cuts", "1")
+        cuts = kwargs.get("cuts", [])
+        if isinstance(cuts, list):
+            if cuts:
+                kwargs["cuts"] = "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
         for binning in ["xbinning", "ybinning", "zbinning"]:
             kwargs[binning] = IOManager._convertBinning(kwargs.get(binning), csv=True)
-        if isinstance(cuts, list):
-            kwargs["cuts"] = "&&".join(["({})".format(cut) for cut in cuts])
         return IOManager._getHistogram(infile, **kwargs)
 
     @staticmethod
@@ -269,6 +267,73 @@ class IOManager(object):
             branches.append(branch.GetName())
         return branches
 
+    class Factory(object):
+
+        @CheckPath(mode="r")
+        def __init__(self, path, treename):
+            self._filepath = path
+            self._treename = treename
+            self._store = []
+            infile = ROOT.TFile.Open(path)
+            intree = infile.Get(self._treename)
+            if not intree:
+                raise KeyError("File '{}' has no tree called '{}'".format(self._filepath, self._treename))
+            self._entries = intree.GetEntries()
+            infile.Close()
+
+        def Register(self, histo, **kwargs):
+            cuts = kwargs.pop("cuts", [])
+            if isinstance(cuts, list):
+                cutstring = "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
+            options = {
+                "varexp": kwargs.pop("varexp"),
+                "weight": kwargs.pop("weight", "1"),
+                "cuts": cutstring,
+                "append": kwargs.pop("append", False)
+            }
+            histoname = histo.GetName()
+            histotitle = histo.GetTitle()
+            histoclass = histo.ClassName()
+            if not ":" in options["varexp"]:
+                assert histoclass.startswith("TH1")
+            elif len(varexp.split(":") == 2):
+                assert histoclass.startswith("TH2")
+            else:
+                raise NotImplementedError
+            self._store.append((histo, options))
+
+        def Run(self, batchsize=int(1e5)):
+            branchexprs = set()
+            for histo, options in self._store:
+                branchexprs.update(options["varexp"].split(":"))
+                branchexprs.add("({})*({})".format(options["weight"], options["cuts"]))
+            for start in range(0, self._entries, batchsize):
+                array = rnp.root2array(
+                    self._filepath,
+                    self._treename,
+                    branches=branchexprs,
+                    start=start,
+                    stop=start+batchsize,
+                )
+                for histo, options in self._store:
+                    if not ":" in options["varexp"]:
+                        varexp = array[options["varexp"]]
+                    else:
+                        varexp = rnp.rec2array(array[options["varexp"].split(":")])
+                    cuts = array["({})*({})".format(options["weight"], options["cuts"])]
+                    mask = np.where(cuts != 0)
+                    rnp.fill_hist(histo, varexp[mask], weights=cuts[mask])
+            for histo, options in self._store:
+                if histo.GetEntries() == 0:
+                    logger.warning("No events have been extracted for tree '{}' in file '{}' using varexp='{}', cuts='{}', weight='{}'!".format(
+                        self._treename,
+                        self._filepath,
+                        options["varexp"],
+                        options["cuts"],
+                        options["weight"],
+                    ))
+            logger.info("Filled {} histograms using tree '{}' in file '{}'.".format(len(self._store), self._treename, self._filepath))
+
 
 def main():
 
@@ -290,6 +355,13 @@ def main():
     canvas.cd()
     histo.Draw("HIST")
     canvas.SaveAs("test.pdf")
+
+    h = {}
+    f = IOManager.Factory(testfile, "tree")
+    for i in range(1, 11, 1):
+        h[i] = ROOT.TH1D("h{}".format(i), "", 200, 0.0, 20.0)
+        f.Register(h[i], varexp="branch_{}".format(i))
+    f.Run()
 
 
 if __name__ == "__main__":
