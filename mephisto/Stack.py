@@ -23,7 +23,6 @@ def ExtendProperties(cls):
 @ExtendProperties
 @PreloadProperties
 class Stack(MethodProxy, ROOT.THStack):
-
     def __init__(self, name=uuid4().hex[:8], *args, **kwargs):
         MethodProxy.__init__(self)
         self._stacksumhisto = None
@@ -48,7 +47,17 @@ class Stack(MethodProxy, ROOT.THStack):
             raise TypeError
         for key, value in self.GetTemplate(kwargs.get("template", "common")).items():
             kwargs.setdefault(key, value)
-        properties = DissectProperties(kwargs, [{"Stacksum": ["stacksum{}".format(p) for p in Histo1D.GetListOfProperties()]}, self])
+        properties = DissectProperties(
+            kwargs,
+            [
+                {
+                    "Stacksum": [
+                        "stacksum{}".format(p) for p in Histo1D.GetListOfProperties()
+                    ]
+                },
+                self,
+            ],
+        )
         self.DeclareProperties(**properties["Stack"])
         self._stacksumproperties = properties["Stacksum"]
 
@@ -78,22 +87,38 @@ class Stack(MethodProxy, ROOT.THStack):
         stack = kwargs.pop("stack", False)
         if stack:
             if self._stacksumhisto is None:
-                self._stacksumhisto = Histo1D("{}_totalstack".format(self.GetName()), histo)
+                self._stacksumhisto = Histo1D(
+                    "{}_totalstack".format(self.GetName()), histo
+                )
             else:
                 self._stacksumhisto.Add(histo)
         with UsingProperties(histo, **kwargs):
-            self._store["stack" if stack else "nostack"].append((Histo1D("{}_{}".format(histo.GetName(), uuid4().hex[:8]), histo), kwargs))
+            self._store["stack" if stack else "nostack"].append(
+                (
+                    Histo1D("{}_{}".format(histo.GetName(), uuid4().hex[:8]), histo),
+                    kwargs,
+                )
+            )
 
     def BuildStack(self):
         if self._stacksorting is not None:
             for prop, reverse in reversed(self._stacksorting):
                 if prop in [m.lower() for m in Histo1D._properties]:
-                    self._store["stack"].sort(key=lambda tpl: tpl[0].GetProperty(prop), reverse=reverse)
+                    self._store["stack"].sort(
+                        key=lambda tpl: tpl[0].GetProperty(prop), reverse=reverse
+                    )
                 else:
                     try:
-                        self._store["stack"].sort(key=lambda tpl: getattr(tpl[0], prop.capitalize()), reverse=reverse)
+                        self._store["stack"].sort(
+                            key=lambda tpl: getattr(tpl[0], prop.capitalize()),
+                            reverse=reverse,
+                        )
                     except AttributeError:
-                        logger.error("Sorting failed: 'Histo1D' has no attribute '{}'!".format(prop.capitalize()))
+                        logger.error(
+                            "Sorting failed: 'Histo1D' has no attribute '{}'!".format(
+                                prop.capitalize()
+                            )
+                        )
                         raise AttributeError
         if self.GetNhists() == 0:
             for histo, properties in self._store["stack"]:
@@ -106,7 +131,12 @@ class Stack(MethodProxy, ROOT.THStack):
             if not frame:
                 frame = histo.BuildFrame(**kwargs)
             else:
-                for key, func in [("xmin", min), ("ymin", min), ("xmax", max), ("ymax", max)]:
+                for key, func in [
+                    ("xmin", min),
+                    ("ymin", min),
+                    ("xmax", max),
+                    ("ymax", max),
+                ]:
                     frame[key] = func(frame[key], histo.BuildFrame(**kwargs)[key])
         return frame
 
@@ -145,7 +175,7 @@ class Stack(MethodProxy, ROOT.THStack):
             self._stacksumhisto.Draw(self._stacksumhisto.GetDrawOption() + "SAME")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     filename = "../data/ds_data18.root"
     h1 = Histo1D("h1", "h1", 20, 0.0, 400.0)
