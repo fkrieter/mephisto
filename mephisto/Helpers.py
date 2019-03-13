@@ -3,6 +3,7 @@
 import ROOT
 
 import os
+import time
 
 from logger import logger
 
@@ -159,3 +160,21 @@ def MephistofyObject():
         return wrapper
 
     return decorator
+
+
+def timeit(method):
+    # https://goo.gl/XmaqC7
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if "log_time" in kw:
+            name = kw.get("log_name", method.__name__.upper())
+            kw["log_time"][name] = int((te - ts) * 1000)
+        else:
+            logger.info(
+                "Executed {} in {:.2f} ms".format(method.__name__, (te - ts) * 1000)
+            )
+        return result
+
+    return timed
