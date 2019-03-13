@@ -7,7 +7,7 @@ import uuid
 import ROOT
 
 from logger import logger
-from Helpers import CheckPath
+from Helpers import CheckPath, timeit
 
 import root_numpy as rnp
 
@@ -172,6 +172,7 @@ class IOManager(object):
         return binning
 
     @staticmethod
+    @timeit
     def GetHistogram(infile, **kwargs):
         """Create a histograms filled with events from a tree.
 
@@ -206,9 +207,11 @@ class IOManager(object):
 
         :returntype: ROOT.TH1D, ROOT.TH2D
         """
-        for binning in ["xbinning", "ybinning"]:
+        cuts = kwargs.get("cuts", "1")
+        for binning in ["xbinning", "ybinning", "zbinning"]:
             kwargs[binning] = IOManager._convertBinning(kwargs.get(binning), csv=True)
-        h = IOManager._getHistogram(infile, **kwargs)
+        if isinstance(cuts, list):
+            kwargs["cuts"] = "&&".join(["({})".format(cut) for cut in cuts])
         return IOManager._getHistogram(infile, **kwargs)
 
     @staticmethod
@@ -223,10 +226,6 @@ class IOManager(object):
         varexp = kwargs.get("varexp")
         weight = kwargs.get("weight", "1")
         cuts = kwargs.get("cuts", "1")
-        if isinstance(cuts, list):
-            cutstr = "&&".join(["({})".format(cut) for cut in cuts])
-        elif isinstance(cuts, str):
-            cutstr = cuts
         if not ":" in varexp:
             htmp = ROOT.TH1D(name, title, len(xbinning) - 1, xbinning)
         elif len(varexp.split(":")) == 2:
@@ -242,7 +241,7 @@ class IOManager(object):
         if not isinstance(ttree, ROOT.TTree):
             logger.error("Specified tree='{}' not found!".format(treename))
         ROOT.gROOT.cd()
-        nevts = ttree.Project(name, varexp, "({})*({})".format(weight, cutstr), "goff")
+        nevts = ttree.Project(name, varexp, "({})*({})".format(weight, cuts), "goff")
         htmp.SetDirectory(0)
         tfile.Close()
         if nevts < 0:
