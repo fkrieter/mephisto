@@ -207,7 +207,9 @@ class IOManager(object):
         cuts = kwargs.get("cuts", [])
         if isinstance(cuts, list):
             if cuts:
-                kwargs["cuts"] = "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
+                kwargs["cuts"] = (
+                    "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
+                )
         for binning in ["xbinning", "ybinning", "zbinning"]:
             kwargs[binning] = IOManager._convertBinning(kwargs.get(binning), csv=True)
         return IOManager._getHistogram(infile, **kwargs)
@@ -268,7 +270,6 @@ class IOManager(object):
         return branches
 
     class Factory(object):
-
         @CheckPath(mode="r")
         def __init__(self, path, treename):
             self._filepath = path
@@ -277,19 +278,25 @@ class IOManager(object):
             infile = ROOT.TFile.Open(path)
             intree = infile.Get(self._treename)
             if not intree:
-                raise KeyError("File '{}' has no tree called '{}'".format(self._filepath, self._treename))
+                raise KeyError(
+                    "File '{}' has no tree called '{}'".format(
+                        self._filepath, self._treename
+                    )
+                )
             self._entries = intree.GetEntries()
             infile.Close()
 
         def Register(self, histo, **kwargs):
             cuts = kwargs.pop("cuts", [])
             if isinstance(cuts, list):
-                cutstring = "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
+                cutstring = (
+                    "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
+                )
             options = {
                 "varexp": kwargs.pop("varexp"),
                 "weight": kwargs.pop("weight", "1"),
                 "cuts": cutstring,
-                "append": kwargs.pop("append", False)
+                "append": kwargs.pop("append", False),
             }
             histoname = histo.GetName()
             histotitle = histo.GetTitle()
@@ -313,7 +320,7 @@ class IOManager(object):
                     self._treename,
                     branches=branchexprs,
                     start=start,
-                    stop=start+batchsize,
+                    stop=start + batchsize,
                 )
                 for histo, options in self._store:
                     if not ":" in options["varexp"]:
@@ -322,17 +329,26 @@ class IOManager(object):
                         varexp = rnp.rec2array(array[options["varexp"].split(":")])
                     cuts = array["({})*({})".format(options["weight"], options["cuts"])]
                     mask = np.where(cuts != 0)
+                    if not options["append"]:
+                        histo.Reset()
                     rnp.fill_hist(histo, varexp[mask], weights=cuts[mask])
             for histo, options in self._store:
                 if histo.GetEntries() == 0:
-                    logger.warning("No events have been extracted for tree '{}' in file '{}' using varexp='{}', cuts='{}', weight='{}'!".format(
-                        self._treename,
-                        self._filepath,
-                        options["varexp"],
-                        options["cuts"],
-                        options["weight"],
-                    ))
-            logger.info("Filled {} histograms using tree '{}' in file '{}'.".format(len(self._store), self._treename, self._filepath))
+                    logger.warning(
+                        "No events have been extracted for tree '{}' in file '{}'"
+                        "using varexp='{}', cuts='{}', weight='{}'!".format(
+                            self._treename,
+                            self._filepath,
+                            options["varexp"],
+                            options["cuts"],
+                            options["weight"],
+                        )
+                    )
+            logger.info(
+                "Filled {} histograms using tree '{}' in file '{}'.".format(
+                    len(self._store), self._treename, self._filepath
+                )
+            )
 
 
 def main():
