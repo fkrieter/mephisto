@@ -17,10 +17,12 @@ class Text(MethodProxy, ROOT.TLatex):
         kwargs.setdefault("template", "common")
         self.DeclareProperties(**kwargs)
 
-    def GetXsize(self):
+    def GetXsize(self, ndc=False):
         self.Draw()
-        return super(Text, self).GetXsize() * 0.95 * self.GetTextSize() / 16.0
+        norm = ROOT.gPad.GetWw() if ndc else 1.0
+        return super(Text, self).GetXsize() * 0.95 * self.GetTextSize() / (16.0 * norm)
 
-    def GetYsize(self):
+    def GetYsize(self, ndc=False):
         self.Draw()
-        return super(Text, self).GetYsize() * 0.95 * self.GetTextSize() / 16.0
+        norm = ROOT.gPad.GetWh() if ndc else 1.0
+        return super(Text, self).GetYsize() * 0.95 * self.GetTextSize() / (16.0 * norm)
