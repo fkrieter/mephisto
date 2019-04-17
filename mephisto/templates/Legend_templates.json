@@ -1,0 +1,14 @@
+{
+    "common": {
+        "ncolumns":             2,
+        "autoncolumns":         true,
+        "columnseparation":     0.0,
+        "entryseparation":      0.0,
+        "bordersize":           0,
+        "margin":               0.2,
+        "linecoloralpha":       ["#000000", 0.0],
+        "fillcoloralpha":       ["#023000", 0.50],
+        "textfont":             43,
+        "textsize":             16
+    }
+}
