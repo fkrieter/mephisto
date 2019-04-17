@@ -3,6 +3,7 @@
 import ROOT
 
 import os
+import uuid
 import time
 
 from logger import logger
@@ -114,16 +115,18 @@ def MergeDicts(*dicts):
     return merged
 
 
-def MephistofyObject():
+def MephistofyObject(copy=False):
     # Decorator for functions and methods with a ROOT (or MEPHISTO) object as their
     # first argument (not counting 'self' etc.).
 
+    assert isinstance(copy, bool)
+
     def decorator(func):
         def mephistofy(object):
-            # If the object class inherits from MethodProxy return the original object.
-            # If not substitute the object with an instance of the corresponding
-            # MEPHISTO class - imported here to avoid circular imports - by calling the
-            # copy constructor.
+            # If the object class inherits from MethodProxy return the original object
+            # unless copy=True then continue. If not substitute the object with an
+            # instance of the corresponding MEPHISTO class - imported here to avoid
+            # circular imports - by calling the copy constructor.
             from Text import Text
             from Histo1D import Histo1D
 
@@ -137,10 +140,11 @@ def MephistofyObject():
             if "MethodProxy" in [
                 basecls.__name__ for basecls in lookupbases(object.__class__)
             ]:
-                return object
-            if clsname.startswith("TH1"):
+                if not copy:
+                    return object
+            if object.InheritsFrom("TH1"):
                 return Histo1D("{}_mephistofied".format(object.GetName()), object)
-            elif clsname.startswith(("TText", "TLatex")):
+            elif object.InheritsFrom("TText") or object.InheritsFrom("TLatex"):
                 return Text(object)
             raise NotImplementedError
 
