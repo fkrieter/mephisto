@@ -39,6 +39,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._errorband = None
         self._drawoption = ""
         self._drawerrorband = False
+        self._legenddrawoption = ""
         self._attalpha = defaultdict(lambda: 1.0)
         if len(args) == 1:
             if isinstance(args[0], ROOT.TH1D):
@@ -212,6 +213,12 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         xaxis.SetLabelSize(xaxis.GetLabelSize() * scale)
         xaxis.SetBinLabel(index, label)
         self.LabelsOption(option)
+
+    def SetLegendDrawOption(self, option):
+        self._legenddrawoption = option
+
+    def GetLegendDrawOption(self):
+        return self._legenddrawoption
 
     def SetLineAlpha(self, alpha):
         self._attalpha["line"] = alpha

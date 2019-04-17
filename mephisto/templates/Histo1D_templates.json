@@ -11,7 +11,8 @@
         "drawerrorband":        true,
         "errorbanddrawoption":  "E2",
         "errorbandfillstyle":   3151,
-        "errorbandfillalpha":   0.6
+        "errorbandfillalpha":   0.6,
+        "legenddrawoption":     "A"
     },
     "signal": {
         "drawoption":           "HIST",
@@ -25,7 +26,8 @@
         "drawerrorband":        false,
         "errorbanddrawoption":  "E2",
         "errorbandfillstyle":   3151,
-        "errorbandfillalpha":   0.6
+        "errorbandfillalpha":   0.6,
+        "legenddrawoption":     "L"
         },
     "data": {
         "drawoption":           "P2LEX0",
@@ -37,6 +39,7 @@
         "fillalpha":            1.0,
         "markerstyle":          20,
         "markercolor":          "#000000",
-        "drawerrorband":        false
+        "drawerrorband":        false,
+        "legenddrawoption":     "P"
     }
 }
