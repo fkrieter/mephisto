@@ -38,14 +38,13 @@ class Legend(MethodProxy, ROOT.TLegend):
         self._store.append(histo)
 
     def Draw(self, option="", **kwargs):
-        # self.BuildLegend()  # not here!!!
         for histo in self._store:
             self.AddEntry(histo, histo.GetTitle(), histo.GetLegendDrawOption())
         ROOT.gPad.GetCanvas().cd()  # Draw on canvas instead of pad to avoid some weird
         # horizontal alignment issues...
         super(Legend, self).Draw(option + "SAME")
 
-    def BuildLegend(self):
+    def BuildFrame(self, **kwargs):
         if len(self._store) > 4 and self._autoncolumns:
             self.SetNColumns(2)
             if len(self._store) > 12:
@@ -59,23 +58,16 @@ class Legend(MethodProxy, ROOT.TLegend):
         for i, histo in enumerate(self._store):
             title = Text(0, 0.5, histo.GetTitle(), textsize=self.GetTextSize())
             maxtitlewidth = max(maxtitlewidth, title.GetXsize())
-            if i % 2 == 0:
+            if i % self.GetNColumns() == 0:
                 maxtitleheight += title.GetYsize()
-            elif i % 2 == 1:
+            elif i % self.GetNColumns() == 1:
                 lastcolmaxtitlewidth = max(lastcolmaxtitlewidth, title.GetXsize())
-        x2 = 300.0 * (1 + maxtitlewidth - lastcolmaxtitlewidth) + self._xshift
+        # Beware, highly phenomenological scaling equations incoming:
+        x2 = 360.0 * (1 - maxtitlewidth - lastcolmaxtitlewidth + self._xshift)
         x1 = max(
             0.52, x2 - (self.GetNColumns() * 0.9 * maxtitlewidth) - self.GetMargin()
         )
-        y2 = (
-            2.8
-            + maxtitleheight
-            / (
-                (len(self._store) + len(self._store) % self.GetNColumns())
-                / self.GetNColumns()
-            )
-            + self._yshift
-        )
+        y2 = 2.75 - maxtitleheight + self._yshift
         y1 = y2 - (2.5 * maxtitleheight)
         self.DeclareProperties(x1=x1, x2=x2, y1=y1, y2=y2)
 
@@ -108,7 +100,7 @@ if __name__ == "__main__":
 
     h = {}
     p = Plot()
-    for i in range(1, 7, 1):
+    for i in range(1, 9, 1):
         h[i] = Histo1D("test_{}".format(i), "title", 20, 0.0, 400.0)
         h[i].Fill(
             filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>6{}0".format(i)
@@ -118,6 +110,5 @@ if __name__ == "__main__":
         )
         l.Register(h[i], **props)
         p.Register(h[i], **props)
-    l.BuildLegend()
     p.Register(l)
     p.Print("test_legend.pdf")
