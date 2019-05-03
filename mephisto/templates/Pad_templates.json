@@ -25,7 +25,8 @@
         "titlesize":        24,
         "titlecolor":       1,
         "xtitleoffset":     1.4,
-        "ytitleoffset":     2.0
+        "ytitleoffset":     2.0,
+        "ypadding":         0.25
     },
     "1;0": {
         "padposition":      [0.0, 0.0, 1.0, 1.0],

@@ -147,9 +147,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         return binwidths
 
     def BuildFrame(self, **kwargs):
-        scale = 1.0 + kwargs.get(
-            "ypadding", 0.2
-        )  # default: frame is 20% higher than maximum
+        scale = 1.0 + kwargs.get("ypadding", 0.25)  # Pad property
         logx = kwargs.get("logx", False)
         logy = kwargs.get("logy", False)
         xtitle = kwargs.get("xtitle", None)
