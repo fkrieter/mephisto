@@ -7,6 +7,7 @@ import ROOT
 from collections import defaultdict
 
 from Pad import Pad
+from Text import Text
 from Canvas import Canvas
 from MethodProxy import *
 from Helpers import CheckPath, DissectProperties, MephistofyObject
@@ -21,6 +22,10 @@ class Plot(MethodProxy):
         self._padproperties = defaultdict(dict)
         self._mkdirs = False
         self._style = "Classic"
+        self._label = ""
+        self._state = ""
+        self._cme = None
+        self._lumi = None
         kwargs.setdefault("template", "ATLAS")
         self.DeclareProperties(**kwargs)
 
@@ -86,6 +91,76 @@ class Plot(MethodProxy):
     def GetStyle(self):
         return self._style
 
+    def SetLabel(self, label):
+        self._label = label
+
+    def GetLabel(self):
+        return self._label
+
+    def SetState(self, state):
+        self._state = state
+
+    def GetState(self):
+        return self._state
+
+    def SetCME(self, cme):
+        self._cme = cme
+
+    def GetCME(self):
+        return self._cme
+
+    def SetLuminosity(self, lumi):
+        self._lumi = lumi
+
+    def GetLuminosity(self):
+        return self._lumi
+
+    def AddPlotDecorations(self, refx=0.175, refy=0.855, npads=1):
+        # Beware, highly phenomenological scaling equations incoming:
+        xscale = 1.0 + (1 - npads) / 7.25
+        yscale = 1.0 - (1 - npads) / 7.25
+        label = None
+        if self._label:
+            label = Text(refx, refy, "{} ".format(self._label), textfont=73)
+            self.Register(label)
+        if self._state:
+            if label:
+                self.Register(
+                    Text(
+                        label.GetX() + label.GetXsize() * xscale,
+                        label.GetY(),
+                        self._state,
+                    )
+                )
+            else:
+                self.Register(Text(refx, refy, self._state))
+        if self._cme:
+            cmestr = "#sqrt{{s}} = {} TeV".format(self._cme)
+            if label:
+                cme = Text(
+                    label.GetX(),
+                    label.GetY() - (label.GetYsize() * 1.5) * yscale,
+                    cmestr,
+                )
+                self.Register(cme)
+            else:
+                self.Register(Text(refx, refy, cmestr))
+            if self._lumi:
+                lumistr = ", {} fb^{{-1}}".format(self._lumi)
+                self.Register(
+                    Text(
+                        cme.GetX() + 0.975 * cme.GetXsize() * xscale,
+                        cme.GetY(),
+                        lumistr,
+                        indicesize=1.8,
+                    )
+                )
+        elif self._lumi:
+            logger.error(
+                "Please specify a center-of-mass energy associated to the"
+                "given luminosity!"
+            )
+
     @CheckPath(mode="w")
     def Print(self, path, **kwargs):
         properties = DissectProperties(kwargs, [Plot, Canvas])
@@ -93,11 +168,13 @@ class Plot(MethodProxy):
         ROOT.gStyle.SetPaintTextFormat("4.2f")
         npads = len(self._store)
         canvas = Canvas("test", template=str(npads), **properties["Canvas"])
+        self.DeclareProperties(**properties["Plot"])
+        self.AddPlotDecorations(npads=npads)
         for i, store in self._store.items():
             pad = Pad("{}_pad{}".format(canvas.GetName(), i), **self._padproperties[i])
             canvas.SetSelectedPad(pad)
-            for obj, properties in store:
-                with UsingProperties(obj, **properties):
+            for obj, objprops in store:
+                with UsingProperties(obj, **objprops):
                     suffix = "SAME" if pad.GetDrawFrame() else ""
                     obj.Draw(obj.GetDrawOption() + suffix)
                 # legend = pad.BuildLegend()
@@ -112,33 +189,10 @@ class Plot(MethodProxy):
 
 if __name__ == "__main__":
 
-    from Text import Text
     from Histo1D import Histo1D
     from IOManager import IOManager
 
     filename = "../data/ds_data18.root"
-
-    # h1 = Histo1D("test1", "", 20, 0.0, 400.0)
-    # h2 = Histo1D("test2", "", 20, 0.0, 400.0)
-    # h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650")
-    # h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>750")
-
-    atlaslogo = Text(0.175, 0.875, "ATLAS ", textfont=73)
-    atlasstate = Text(
-        atlaslogo.GetX() + atlaslogo.GetXsize(), atlaslogo.GetY(), "Work in Progress"
-    )
-
-    cme = Text(
-        atlaslogo.GetX(),
-        atlaslogo.GetY() - atlaslogo.GetYsize() * 1.75,
-        "#sqrt{s} = 13 TeV",
-    )
-    lumi = lambda x: Text(
-        atlaslogo.GetX() + cme.GetXsize(),
-        cme.GetY(),
-        ", {} ".format(x) + "fb^{-1}",
-        indicesize=1.8,
-    )
 
     h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
     h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
@@ -155,12 +209,12 @@ if __name__ == "__main__":
 
     p1 = Plot(npads=1)
     p1.Register(h1, 0, template="background", logy=False, xunits="GeV")
-    p1.Print("plot_test1.pdf")
+    p1.Print("plot_test1.pdf", luminosity=139)
 
     p2 = Plot(npads=2)
     p2.Register(h1, 0, template="background", logy=False, xunits="GeV")
     p2.Register(h2, 1, template="signal", xunits="GeV")
-    p2.Print("plot_test2.pdf")
+    p2.Print("plot_test2.pdf", luminosity=139)
 
     p3 = Plot(npads=3)
     p3.Register(h1, 0, template="background", logy=False, xunits="GeV")
@@ -174,8 +228,4 @@ if __name__ == "__main__":
         ytitle="YTITLE",
         xtitle="XTITLE",
     )
-    p3.Register(atlaslogo, 0)
-    p3.Register(atlasstate, 0)
-    p3.Register(cme, 0)
-    p3.Register(lumi(140), 0)
-    p3.Print("plot_test3.pdf")
+    p3.Print("plot_test3.pdf", luminosity=139)

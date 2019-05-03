@@ -5,6 +5,9 @@
     },
     "ATLAS": {
         "style":    "ATLAS",
-        "npads":    1
+        "npads":    1,
+        "label":    "ATLAS",
+        "state":    "Just For Fun",
+        "cme":      13
     }
 }
