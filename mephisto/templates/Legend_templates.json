@@ -7,7 +7,7 @@
         "bordersize":           0,
         "margin":               0.2,
         "linecoloralpha":       ["#000000", 0.0],
-        "fillcoloralpha":       ["#023000", 0.50],
+        "fillcoloralpha":       ["#ffffff", 0.0],
         "textfont":             43,
         "textsize":             16
     }
