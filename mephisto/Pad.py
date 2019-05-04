@@ -50,6 +50,7 @@ class Pad(MethodProxy, ROOT.TPad):
         self._xmax = self._ymax = 1.0
         self._xunits, self._yunits = None, None
         self._ypadding = 0.25  # frame is 20% higher than max. bin content
+        self._drawlegend = False
         if len(args) > 0:
             self._xposlow, self._yposlow = args[0:2]
             self._xposup, self._yposup = args[2:4]
@@ -329,6 +330,12 @@ class Pad(MethodProxy, ROOT.TPad):
         canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
         scale = 700.0 / canvaswidth
         super(Pad, self).SetRightMargin(margin * scale)
+
+    def SetDrawLegend(self, boolean):
+        self._drawlegend = boolean
+
+    def GetDrawLegend(self):
+        return self._drawlegend
 
     def SetYPadding(self, value):
         self._ypadding = value

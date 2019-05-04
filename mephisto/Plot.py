@@ -4,10 +4,12 @@ from __future__ import print_function
 
 import ROOT
 
+from uuid import uuid4
 from collections import defaultdict
 
 from Pad import Pad
 from Text import Text
+from Legend import Legend
 from Canvas import Canvas
 from MethodProxy import *
 from Helpers import CheckPath, DissectProperties, MephistofyObject
@@ -17,6 +19,7 @@ from Helpers import CheckPath, DissectProperties, MephistofyObject
 class Plot(MethodProxy):
     def __init__(self, **kwargs):
         MethodProxy.__init__(self)
+        self._name = "Plot-{}".format(uuid4().hex[:8])
         self._npads = 1
         self._store = defaultdict(list)
         self._padproperties = defaultdict(dict)
@@ -167,20 +170,28 @@ class Plot(MethodProxy):
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
         npads = len(self._store)
-        canvas = Canvas("test", template=str(npads), **properties["Canvas"])
+        canvas = Canvas(
+            "{}_Canvas".format(self._name), template=str(npads), **properties["Canvas"]
+        )
         self.DeclareProperties(**properties["Plot"])
         self.AddPlotDecorations(npads=npads)
         for i, store in self._store.items():
-            pad = Pad("{}_pad{}".format(canvas.GetName(), i), **self._padproperties[i])
+            pad = Pad("{}_Pad-{}".format(canvas.GetName(), i), **self._padproperties[i])
+            legend = Legend("{}_Legend".format(pad.GetName()))
             canvas.SetSelectedPad(pad)
             for obj, objprops in store:
                 with UsingProperties(obj, **objprops):
+                    if obj.InheritsFrom("TH1"):
+                        legend.Register(obj)
                     suffix = "SAME" if pad.GetDrawFrame() else ""
                     obj.Draw(obj.GetDrawOption() + suffix)
                 # legend = pad.BuildLegend()
                 # legend.Draw(suffix)
             if pad.GetDrawFrame():
                 pad.RedrawAxis()
+            if pad.GetDrawLegend():
+                legend.BuildFrame()
+                legend.Draw("SAME")
             canvas.cd()
         canvas.Print(path)
         logger.info("Created plot: '{}'".format(path))
@@ -194,9 +205,9 @@ if __name__ == "__main__":
 
     filename = "../data/ds_data18.root"
 
-    h1 = ROOT.TH1D("test1", "", 20, 0.0, 400.0)
-    h2 = ROOT.TH1D("test2", "", 20, 0.0, 400.0)
-    h3 = ROOT.TH1D("test3", "", 20, 0.0, 400.0)
+    h1 = ROOT.TH1D("test1", "TITLE_1", 20, 0.0, 400.0)
+    h2 = ROOT.TH1D("test2", "TITLE_2", 20, 0.0, 400.0)
+    h3 = ROOT.TH1D("test3", "TITLE_3", 20, 0.0, 400.0)
     IOManager.FillHistogram(
         h1, filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>650"
     )
@@ -208,7 +219,12 @@ if __name__ == "__main__":
     )
 
     p1 = Plot(npads=1)
-    p1.Register(h1, 0, template="background", logy=False, xunits="GeV")
+    p1.Register(h1, 0, template="signal", logy=False, xunits="GeV")
+    p1.Register(h2, 0, template="signal", logy=False, xunits="GeV")
+    p1.Register(h3, 0, template="signal", logy=False, xunits="GeV")
+    # p1.Register(h1, 0, template="signal", logy=False, xunits="GeV")
+    # p1.Register(h2, 0, template="signal", logy=False, xunits="GeV")
+    # p1.Register(h3, 0, template="signal", logy=False, xunits="GeV")
     p1.Print("plot_test1.pdf", luminosity=139)
 
     p2 = Plot(npads=2)
