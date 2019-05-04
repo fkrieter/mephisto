@@ -142,8 +142,9 @@ def MephistofyObject(copy=False):
             ]:
                 if not copy:
                     return object
+            suffix = "mephistofied" if not copy else "copy"
             if object.InheritsFrom("TH1"):
-                return Histo1D("{}_mephistofied".format(object.GetName()), object)
+                return Histo1D("{}_{}".format(object.GetName(), suffix), object)
             elif object.InheritsFrom("TText") or object.InheritsFrom("TLatex"):
                 return Text(object)
             raise NotImplementedError
