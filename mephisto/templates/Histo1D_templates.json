@@ -12,7 +12,7 @@
         "errorbanddrawoption":  "E2",
         "errorbandfillstyle":   3151,
         "errorbandfillalpha":   0.6,
-        "legenddrawoption":     "A"
+        "legenddrawoption":     "F"
     },
     "signal": {
         "drawoption":           "HIST",
@@ -40,6 +40,6 @@
         "markerstyle":          20,
         "markercolor":          "#000000",
         "drawerrorband":        false,
-        "legenddrawoption":     "P"
+        "legenddrawoption":     "AP2L"
     }
 }
