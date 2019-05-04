@@ -1,6 +1,6 @@
 {
     "common": {
-        "ncolumns":             2,
+        "ncolumns":             1,
         "autoncolumns":         true,
         "columnseparation":     0.0,
         "entryseparation":      0.0,
@@ -9,6 +9,7 @@
         "linecoloralpha":       ["#000000", 0.0],
         "fillcoloralpha":       ["#ffffff", 0.0],
         "textfont":             43,
-        "textsize":             16
+        "textsize":             16,
+        "maxwidth":             0.375
     }
 }
