@@ -49,7 +49,7 @@ class Pad(MethodProxy, ROOT.TPad):
         self._xmin = self._ymin = 1e-2
         self._xmax = self._ymax = 1.0
         self._xunits, self._yunits = None, None
-        self._ypadding = 0.25  # frame is 20% higher than max. bin content
+        self._ypadding = 0.25  # frame is 25% higher than max. bin content
         self._drawlegend = False
         if len(args) > 0:
             self._xposlow, self._yposlow = args[0:2]
