@@ -31,6 +31,11 @@ class Plot(MethodProxy):
         self._lumi = None
         kwargs.setdefault("template", "ATLAS")
         self.DeclareProperties(**kwargs)
+        for pad in range(self._npads):
+            for prop, value in Pad.GetTemplate(
+                "{};{}".format(self._npads, pad)
+            ).items():
+                self._padproperties[pad].setdefault(prop, value)
 
     def SetNPads(self, npads):
         self._npads = npads
@@ -52,8 +57,6 @@ class Plot(MethodProxy):
     def Register(self, object, pad=0, **kwargs):
         self.AssertPadIndex(pad)
         properties = DissectProperties(kwargs, [object, Pad])
-        for prop, value in Pad.GetTemplate("{};{}".format(self._npads, pad)).items():
-            self._padproperties[pad].setdefault(prop, value)
         objclsname = object.__class__.__name__
         self._padproperties[pad].update(properties["Pad"])
         try:
@@ -117,6 +120,16 @@ class Plot(MethodProxy):
 
     def GetLuminosity(self):
         return self._lumi
+
+    def GetPadHeight(self, pad=0):
+        self.AssertPadIndex(pad)
+        x1, y1, x2, y2 = self._padproperties[pad]["padposition"]
+        return y2 - y1
+
+    def GetPadWidth(self, pad=0):
+        self.AssertPadIndex(pad)
+        x1, y1, x2, y2 = self._padproperties[pad]["padposition"]
+        return x2 - x1
 
     def AddPlotDecorations(self, refx=0.175, refy=0.855, npads=1):
         # Beware, highly phenomenological scaling equations incoming:
