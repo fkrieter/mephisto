@@ -41,11 +41,13 @@ class Legend(MethodProxy, ROOT.TLegend):
     def Draw(self, option="", **kwargs):
         for histo in self._store:
             self.AddEntry(histo, histo.GetTitle(), histo.GetLegendDrawOption())
-        # ROOT.gPad.GetCanvas().cd()
         super(Legend, self).Draw(option + "SAME")
 
     def GetNRows(self):
-        return math.ceil(len(self._store) / self.GetNColumns())
+        return (
+            len(self._store) / self.GetNColumns()
+            + len(self._store) % self.GetNColumns()
+        )
 
     def SetMaxWidth(self, value):
         self._maxwidth = value
@@ -53,64 +55,35 @@ class Legend(MethodProxy, ROOT.TLegend):
     def GetMaxWidth(self):
         return self._maxwidth
 
-    def BuildFrame(self, **kwargs):
+    def BuildFrame(self):
         if len(self._store) > 4 and self._autoncolumns:
             self.SetNColumns(2)
-        # TODO: This is where the "magic" should happen in principle... The scaling
-        # (long vs. short titles) as well as the horizontal alignment still need some
-        # further optimization.
-        # WARNING: The following is a complete mess! The resulting legends look okay for
-        # now, but that's not a stable solution. Somehow Histo1D and TH1D title scale
-        # differently and the number of columns also seems to have an impact on the
-        # title's textwidth... brun, couet what's happening here?! x_X
+        # TODO: Add top-left, bottom-left and bottom-right alignement.
         maxtitlewidth = 0.0
         maxtitleheight = 0.0
         lastcolmaxtitlewidth = 0.0
-        nastyfix = False  # yes, that's what it is.
         for i, histo in enumerate(self._store):
-            if self.GetNColumns() == 1:
-                if "mephistofied" in histo.GetName():
-                    nastyfix = True
-                    reftextsize = 0.225
-                else:
-                    reftextsize = 6.5
-            else:
-                if "mephistofied" in histo.GetName():
-                    nastyfix = True
-                    reftextsize = 0.13
-                else:
-                    reftextsize = 4.0
-            title = Text(0, 0.5, histo.GetTitle(), textsize=reftextsize)
+            title = Text(0.5, 0.5, histo.GetTitle(), textsize=self.GetTextSize())
             maxtitlewidth = max(maxtitlewidth, title.GetXsize())
-            if i % self.GetNColumns() == 0:
-                maxtitleheight += title.GetYsize()
-            elif self.GetNColumns() > 1 and i % self.GetNColumns() == 1:
+            maxtitleheight = max(maxtitleheight, title.GetYsize())
+            if self.GetNColumns() > 1 and i % self.GetNColumns() == 1:
                 lastcolmaxtitlewidth = max(lastcolmaxtitlewidth, title.GetXsize())
-        nastywidthscale = 1.0
-        if self.GetNColumns() == 1:
-            if nastyfix:
-                nastywidthscale = 1.0
-            else:
-                nastywidthscale = 0.028
-        else:
-            if nastyfix:
-                nastywidthscale = 5.0
-            else:
-                nastywidthscale = 0.059
-        maxtitlewidth *= nastywidthscale
         x2 = 0.925 + self._xshift
         x1 = (
             max(
                 x2 - self._maxwidth,
                 x2
                 - max(
-                    self.GetNColumns() * 0.95 * maxtitlewidth, self.GetMargin() / 1.6
+                    (1.2 if self.GetNColumns() > 1 else 1.0)
+                    * self.GetNColumns()
+                    * maxtitlewidth,
+                    self.GetMargin() / 1.6,
                 ),
             )
             + self._xshift
         )
-        y2 = 0.885 + self._yshift
-        y1 = y2 - (1.3 * self.GetNColumns() * maxtitleheight) + self._yshift
+        y2 = 0.895 + self._yshift
+        y1 = y2 - (1.2 * self.GetNRows() * maxtitleheight) + self._yshift
         self.DeclareProperties(x1=x1, x2=x2, y1=y1, y2=y2)
 
     def SetXShift(self, shift):
@@ -140,9 +113,11 @@ if __name__ == "__main__":
 
     # l = Legend("test")
 
+    nentries = 8
+
     h = {}
     p = Plot()
-    for i in range(1, 8 + 1, 1):
+    for i in range(1, nentries + 1, 1):
         h[i] = Histo1D("test_{}".format(i), "title", 20, 0.0, 400.0)
         h[i].Fill(
             filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>4{}0".format(i)

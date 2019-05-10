@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import ROOT
 
+from Canvas import Canvas
 from MethodProxy import *
 
 
@@ -17,33 +18,33 @@ class Text(MethodProxy, ROOT.TLatex):
         kwargs.setdefault("template", "common")
         self.DeclareProperties(**kwargs)
 
-    def GetXsize(self, **kwargs):
-        ndc = kwargs.pop("ndc", False)
-        scale = kwargs.pop("scale", 1.0)
-        if kwargs:
-            logger.error(
-                "Unknown key word argument(s): '{}'".format(
-                    "', '".join(kwargs.values())
-                )
-            )
+    def GetXsize(self):
+        xsf = 15.8  # a wild scale factor appears...
+        c = ROOT.TCanvas("tmp", "", 100, 100)
+        c.Draw()
         self.Draw()
-        norm = ROOT.gPad.GetWw() if ndc else 1.0
-        norm *= scale ** 0.7  # wild exponent appeared...
-        return super(Text, self).GetXsize() * self.GetTextSize() / (16.0 * norm)
+        font = self.GetTextFont()
+        with UsingProperties(self, textfont=10 * (font - (font % 10) / 10) + 2):
+            size = (self.GetTextSize() / (ROOT.gPad.GetWw() / xsf)) * (
+                super(Text, self).GetXsize()
+                / (ROOT.gPad.GetWh() * ROOT.gPad.GetWw()) ** 0.5
+                / self.GetTextSize()
+            )
+        return size
 
-    def GetYsize(self, **kwargs):
-        ndc = kwargs.pop("ndc", False)
-        scale = kwargs.pop("scale", 1.0)
-        if kwargs:
-            logger.error(
-                "Unknown key word argument(s): '{}'".format(
-                    "', '".join(kwargs.values())
-                )
-            )
+    def GetYsize(self):
+        ysf = 13.0  # a wild scale factor appears...
+        c = ROOT.TCanvas("tmp", "", 100, 100)
+        c.Draw()
         self.Draw()
-        norm = ROOT.gPad.GetWh() if ndc else 1.0
-        norm *= scale ** 0.7  # wild exponent appeared...
-        return super(Text, self).GetYsize() * self.GetTextSize() / (16.0 * norm)
+        font = self.GetTextFont()
+        with UsingProperties(self, textfont=10 * (font - (font % 10) / 10) + 2):
+            size = (self.GetTextSize() / (ROOT.gPad.GetWh() / ysf)) * (
+                super(Text, self).GetYsize()
+                / (ROOT.gPad.GetWh() * ROOT.gPad.GetWw()) ** 0.5
+                / self.GetTextSize()
+            )
+        return size
 
 
 if __name__ == "__main__":
@@ -54,48 +55,41 @@ if __name__ == "__main__":
     p2 = Plot(npads=2)
     p3 = Plot(npads=3)
 
-    x_0 = 0.5
+    x_0 = 0.2
     y_0 = 0.5
 
-    print("PLOT 1 (npads = 1)")
-    t1 = Text(x_0, y_0, "TEST 12345")
-    print(t1.GetY())
-    t2 = Text(x_0, t1.GetY() - t1.GetYsize(scale=p1.GetPadHeight(0)), "TEST 12345")
-    print(t2.GetY())
-    t3 = Text(x_0, t2.GetY() - t2.GetYsize(scale=p1.GetPadHeight(0)), "TEST 12345")
-    print(t3.GetY())
-    t4 = Text(
-        x_0 + t1.GetXsize(scale=p1.GetPadWidth(0)),
-        t1.GetY() - t2.GetYsize(scale=p1.GetPadHeight(0)),
-        "TEST 12345",
-    )
+    logy = False
 
-    p1.Register(t1)
+    # print("PLOT 1 (npads = 1)")
+    t1 = Text(x_0, y_0, "TEST 12345")
+    t2 = Text(x_0, t1.GetY() - t1.GetYsize(), "TEST 123TT")
+    t3 = Text(x_0, t2.GetY() - t2.GetYsize(), "TEST 12345")
+    t4 = Text(x_0 + t1.GetXsize(), t1.GetY() - t2.GetYsize(), "TEST 12345")
+
+    p1.Register(t1, logy=logy)
     p1.Register(t2)
     p1.Register(t3)
     p1.Register(t4)
-    p1.Print("text_test-1.pdf")
+    p1.Print("text_test-1.pdf", luminosity=139)
 
-    print("PLOT 2 (npads = 2)")
-    print(t1.GetY())
-    t2 = Text(x_0, t1.GetY() - t1.GetYsize(scale=p2.GetPadHeight(0)), "TEST 12345")
-    print(t2.GetY())
-    t3 = Text(x_0, t2.GetY() - t2.GetYsize(scale=p2.GetPadHeight(0)), "TEST 12345")
-    print(t3.GetY())
+    # print("PLOT 2 (npads = 2)")
+    t2 = Text(x_0, t1.GetY() - t1.GetYsize(), "TEST 123TT")
+    t3 = Text(x_0, t2.GetY() - t2.GetYsize(), "TEST 12345")
+    t4 = Text(x_0 + t1.GetXsize(), t1.GetY() - t2.GetYsize(), "TEST 12345")
 
-    p2.Register(t1, pad=0)
+    p2.Register(t1, pad=0, logy=logy)
     p2.Register(t2, pad=0)
     p2.Register(t3, pad=0)
-    p2.Print("text_test-2.pdf")
+    p2.Register(t4, pad=0)
+    p2.Print("text_test-2.pdf", luminosity=139)
 
-    print("PLOT 2 (npads = 3)")
-    print(t1.GetY())
-    t2 = Text(x_0, t1.GetY() - t1.GetYsize(scale=p3.GetPadHeight(0)), "TEST 12345")
-    print(t2.GetY())
-    t3 = Text(x_0, t2.GetY() - t2.GetYsize(scale=p3.GetPadHeight(0)), "TEST 12345")
-    print(t3.GetY())
+    # print("PLOT 2 (npads = 3)")
+    t2 = Text(x_0, t1.GetY() - t1.GetYsize(), "TEST 123TT")
+    t3 = Text(x_0, t2.GetY() - t2.GetYsize(), "TEST 12345")
+    t4 = Text(x_0 + t1.GetXsize(), t1.GetY() - t2.GetYsize(), "TEST 12345")
 
-    p3.Register(t1, pad=0)
+    p3.Register(t1, pad=0, logy=logy)
     p3.Register(t2, pad=0)
     p3.Register(t3, pad=0)
-    p3.Print("text_test-3.pdf")
+    p3.Register(t4, pad=0)
+    p3.Print("text_test-3.pdf", luminosity=139)
