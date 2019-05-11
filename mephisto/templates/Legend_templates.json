@@ -10,6 +10,11 @@
         "fillcoloralpha":       ["#002cff", 0.0],
         "textfont":             43,
         "textsize":             18,
-        "maxwidth":             0.375
+        "maxwidth":             0.375,
+        "entrysorting":         [
+                                    ["legenddrawoption", false],
+                                    ["integral", true],
+                                    ["title", false]
+                                ]
     }
 }

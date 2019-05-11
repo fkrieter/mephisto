@@ -8,8 +8,8 @@ import math
 
 from uuid import uuid4
 
-from MethodProxy import *
 from Text import Text
+from MethodProxy import *
 from Helpers import DissectProperties, MergeDicts, MephistofyObject
 
 
@@ -24,6 +24,7 @@ class Legend(MethodProxy, ROOT.TLegend):
         self._xshift = 0
         self._yshift = 0
         self._maxwidht = 0.5
+        self._entrysorting = None
         kwargs.setdefault("template", "common")
         self.DeclareProperties(**kwargs)
 
@@ -59,7 +60,40 @@ class Legend(MethodProxy, ROOT.TLegend):
     def GetMaxWidth(self):
         return self._maxwidth
 
+    def AddEntrySortingProperty(self, property, reverse=False):
+        if self._entrysorting is None:
+            self._entrysorting = []
+        self._entrysorting.append((property, reverse))
+
+    def SetEntrySorting(self, *listoftuples):
+        for property, reverse in listoftuples:
+            self.AddEntrySortingProperty(property, reverse)
+
+    def GetEntrySorting(self):
+        return self._entrysorting
+
+    def SortEntries(self):
+        from Histo1D import Histo1D
+
+        if self._entrysorting is not None:
+            for prop, reverse in reversed(self._entrysorting):
+                if prop in [m.lower() for m in Histo1D._properties]:
+                    self._store.sort(key=lambda h: h.GetProperty(prop), reverse=reverse)
+                else:
+                    try:
+                        self._store.sort(
+                            key=lambda h: getattr(h, prop.capitalize()), reverse=reverse
+                        )
+                    except AttributeError:
+                        logger.error(
+                            "Sorting failed: 'Histo1D' has no attribute '{}'!".format(
+                                prop.capitalize()
+                            )
+                        )
+                        raise AttributeError
+
     def BuildFrame(self, **kwargs):
+        self.SortEntries()
         if len(self._store) > 4 and self._autoncolumns:
             self.SetNColumns(2)
         # TODO: Add top-left, bottom-left and bottom-right alignement.
