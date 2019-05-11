@@ -55,7 +55,7 @@ class Legend(MethodProxy, ROOT.TLegend):
     def GetMaxWidth(self):
         return self._maxwidth
 
-    def BuildFrame(self):
+    def BuildFrame(self, **kwargs):
         if len(self._store) > 4 and self._autoncolumns:
             self.SetNColumns(2)
         # TODO: Add top-left, bottom-left and bottom-right alignement.
