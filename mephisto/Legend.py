@@ -35,8 +35,12 @@ class Legend(MethodProxy, ROOT.TLegend):
 
     @MephistofyObject(copy=True)
     def Register(self, histo, **kwargs):
-        histo.DeclareProperties(**kwargs)
-        self._store.append(histo)
+        if histo.InheritsFrom("THStack"):
+            for h in histo.GetHists():
+                self._store.append(h)
+        else:
+            histo.DeclareProperties(**kwargs)
+            self._store.append(histo)
 
     def Draw(self, option="", **kwargs):
         for histo in self._store:

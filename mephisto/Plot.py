@@ -203,7 +203,7 @@ class Plot(MethodProxy):
             canvas.SetSelectedPad(pad)
             for obj, objprops in store:
                 with UsingProperties(obj, **objprops):
-                    if obj.InheritsFrom("TH1"):
+                    if any([obj.InheritsFrom(tcls) for tcls in ["TH1", "THStack"]]):
                         legend[i].Register(obj)
                     suffix = "SAME" if pad.GetDrawFrame() else ""
                     obj.Draw(obj.GetDrawOption() + suffix)
