@@ -8,6 +8,8 @@
         "fillcolor":        0,
         "drawframe":        true,
         "drawlegend":       false,
+        "legendxshift":     0.0,
+        "legendyshift":     0.0,
         "xmin":             1e-2,
         "xmax":             1.0,
         "ymin":             1e-2,
@@ -38,7 +40,8 @@
         "padposition":      [0.0, 0.3, 1.0, 1.0],
         "bottommargin":     0.0,
         "ytitle":           "Entries",
-        "drawlegend":       true
+        "drawlegend":       true,
+        "legendyshift":     0.042
     },
     "2;1": {
         "padposition":      [0.0, 0.0, 1.0, 0.3],
@@ -48,7 +51,8 @@
         "padposition":      [0.0, 0.4, 1.0, 1.0],
         "bottommargin":     0.0,
         "ytitle":           "Entries",
-        "drawlegend":       true
+        "drawlegend":       true,
+        "legendyshift":     0.054
     },
     "3;1": {
         "padposition":      [0.0, 0.25, 1.0, 0.4],

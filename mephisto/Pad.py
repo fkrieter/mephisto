@@ -51,6 +51,8 @@ class Pad(MethodProxy, ROOT.TPad):
         self._xunits, self._yunits = None, None
         self._ypadding = 0.25  # frame is 25% higher than max. bin content
         self._drawlegend = False
+        self._legendxshift = 0.0
+        self._legendyshift = 0.0
         if len(args) > 0:
             self._xposlow, self._yposlow = args[0:2]
             self._xposup, self._yposup = args[2:4]
@@ -333,6 +335,18 @@ class Pad(MethodProxy, ROOT.TPad):
 
     def SetDrawLegend(self, boolean):
         self._drawlegend = boolean
+
+    def SetLegendXShift(self, value):
+        self._legendxshift = value
+
+    def GetLegendXShift(self):
+        return self._legendxshift
+
+    def SetLegendYShift(self, value):
+        self._legendyshift = value
+
+    def GetLegendYShift(self):
+        return self._legendyshift
 
     def GetDrawLegend(self):
         return self._drawlegend
