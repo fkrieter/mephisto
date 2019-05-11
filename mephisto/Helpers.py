@@ -128,6 +128,7 @@ def MephistofyObject(copy=False):
             # instance of the corresponding MEPHISTO class - imported here to avoid
             # circular imports - by calling the copy constructor.
             from Text import Text
+            from Stack import Stack
             from Histo1D import Histo1D
 
             def lookupbases(cls):
@@ -145,6 +146,8 @@ def MephistofyObject(copy=False):
             suffix = "mephistofied" if not copy else "copy"
             if object.InheritsFrom("TH1"):
                 return Histo1D("{}_{}".format(object.GetName(), suffix), object)
+            elif object.InheritsFrom("THStack"):
+                return Stack("{}_{}".format(object.GetName(), suffix), object)
             elif object.InheritsFrom("TText") or object.InheritsFrom("TLatex"):
                 return Text(object)
             raise NotImplementedError
