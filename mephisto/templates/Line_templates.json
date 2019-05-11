@@ -1,0 +1,7 @@
+{
+    "common": {
+        "ndc":              false,
+        "linewidth":        2,
+        "linecoloralpha":   ["#ff0000", 1.0]
+    }
+}
