@@ -182,17 +182,20 @@ class Stack(MethodProxy, ROOT.THStack):
 if __name__ == "__main__":
 
     filename = "../data/ds_data18.root"
-    h1 = Histo1D("h1", "h1", 20, 0.0, 400.0)
-    h2 = Histo1D("h2", "h2", 20, 0.0, 400.0)
-    h3 = Histo1D("h3", "h3", 20, 0.0, 400.0)
+    h1 = Histo1D("h1", "Histogram 1", 20, 0.0, 400.0)
+    h2 = Histo1D("h2", "Histogram 2", 20, 0.0, 400.0)
+    h3 = Histo1D("h3", "Histogram 3", 20, 0.0, 400.0)
+    h4 = Histo1D("h3", "Histogram 3", 20, 0.0, 400.0)
 
-    h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>600")
+    h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>640")
     h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>725")
-    h3.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>850")
+    h3.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>800")
+    h4.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>850")
 
     s = Stack()
-    s.Register(h1, stack=True, template="background", fillcolor=ROOT.kBlue)
+    s.Register(h1, stack=False, template="data")
     s.Register(h2, stack=True, template="background", fillcolor=ROOT.kGreen)
-    s.Register(h3, stack=False, template="signal", linecolor=ROOT.kRed)
+    s.Register(h3, stack=True, template="background", fillcolor=ROOT.kOrange)
+    s.Register(h4, stack=False, template="signal", linecolor=ROOT.kRed)
 
     s.Print("test_stack.pdf", logy=False, xunits="GeV")
