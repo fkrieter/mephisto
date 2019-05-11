@@ -1,0 +1,10 @@
+{
+    "common": {
+        "ndc":              false,
+        "arrowsize":        0.02,
+        "option":           "<|",
+        "linewidth":        2,
+        "linecoloralpha":   ["#ff0000", 1.0],
+        "fillcoloralpha":   ["#ff0000", 1.0]
+    }
+}
