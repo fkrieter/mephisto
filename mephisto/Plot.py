@@ -186,6 +186,7 @@ class Plot(MethodProxy):
             template=str(self._npads),
             **properties["Canvas"]
         )
+        legend = {}
         self.DeclareProperties(**properties["Plot"])
         self.AddPlotDecorations()
         for i, store in self._store.items():
@@ -194,19 +195,23 @@ class Plot(MethodProxy):
             pad.cd()
             t = Text(0, 0, "")
             t.Draw("SAME")
-            legend = Legend("{}_Legend".format(pad.GetName()))
+            legend[i] = Legend(
+                "{}_Legend".format(pad.GetName()),
+                xshift=pad.GetLegendXShift(),
+                yshift=pad.GetLegendYShift(),
+            )
             canvas.SetSelectedPad(pad)
             for obj, objprops in store:
                 with UsingProperties(obj, **objprops):
                     if obj.InheritsFrom("TH1"):
-                        legend.Register(obj)
+                        legend[i].Register(obj)
                     suffix = "SAME" if pad.GetDrawFrame() else ""
                     obj.Draw(obj.GetDrawOption() + suffix)
             if pad.GetDrawFrame():
                 pad.RedrawAxis()
             if pad.GetDrawLegend():
-                legend.BuildFrame()
-                legend.Draw("SAME")
+                legend[i].BuildFrame()
+                legend[i].Draw("SAME")
             canvas.cd()
         canvas.Print(path)
         logger.info("Created plot: '{}'".format(path))
@@ -238,9 +243,9 @@ if __name__ == "__main__":
     p1.Register(h1, 0, template="signal", logy=logy, xunits="GeV")
     p1.Register(h2, 0, template="signal", logy=logy, xunits="GeV")
     p1.Register(h3, 0, template="signal", logy=logy, xunits="GeV")
-    # p1.Register(h1, 0, template="signal", logy=logy, xunits="GeV")
-    # p1.Register(h2, 0, template="signal", logy=logy, xunits="GeV")
-    # p1.Register(h3, 0, template="signal", logy=logy, xunits="GeV")
+    p1.Register(h1, 0, template="signal", logy=logy, xunits="GeV")
+    p1.Register(h2, 0, template="signal", logy=logy, xunits="GeV")
+    p1.Register(h3, 0, template="signal", logy=logy, xunits="GeV")
     p1.Print("plot_test1.pdf", luminosity=139)
 
     p2 = Plot(npads=2)
