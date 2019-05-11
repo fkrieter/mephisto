@@ -1,0 +1,11 @@
+{
+    "common": {
+        "drawoption":       "HIST",
+        "stacksorting":     [
+                                ["drawoption", false],
+                                ["integral", false],
+                                ["title", false]
+                            ],
+        "drawstacksum":     false
+    }
+}
