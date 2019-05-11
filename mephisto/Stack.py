@@ -55,7 +55,7 @@ class Stack(MethodProxy, ROOT.THStack):
                         "stacksum{}".format(p) for p in Histo1D.GetListOfProperties()
                     ]
                 },
-                self,
+                Stack,
             ],
         )
         self.DeclareProperties(**properties["Stack"])
@@ -100,7 +100,7 @@ class Stack(MethodProxy, ROOT.THStack):
                 )
             )
 
-    def BuildStack(self):
+    def SortStack(self):
         if self._stacksorting is not None:
             for prop, reverse in reversed(self._stacksorting):
                 if prop in [m.lower() for m in Histo1D._properties]:
@@ -120,12 +120,17 @@ class Stack(MethodProxy, ROOT.THStack):
                             )
                         )
                         raise AttributeError
-        if self.GetNhists() == 0:
-            for histo, properties in self._store["stack"]:
-                self.Add(histo, histo.GetDrawOption())
+
+    def BuildStack(self):
+        if self.GetNhists() != 0:
+            return
+        self.SortStack()
+        for histo, properties in self._store["stack"]:
+            self.Add(histo, histo.GetDrawOption())
         self.DeclareProperties(**self._stacksumproperties)
 
     def BuildFrame(self, **kwargs):
+        self.BuildStack()
         frame = {}
         for histo in [self._stacksumhisto] + [h for h, p in self._store["nostack"]]:
             if not frame:
@@ -141,7 +146,6 @@ class Stack(MethodProxy, ROOT.THStack):
         return frame
 
     def Print(self, path, **kwargs):
-        self.BuildStack()
         properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad])
         plot = Plot(npads=1)
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
@@ -191,4 +195,4 @@ if __name__ == "__main__":
     s.Register(h2, stack=True, template="background", fillcolor=ROOT.kGreen)
     s.Register(h3, stack=False, template="signal", linecolor=ROOT.kRed)
 
-    s.Print("test_stack.pdf", xunits="GeV")
+    s.Print("test_stack.pdf", logy=False, xunits="GeV")
