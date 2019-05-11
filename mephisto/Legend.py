@@ -18,6 +18,8 @@ class Legend(MethodProxy, ROOT.TLegend):
     def __init__(self, name=uuid4().hex[:8], *args, **kwargs):
         MethodProxy.__init__(self)
         ROOT.TLegend.__init__(self, *args)
+        if len(args) >= 4:
+            kwargs["x1"], kwargs["y1"], kwargs["x2"], kwargs["y2"] = args[0:4]
         self.SetName(name)
         self._store = []
         self._autoncolumns = False
