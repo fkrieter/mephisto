@@ -69,21 +69,16 @@ class Legend(MethodProxy, ROOT.TLegend):
             if self.GetNColumns() > 1 and i % self.GetNColumns() == 1:
                 lastcolmaxtitlewidth = max(lastcolmaxtitlewidth, title.GetXsize())
         x2 = 0.925 + self._xshift
-        x1 = (
-            max(
-                x2 - self._maxwidth,
-                x2
-                - max(
-                    (1.2 if self.GetNColumns() > 1 else 1.0)
-                    * self.GetNColumns()
-                    * maxtitlewidth,
-                    self.GetMargin() / 1.6,
-                ),
-            )
-            + self._xshift
+        x1 = max(
+            x2 - self._maxwidth,
+            x2
+            - max(
+                self.GetNColumns() * ((self.GetTextSize() / 700.0) + maxtitlewidth),
+                self.GetMargin() / 1.6,
+            ),
         )
         y2 = 0.895 + self._yshift
-        y1 = y2 - (1.2 * self.GetNRows() * maxtitleheight) + self._yshift
+        y1 = y2 - (1.2 * self.GetNRows() * maxtitleheight)
         self.DeclareProperties(x1=x1, x2=x2, y1=y1, y2=y2)
 
     def SetXShift(self, shift):
