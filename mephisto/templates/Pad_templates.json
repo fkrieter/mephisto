@@ -45,7 +45,8 @@
     },
     "2;1": {
         "padposition":      [0.0, 0.0, 1.0, 0.3],
-        "ytitle":           "Contribution"
+        "ytitle":           "Contribution",
+        "yndivisions":      505
     },
     "3;0": {
         "padposition":      [0.0, 0.4, 1.0, 1.0],
@@ -57,10 +58,12 @@
     "3;1": {
         "padposition":      [0.0, 0.25, 1.0, 0.4],
         "bottommargin":     0.0,
-        "ytitle":           "Contribution"
+        "ytitle":           "Contribution",
+        "yndivisions":      505
     },
     "3;2": {
         "padposition":      [0.0, 0.0, 1.0, 0.25],
-        "ytitle":           "Ratio"
+        "ytitle":           "Ratio",
+        "yndivisions":      505
     }
 }

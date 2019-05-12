@@ -10,40 +10,47 @@ from MethodProxy import *
 from Helpers import DissectProperties
 
 
+def ExtendMethods(cls):
+    # Add dedicated methods (+ their associated properties) for each axis of the frame.
+    # The axis name is added to the beginning of the property name, e.g. 'xlabelfont'
+    # will configure the labelfont of the pad frame's x-axis only, while 'labelfont'
+    # will do so for all axes (see setter method below).
+    # (See: https://www.reddit.com/r/learnpython/comments/50yk7s/)
+    cls._frameproperties = []
+    for prop in [
+        "LabelFont",
+        "LabelSize",
+        "LabelColor",
+        "LabelOffset",
+        "TitleFont",
+        "TitleSize",
+        "TitleColor",
+        "TitleOffset",
+        "Ndivisions",
+    ]:
+        cls._frameproperties.append(prop.lower())
+        for coord in "xyz":
+            cls._frameproperties.append("{}{}".format(coord, prop.lower()))
+            setattr(
+                cls,
+                "Set{}{}".format(coord.upper(), prop),
+                lambda cls, v, bound_coord=coord, bound_prop=prop: getattr(
+                    cls, "Set{}".format(bound_prop)
+                )(v, axes=bound_coord),
+            )
+            coordprop = "{}{}".format(coord.upper(), prop)
+            if coordprop.lower() in cls._properties:
+                continue
+            cls._properties.append(coordprop.lower())
+            cls._methods.append("Set{}".format(coordprop))
+    return cls
+
+
+@ExtendMethods
 @PreloadProperties
 class Pad(MethodProxy, ROOT.TPad):
     def __init__(self, name="undefined", *args, **kwargs):
         MethodProxy.__init__(self)
-        # First collect frame properties to be applied after pad is drawn and extend Pad
-        # class with corresponsing coordinate-specific setter methods.
-        frameproperties = []
-        for prop in [
-            "LabelFont",
-            "LabelSize",
-            "LabelColor",
-            "LabelOffset",
-            "TitleFont",
-            "TitleSize",
-            "TitleColor",
-            "TitleOffset",
-        ]:
-            frameproperties.append(prop.lower())
-            for coord in "xyz":
-                frameproperties.append("{}{}".format(coord, prop.lower()))
-                setattr(
-                    self,
-                    "Set{}{}".format(coord.upper(), prop),
-                    (
-                        lambda coord=coord: lambda v: getattr(
-                            self, "Set{}".format(prop)
-                        )(v, coord)
-                    )(),
-                )
-                coordprop = "{}{}".format(coord.upper(), prop)
-                if coordprop.lower() in self._properties:
-                    continue
-                self._properties.append(coordprop.lower())
-                self._methods.append("Set{}".format(coordprop))
         self._frame = None
         self._drawframe = False
         self._xmin = self._ymin = 1e-2
@@ -67,7 +74,7 @@ class Pad(MethodProxy, ROOT.TPad):
             ROOT.TPad.__init__(self)
             self.SetName(name)
         self.SetTitle(";;")
-        properties = DissectProperties(kwargs, [{"Frame": frameproperties}, self])
+        properties = DissectProperties(kwargs, [{"Frame": self._frameproperties}, Pad])
         self.Draw()
         self.DeclareProperty("padposition", properties["Pad"].pop("padposition"))
         self.DeclareProperties(**properties["Pad"])
@@ -307,14 +314,23 @@ class Pad(MethodProxy, ROOT.TPad):
             }.get(coord.lower(), 1.0)
             axis.SetTitleOffset(offset * scale)
 
-    def SetTopMargin(self, margin, axes="xyz"):
+    def SetNdivisions(self, ndiv, optim=True, axes="xyz"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            axis.SetNdivisions(ndiv, optim)
+
+    def SetTopMargin(self, margin):
         canvasheight = self.GetCanvas().GetWh() * self.GetCanvas().GetAbsHNDC()
         canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
         scale = canvaswidth / canvasheight
         scale *= 700.0 / canvaswidth
         super(Pad, self).SetTopMargin(margin * scale)
 
-    def SetBottomMargin(self, margin, axes="xyz"):
+    def SetBottomMargin(self, margin):
         canvasheight = self.GetCanvas().GetWh() * self.GetCanvas().GetAbsHNDC()
         canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
         padheight = self.GetWh() * self.GetAbsHNDC()
