@@ -40,6 +40,6 @@
         "markerstyle":          20,
         "markercolor":          "#000000",
         "drawerrorband":        false,
-        "legenddrawoption":     "AP2L"
+        "legenddrawoption":     "AP2"
     }
 }
