@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import ROOT
 
-import math
 from uuid import uuid4
 from array import array
 from collections import defaultdict
@@ -179,11 +178,8 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         if logy:
             frame["ymin"] = 1e-2
             frame["ymax"] = 10 ** (
-                scale
-                * math.log10(
-                    10 ** (math.log10(frame["ymax"]) - math.log10(frame["ymin"]))
-                )
-                + math.log10(frame["ymin"])
+                scale * ROOT.TMath.Log10(frame["ymax"] / frame["ymin"])
+                + ROOT.TMath.Log10(frame["ymin"])
             )
         else:
             frame["ymax"] *= scale
