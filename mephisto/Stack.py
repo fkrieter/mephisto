@@ -125,6 +125,8 @@ class Stack(MethodProxy, ROOT.THStack):
         self.DeclareProperties(**self._stacksumproperties)
 
     def BuildFrame(self, **kwargs):
+        use_ymin = kwargs.pop("use_ymin", False)
+        use_ymax = kwargs.pop("use_ymax", False)
         logy = kwargs.get("logy", False)
         frame = {}
         for histo in [self._stacksumhisto] + self._store["nostack"]:
@@ -138,24 +140,26 @@ class Stack(MethodProxy, ROOT.THStack):
                     ("ymax", max),
                 ]:
                     frame[key] = func(frame[key], histo.BuildFrame(**kwargs)[key])
-        # The solution for the THStack y-range problem is super annoying and
-        # unfortunately not fully solved by drawing a pad frame first (for plots with
-        # mutliple pad the y-range for the first drawn pad (with a THStack in it) the
-        # is ignored). So here's a fix for that:
-        # (See: https://root-forum.cern.ch/t/trouble-w-stackhistograms/12390)
-        if not logy:
-            self.SetMaximum(frame["ymax"] / (1 + ROOT.gStyle.GetHistTopMargin()))
-            self.SetMinimum(frame["ymin"])
-        else:
-            self.SetMaximum(
-                frame["ymax"]
-                / (1 + 0.2 * ROOT.TMath.Log10(frame["ymax"] / frame["ymin"]))
-            )
-            self.SetMinimum(
-                frame["ymin"]
-                * (1 + 0.5 * ROOT.TMath.Log10(frame["ymax"] / frame["ymin"]))
-            )
+        ymin = frame["ymin"] if not use_ymin else kwargs.get("ymin")
+        ymax = frame["ymax"] if not use_ymax else kwargs.get("ymax")
+        Stack.UpdateYAxisRange(self, ymin, ymax, logy)
         return frame
+
+    @staticmethod
+    def UpdateYAxisRange(stack, ymin, ymax, logy=False):
+        # The THStack y-range problem is super annoying and unfortunately not fully
+        # solved by drawing a pad frame first (for plots with mutliple pad the y-range
+        # for the first drawn pad (with a THStack in it) the is ignored).
+        # So here's a fix for that:
+        # (See: https://root-forum.cern.ch/t/trouble-w-stackhistograms/12390)
+        print("{:.1E}".format(ymax), ROOT.gStyle.GetHistTopMargin())
+        if not logy:
+            stack.SetMaximum(ymax / (1 + ROOT.gStyle.GetHistTopMargin()))
+            stack.SetMinimum(ymin)
+        else:
+            # TODO: Fix these:
+            stack.SetMaximum(ymax / (1 + 0.2 * ROOT.TMath.Log10(ymax / ymin)))
+            stack.SetMinimum(ymin * (1 + 0.5 * ROOT.TMath.Log10(ymax / ymin)))
 
     def Print(self, path, **kwargs):
         from RatioPlot import RatioPlot
@@ -243,4 +247,11 @@ if __name__ == "__main__":
     s.Register(h3, stack=True, template="background", fillcolor=ROOT.kOrange)
     s.Register(h4, stack=False, template="signal", linecolor=ROOT.kRed)
 
-    s.Print("test_stack.pdf", contribution=True, ratio=True, logy=True, xunits="GeV")
+    s.Print(
+        "test_stack.pdf",
+        contribution=True,
+        ratio=True,
+        # ymax=3e2,
+        logy=False,
+        xunits="GeV",
+    )
