@@ -14,15 +14,14 @@ class ContributionPlot(Stack):
         name = "{}_ContributionPlotStack".format(args[0].GetName())
         super(ContributionPlot, self).__init__(name)
         if len(args) == 1 and args[0].InheritsFrom("THStack"):
-            for histo, properties in args[0]._store["stack"]:
-                properties["stack"] = True
-                self.Register(histo, **properties)
+            for histo in args[0]._store["stack"]:
+                self.Register(histo, stack=True)
         else:
             for histo in args:
                 assert histo.InheritsFrom("TH1")
                 self.Register(histo, stack=True)
         for bn in range(1, self._stacksumhisto.GetNbinsX() + 1, 1):
-            for histo, properties in self._store["stack"]:
+            for histo in self._store["stack"]:
                 try:
                     histo.SetBinContent(
                         bn,
@@ -32,6 +31,7 @@ class ContributionPlot(Stack):
                     histo.SetBinContent(bn, 0)
             self._stacksumhisto.SetBinContent(bn, 1.0)
         self.DeclareProperties(**kwargs)
+        self.BuildStack()
 
 
 if __name__ == "__main__":

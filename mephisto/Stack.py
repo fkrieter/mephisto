@@ -82,9 +82,10 @@ class Stack(MethodProxy, ROOT.THStack):
     def GetStackSorting(self):
         return self._stacksorting
 
-    @MephistofyObject()
+    @MephistofyObject(copy=True)
     def Register(self, histo, **kwargs):
         stack = kwargs.pop("stack", False)
+        histo.SetDrawErrorband(False)
         if stack:
             if self._stacksumhisto is None:
                 self._stacksumhisto = Histo1D(
@@ -92,26 +93,20 @@ class Stack(MethodProxy, ROOT.THStack):
                 )
             else:
                 self._stacksumhisto.Add(histo)
-        with UsingProperties(histo, **kwargs):
-            self._store["stack" if stack else "nostack"].append(
-                (
-                    Histo1D("{}_{}".format(histo.GetName(), uuid4().hex[:8]), histo),
-                    kwargs,
-                )
-            )
+        histo.DeclareProperties(**kwargs)
+        self._store["stack" if stack else "nostack"].append(histo)
 
     def SortStack(self):
         if self._stacksorting is not None:
             for prop, reverse in reversed(self._stacksorting):
                 if prop in [m.lower() for m in Histo1D._properties]:
                     self._store["stack"].sort(
-                        key=lambda tpl: tpl[0].GetProperty(prop), reverse=reverse
+                        key=lambda h: h.GetProperty(prop), reverse=reverse
                     )
                 else:
                     try:
                         self._store["stack"].sort(
-                            key=lambda tpl: getattr(tpl[0], prop.capitalize()),
-                            reverse=reverse,
+                            key=lambda h: getattr(h, prop.capitalize()), reverse=reverse
                         )
                     except AttributeError:
                         logger.error(
@@ -125,14 +120,14 @@ class Stack(MethodProxy, ROOT.THStack):
         if self.GetNhists() != 0:
             return
         self.SortStack()
-        for histo, properties in self._store["stack"]:
+        for histo in self._store["stack"]:
             self.Add(histo, histo.GetDrawOption())
         self.DeclareProperties(**self._stacksumproperties)
 
     def BuildFrame(self, **kwargs):
-        self.BuildStack()
+        logy = kwargs.get("logy", False)
         frame = {}
-        for histo in [self._stacksumhisto] + [h for h, p in self._store["nostack"]]:
+        for histo in [self._stacksumhisto] + self._store["nostack"]:
             if not frame:
                 frame = histo.BuildFrame(**kwargs)
             else:
@@ -143,14 +138,66 @@ class Stack(MethodProxy, ROOT.THStack):
                     ("ymax", max),
                 ]:
                     frame[key] = func(frame[key], histo.BuildFrame(**kwargs)[key])
+        # The solution for the THStack y-range problem is super annoying and
+        # unfortunately not fully solved by drawing a pad frame first (for plots with
+        # mutliple pad the y-range for the first drawn pad (with a THStack in it) the
+        # is ignored). So here's a fix for that:
+        # (See: https://root-forum.cern.ch/t/trouble-w-stackhistograms/12390)
+        if not logy:
+            self.SetMaximum(frame["ymax"] / (1 + ROOT.gStyle.GetHistTopMargin()))
+            self.SetMinimum(frame["ymin"])
+        else:
+            self.SetMaximum(
+                frame["ymax"]
+                / (1 + 0.2 * ROOT.TMath.Log10(frame["ymax"] / frame["ymin"]))
+            )
+            self.SetMinimum(
+                frame["ymin"]
+                * (1 + 0.5 * ROOT.TMath.Log10(frame["ymax"] / frame["ymin"]))
+            )
         return frame
 
     def Print(self, path, **kwargs):
+        from RatioPlot import RatioPlot
+        from ContributionPlot import ContributionPlot
+
+        contribution = kwargs.pop("contribution", False)
+        ratio = kwargs.pop("ratio", False)
+        if ratio is True:
+            try:  # it's just a guess...
+                datahisto = filter(
+                    lambda h: h.GetDrawOption().upper() != "HIST",
+                    self._store["nostack"],
+                )[0]
+                ratio = [datahisto, self._stacksumhisto]
+            except IndexError:
+                logger.error(
+                    "Failed to identify appropriate numerator histogram for RatioPlot "
+                    "pad!"
+                )
+                ratio = False
+        npads = sum([contribution, bool(ratio)]) + 1
         properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad])
-        plot = Plot(npads=1)
+        self.BuildStack()
+        plot = Plot(npads=npads)
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
-        for histo, histoprops in self._store["nostack"]:
-            plot.Register(histo, **MergeDicts(histoprops, properties["Pad"]))
+        if self._drawstacksum and self._stacksumhisto is not None:
+            plot.Register(self._stacksumhisto)
+        for histo in self._store["nostack"]:
+            plot.Register(histo, **properties["Pad"])
+        if contribution:
+            contribplot = ContributionPlot(self)
+            plot.Register(contribplot, pad=1, ytitle="Contrib.", logy=False, ypadding=0)
+        if ratio:
+            ratioplot = RatioPlot(*ratio)
+            plot.Register(
+                ratioplot,
+                pad=npads - 1,
+                ytitle="Data / SM",
+                logy=False,
+                ymin=0.2,
+                ymax=1.8,
+            )
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
     def SetDrawOption(self, option):
@@ -175,8 +222,6 @@ class Stack(MethodProxy, ROOT.THStack):
         if drawoption is not None:
             self.SetDrawOption(drawoption)
         super(Stack, self).Draw(self.GetDrawOption())
-        if self._drawstacksum and self._stacksumhisto is not None:
-            self._stacksumhisto.Draw(self._stacksumhisto.GetDrawOption() + "SAME")
 
 
 if __name__ == "__main__":
@@ -185,7 +230,7 @@ if __name__ == "__main__":
     h1 = Histo1D("h1", "Histogram 1", 20, 0.0, 400.0)
     h2 = Histo1D("h2", "Histogram 2", 20, 0.0, 400.0)
     h3 = Histo1D("h3", "Histogram 3", 20, 0.0, 400.0)
-    h4 = Histo1D("h3", "Histogram 3", 20, 0.0, 400.0)
+    h4 = Histo1D("h4", "Histogram 4", 20, 0.0, 400.0)
 
     h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>640")
     h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>725")
@@ -198,4 +243,4 @@ if __name__ == "__main__":
     s.Register(h3, stack=True, template="background", fillcolor=ROOT.kOrange)
     s.Register(h4, stack=False, template="signal", linecolor=ROOT.kRed)
 
-    s.Print("test_stack.pdf", logy=False, xunits="GeV")
+    s.Print("test_stack.pdf", contribution=True, ratio=True, logy=True, xunits="GeV")
