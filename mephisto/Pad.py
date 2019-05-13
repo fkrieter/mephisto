@@ -230,7 +230,6 @@ class Pad(MethodProxy, ROOT.TPad):
             self._xmin, self._ymin, self._xmax, self._ymax, self.GetTitle()
         )
         self.DeclareProperties(**kwargs)
-        self.RedrawAxis()
 
     def SetLabelColor(self, color, axes="xyz"):
         for coord in axes:
