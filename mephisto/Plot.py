@@ -193,8 +193,6 @@ class Plot(MethodProxy):
             pad = Pad("{}_Pad-{}".format(canvas.GetName(), i), **self._padproperties[i])
             pad.Draw()
             pad.cd()
-            t = Text(0, 0, "")
-            t.Draw("SAME")
             legend[i] = Legend(
                 "{}_Legend".format(pad.GetName()),
                 xshift=pad.GetLegendXShift(),
