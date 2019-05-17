@@ -1,7 +1,7 @@
 import ROOT
 
 """Set ROOT to batch and ignore command line options"""
-ROOT.gROOT.SetBatch()
+ROOT.gROOT.SetBatch(0)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 """Set ROOT logging verbosity"""
@@ -17,6 +17,9 @@ ROOT.gErrorIgnoreLevel = 2000
 
 from Pad import Pad
 from Plot import Plot
+from Line import Line
+from Stack import Stack
+from Arrow import Arrow
 from logger import logger
 from Canvas import Canvas
 from Histo1D import Histo1D
