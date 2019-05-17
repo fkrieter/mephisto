@@ -325,7 +325,9 @@ class Pad(MethodProxy, ROOT.TPad):
     def SetTopMargin(self, margin):
         canvasheight = self.GetCanvas().GetWh() * self.GetCanvas().GetAbsHNDC()
         canvaswidth = self.GetCanvas().GetWw() * self.GetCanvas().GetAbsWNDC()
+        padheight = self.GetWh() * self.GetAbsHNDC()
         scale = canvaswidth / canvasheight
+        scale *= canvasheight / padheight
         scale *= 700.0 / canvaswidth
         super(Pad, self).SetTopMargin(margin * scale)
 

@@ -1,6 +1,6 @@
 {
     "common": {
-        "topmargin":        0.05,
+        "topmargin":        0.02,
         "bottommargin":     0.10,
         "leftmargin":       0.14,
         "rightmargin":      0.05,
@@ -27,7 +27,7 @@
         "titlefont":        43,
         "titlesize":        24,
         "titlecolor":       1,
-        "xtitleoffset":     1.4,
+        "xtitleoffset":     1.2,
         "ytitleoffset":     2.0,
         "ypadding":         0.25
     },
@@ -45,6 +45,7 @@
     },
     "2;1": {
         "padposition":      [0.0, 0.0, 1.0, 0.3],
+        "topmargin":        0.01,
         "ytitle":           "Contribution",
         "yndivisions":      505
     },
@@ -57,12 +58,14 @@
     },
     "3;1": {
         "padposition":      [0.0, 0.25, 1.0, 0.4],
+        "topmargin":        0.01,
         "bottommargin":     0.0,
         "ytitle":           "Contribution",
         "yndivisions":      505
     },
     "3;2": {
         "padposition":      [0.0, 0.0, 1.0, 0.25],
+        "topmargin":        0.01,
         "ytitle":           "Ratio",
         "yndivisions":      505
     }
