@@ -84,7 +84,8 @@ class Legend(MethodProxy, ROOT.TLegend):
                 else:
                     try:
                         self._store.sort(
-                            key=lambda h: getattr(h, prop.capitalize()), reverse=reverse
+                            key=lambda h: getattr(h, prop.capitalize())(),
+                            reverse=reverse,
                         )
                     except AttributeError:
                         logger.error(

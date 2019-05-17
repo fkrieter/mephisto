@@ -106,7 +106,8 @@ class Stack(MethodProxy, ROOT.THStack):
                 else:
                     try:
                         self._store["stack"].sort(
-                            key=lambda h: getattr(h, prop.capitalize()), reverse=reverse
+                            key=lambda h: getattr(h, prop.capitalize())(),
+                            reverse=reverse,
                         )
                     except AttributeError:
                         logger.error(
@@ -116,10 +117,11 @@ class Stack(MethodProxy, ROOT.THStack):
                         )
                         raise AttributeError
 
-    def BuildStack(self):
+    def BuildStack(self, **kwargs):
         if self.GetNhists() != 0:
             return
-        self.SortStack()
+        if kwargs.get("sort", True):
+            self.SortStack()
         for histo in self._store["stack"]:
             self.Add(histo, histo.GetDrawOption())
         self.DeclareProperties(**self._stacksumproperties)
@@ -148,11 +150,10 @@ class Stack(MethodProxy, ROOT.THStack):
     @staticmethod
     def UpdateYAxisRange(stack, ymin, ymax, logy=False):
         # The THStack y-range problem is super annoying and unfortunately not fully
-        # solved by drawing a pad frame first (for plots with mutliple pad the y-range
-        # for the first drawn pad (with a THStack in it) the is ignored).
+        # solved by drawing a pad frame first (for plots with mutliple pads the y-range
+        # for the first drawn pad (with a THStack in it) is ignored).
         # So here's a fix for that:
         # (See: https://root-forum.cern.ch/t/trouble-w-stackhistograms/12390)
-        print("{:.1E}".format(ymax), ROOT.gStyle.GetHistTopMargin())
         if not logy:
             stack.SetMaximum(ymax / (1 + ROOT.gStyle.GetHistTopMargin()))
             stack.SetMinimum(ymin)
@@ -191,7 +192,16 @@ class Stack(MethodProxy, ROOT.THStack):
             plot.Register(histo, **properties["Pad"])
         if contribution:
             contribplot = ContributionPlot(self)
-            plot.Register(contribplot, pad=1, ytitle="Contrib.", logy=False, ypadding=0)
+            plot.Register(
+                contribplot,
+                pad=1,
+                ytitle="Contrib.",
+                logy=False,
+                ymin=0,
+                ymax=1,
+                xtitle=properties["Pad"]["xtitle"],
+                xunits=properties["Pad"]["xunits"],
+            )
         if ratio:
             ratioplot = RatioPlot(*ratio)
             plot.Register(
@@ -201,6 +211,8 @@ class Stack(MethodProxy, ROOT.THStack):
                 logy=False,
                 ymin=0.2,
                 ymax=1.8,
+                xtitle=properties["Pad"]["xtitle"],
+                xunits=properties["Pad"]["xunits"],
             )
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
@@ -231,21 +243,29 @@ class Stack(MethodProxy, ROOT.THStack):
 if __name__ == "__main__":
 
     filename = "../data/ds_data18.root"
-    h1 = Histo1D("h1", "Histogram 1", 20, 0.0, 400.0)
-    h2 = Histo1D("h2", "Histogram 2", 20, 0.0, 400.0)
-    h3 = Histo1D("h3", "Histogram 3", 20, 0.0, 400.0)
-    h4 = Histo1D("h4", "Histogram 4", 20, 0.0, 400.0)
 
-    h1.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>640")
-    h2.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>725")
-    h3.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>800")
-    h4.Fill(filename, tree="DirectStau", varexp="MET", cuts="tau1Pt>850")
+    nbkgs = 4
 
+    threshold = (
+        [240] + [450] + [500 + i * (200.0 / nbkgs) for i in range(nbkgs)] + [370, 510]
+    )
+
+    h = {}
     s = Stack()
-    s.Register(h1, stack=False, template="data")
-    s.Register(h2, stack=True, template="background", fillcolor=ROOT.kGreen)
-    s.Register(h3, stack=True, template="background", fillcolor=ROOT.kOrange)
-    s.Register(h4, stack=False, template="signal", linecolor=ROOT.kRed)
+    nbkgs += 1
+    for i in range(1, 1 + nbkgs + 2, 1):
+        h[i] = Histo1D("h{}".format(i), "Histogram {}".format(i), 20, 0.0, 400.0)
+        h[i].Fill(
+            filename,
+            tree="DirectStau",
+            varexp="MET",
+            cuts="tau1Pt>{}".format(threshold[i - 1]),
+        )
+        if i > 1 and i <= nbkgs:
+            s.Register(h[i], stack=True, template="background", fillcolor=i)
+    s.Register(h[1], stack=False, template="data")
+    s.Register(h[nbkgs + 1], stack=False, template="signal", linecolor=ROOT.kYellow)
+    s.Register(h[nbkgs + 2], stack=False, template="signal", linecolor=ROOT.kPink)
 
     s.Print(
         "test_stack.pdf",
@@ -253,5 +273,7 @@ if __name__ == "__main__":
         ratio=True,
         # ymax=3e2,
         logy=False,
+        xtitle="E_{T}^{miss}",
         xunits="GeV",
+        luminosity=139,
     )

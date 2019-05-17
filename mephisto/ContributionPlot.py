@@ -20,6 +20,7 @@ class ContributionPlot(Stack):
             for histo in args:
                 assert histo.InheritsFrom("TH1")
                 self.Register(histo, stack=True)
+        self.SortStack()  # before normalization!
         for bn in range(1, self._stacksumhisto.GetNbinsX() + 1, 1):
             for histo in self._store["stack"]:
                 try:
@@ -31,7 +32,7 @@ class ContributionPlot(Stack):
                     histo.SetBinContent(bn, 0)
             self._stacksumhisto.SetBinContent(bn, 1.0)
         self.DeclareProperties(**kwargs)
-        self.BuildStack()
+        self.BuildStack(sort=False)
 
 
 if __name__ == "__main__":

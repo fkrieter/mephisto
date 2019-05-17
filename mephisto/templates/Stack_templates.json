@@ -3,7 +3,7 @@
         "drawoption":                   "HIST",
         "stacksorting":                 [
                                             ["drawoption", false],
-                                            ["integral", true],
+                                            ["integral", false],
                                             ["title", false]
                                         ],
         "drawstacksum":                 true,
