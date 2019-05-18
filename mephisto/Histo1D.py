@@ -38,6 +38,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._errorband = None
         self._drawoption = ""
         self._drawerrorband = False
+        self._addtolegend = True
         self._legenddrawoption = ""
         self._attalpha = defaultdict(lambda: 1.0)
         if len(args) == 1:
@@ -58,11 +59,10 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                         **args[0]._errorband.GetProperties(prefix="errorband")
                     )
         elif len(args) == 2:
-            if isinstance(args[0], list):
-                lowbinedges = array("d", args[0])
-                ROOT.TH1D.__init__(
-                    self, name, args[0], len(lowbinedges) - 1, lowbinedges
-                )
+            assert isinstance(args[0], str)
+            assert isinstance(args[1], (list, tuple))
+            lowbinedges = array("d", args[1])
+            ROOT.TH1D.__init__(self, name, args[0], len(lowbinedges) - 1, lowbinedges)
         elif len(args) == 4:
             assert isinstance(args[0], str)
             assert isinstance(args[1], int)
@@ -243,6 +243,12 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
     def SetMarkerColor(self, color):
         self.SetMarkerColorAlpha(color, self._attalpha["marker"])
+
+    def SetAddToLegend(self, boolean):
+        self._addtolegend = boolean
+
+    def GetAddToLegend(self):
+        return self._addtolegend
 
 
 def main():

@@ -1,8 +1,10 @@
-{
+{   "common": {
+        "addtolegend":          true
+    },
     "background": {
         "drawoption":           "HIST",
         "linestyle":            1,
-        "linewidth":            2,
+        "linewidth":            1,
         "linecolor":            "#000000",
         "linealpha":            1.0,
         "fillstyle":            1001,
@@ -16,8 +18,8 @@
     },
     "signal": {
         "drawoption":           "HIST",
-        "linestyle":            1,
-        "linewidth":            3,
+        "linestyle":            2,
+        "linewidth":            5,
         "linecolor":            "#ff0000",
         "linealpha":            1.0,
         "fillstyle":            1001,
@@ -40,6 +42,6 @@
         "markerstyle":          20,
         "markercolor":          "#000000",
         "drawerrorband":        false,
-        "legenddrawoption":     "AP2"
+        "legenddrawoption":     "AEP2"
     }
 }

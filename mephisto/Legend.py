@@ -40,10 +40,12 @@ class Legend(MethodProxy, ROOT.TLegend):
     def Register(self, histo, **kwargs):
         if histo.InheritsFrom("THStack"):
             for h in histo.GetHists():
-                self._store.append(h)
+                if h.GetAddToLegend():
+                    self._store.append(h)
         else:
             histo.DeclareProperties(**kwargs)
-            self._store.append(histo)
+            if histo.GetAddToLegend():
+                self._store.append(histo)
 
     def Draw(self, option="", **kwargs):
         for histo in self._store:
@@ -114,11 +116,12 @@ class Legend(MethodProxy, ROOT.TLegend):
             x2 - self._maxwidth,
             x2
             - max(
-                self.GetNColumns() * ((self.GetTextSize() / 700.0) + maxtitlewidth),
+                self.GetNColumns()
+                * (1.5 * (self.GetTextSize() / 700.0) + maxtitlewidth),
                 self.GetMargin() / 1.6,
             ),
         )
-        y2 = 0.895 + self._yshift
+        y2 = 0.935 + self._yshift
         y1 = y2 - (1.2 * self.GetNRows() * maxtitleheight)
         self.DeclareProperties(x1=x1, x2=x2, y1=y1, y2=y2)
 
