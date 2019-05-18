@@ -4,6 +4,8 @@ from __future__ import print_function
 
 import ROOT
 
+import re
+
 from Canvas import Canvas
 from MethodProxy import *
 
@@ -32,13 +34,18 @@ class Text(MethodProxy, ROOT.TLatex):
             )
         return size
 
-    def GetYsize(self):
+    def GetYsize(self, ignoreformulas=True):
         ysf = 13.0  # a wild scale factor appears...
         c = ROOT.TCanvas("tmp", "", 100, 100)
         c.Draw()
         self.Draw()
         font = self.GetTextFont()
-        with UsingProperties(self, textfont=10 * (font - (font % 10) / 10) + 2):
+        tmptitle = self.GetTitle()
+        if ignoreformulas:
+            tmptitle = re.sub("[\_\^]{(.*?)}", "", tmptitle)  # remove sub-/superscripts
+        with UsingProperties(
+            self, textfont=10 * (font - (font % 10) / 10) + 2, title=tmptitle
+        ):
             size = (self.GetTextSize() / (ROOT.gPad.GetWh() / ysf)) * (
                 super(Text, self).GetYsize()
                 / (ROOT.gPad.GetWh() * ROOT.gPad.GetWw()) ** 0.5
