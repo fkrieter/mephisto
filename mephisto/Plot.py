@@ -151,8 +151,11 @@ class Plot(MethodProxy):
         x1, y1, x2, y2 = self._padproperties[pad]["padposition"]
         return x2 - x1
 
-    def AddPlotDecorations(self, refx=0.175, refy=0.865):
+    def AddPlotDecorations(self, refx=0.18, refy=0.835):
         # Maybe make the ref points a property?
+        refy += ROOT.gPad.GetTopMargin() / (
+            float(ROOT.gPad.GetWh()) / ROOT.gPad.GetWw()
+        )
         label = None
         if self._label:
             label = Text(refx, refy, "{} ".format(self._label), textfont=73)
