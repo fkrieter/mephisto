@@ -6,6 +6,8 @@ import ROOT
 
 from uuid import uuid4
 
+from Line import Line
+from Arrow import Arrow
 from Histo1D import Histo1D
 from MethodProxy import *
 from Helpers import DissectProperties, MergeDicts
@@ -56,7 +58,9 @@ class RatioPlot(Histo1D):
     def Draw(self, drawoption=None):
         self._baseline.Draw(self._baseline.GetDrawOption() + "SAME")  # Histo1D.Draw
         self._baseline.DrawCopy("HIST SAME", "_{}".format(uuid4().hex[:8]))
+        self.DrawBenchmarkLines()
         super(RatioPlot, self).Draw(drawoption)
+        self.DrawArrows()
 
     def DeclareProperty(self, property, args):
         property = property.lower()
@@ -64,6 +68,60 @@ class RatioPlot(Histo1D):
             self._baseline.DeclareProperty(property[8:], args)
         else:
             super(RatioPlot, self).DeclareProperty(property, args)
+
+    def DrawArrows(self, **kwargs):
+        currentpad = ROOT.gPad
+        if not currentpad:
+            return
+        ymax = currentpad.GetUymax()
+        ymin = currentpad.GetUymin()
+        self._arrows = []
+        for bn in range(1, self.GetNbinsX() + 1, 1):
+            if self.GetBinContent(bn) == 0.0:
+                continue
+            sign = -1 if self.GetBinContent(bn) > ymax else 1
+            if self.GetBinContent(bn) == 0.0:
+                continue
+            if self.GetBinContent(bn) > ymax:
+                self._arrows.append(
+                    Arrow(
+                        self.GetXaxis().GetBinCenter(bn),
+                        ymax - (ymax - ymin) * 0.03,
+                        self.GetXaxis().GetBinCenter(bn),
+                        ymax - (ymax - ymin) * 0.15,
+                        arrowsize=0.01,
+                    )
+                )
+            elif self.GetBinContent(bn) < ymin:
+                self._arrows.append(
+                    Arrow(
+                        self.GetXaxis().GetBinCenter(bn),
+                        ymin + (ymax - ymin) * 0.03,
+                        self.GetXaxis().GetBinCenter(bn),
+                        ymin + (ymax - ymin) * 0.17,
+                        arrowsize=0.01,
+                    )
+                )
+        for arrow in self._arrows:
+            arrow.Draw()
+
+    def DrawBenchmarkLines(self):
+        currentpad = ROOT.gPad
+        if not currentpad:
+            return
+        xmin = currentpad.GetUxmin()
+        xmax = currentpad.GetUxmax()
+        ymin = currentpad.GetUymin()
+        ymax = currentpad.GetUymax()
+        self._benchmarklines = []
+        for bm in [0.5, 1.5]:
+            if bm < ymin or bm > ymax:
+                continue
+            self._benchmarklines.append(
+                Line(xmin, bm, xmax, bm, linestyle=7, linecoloralpha=(ROOT.kBlack, 0.6))
+            )
+        for line in self._benchmarklines:
+            line.Draw()
 
 
 if __name__ == "__main__":
