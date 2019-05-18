@@ -20,6 +20,6 @@
         "stacksumerrorbandfillcolor":   "#000000",
         "stacksumerrorbandfillstyle":   3151,
         "stacksumerrorbandfillalpha":   1.0,
-        "stacksumlegenddrawoption":     "BLF2"
+        "stacksumlegenddrawoption":     "AFL"
     }
 }

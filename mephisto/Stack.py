@@ -187,7 +187,22 @@ class Stack(MethodProxy, ROOT.THStack):
         plot = Plot(npads=npads)
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
         if self._drawstacksum and self._stacksumhisto is not None:
-            plot.Register(self._stacksumhisto)
+            addstacksumtolegend = self._stacksumhisto.GetAddToLegend()
+            plot.Register(self._stacksumhisto, addtolegend=False)
+            if self._stacksumhisto.GetAddToLegend():
+                # Dummy histo with the correct legend entry styling:
+                h = Histo1D(
+                    "{}_legendentry".format(self._stacksumhisto.GetName()),
+                    self._stacksumhisto.GetTitle(),
+                    [0, 1],
+                )
+                plot.Register(
+                    h,
+                    linecolor=self._stacksumhisto.GetLineColor(),
+                    fillcolor=self._stacksumhisto._errorband.GetFillColor(),
+                    fillstyle=self._stacksumhisto._errorband.GetFillStyle(),
+                    legenddrawoption=self._stacksumhisto.GetLegendDrawOption(),
+                )
         for histo in self._store["nostack"]:
             plot.Register(histo, **properties["Pad"])
         if contribution:
@@ -244,10 +259,13 @@ if __name__ == "__main__":
 
     filename = "../data/ds_data18.root"
 
-    nbkgs = 4
+    nbkgs = 6
 
     threshold = (
-        [240] + [450] + [500 + i * (200.0 / nbkgs) for i in range(nbkgs)] + [370, 510]
+        [220]
+        + [450]
+        + [500 + i * (200.0 / nbkgs) for i in range(nbkgs - 1)]
+        + [420, 470]
     )
 
     h = {}
@@ -264,8 +282,8 @@ if __name__ == "__main__":
         if i > 1 and i <= nbkgs:
             s.Register(h[i], stack=True, template="background", fillcolor=i)
     s.Register(h[1], stack=False, template="data")
-    s.Register(h[nbkgs + 1], stack=False, template="signal", linecolor=ROOT.kYellow)
-    s.Register(h[nbkgs + 2], stack=False, template="signal", linecolor=ROOT.kPink)
+    s.Register(h[nbkgs + 1], stack=False, template="signal", linecolor="#ff8200")
+    s.Register(h[nbkgs + 2], stack=False, template="signal", linecolor="#00c892")
 
     s.Print(
         "test_stack.pdf",
