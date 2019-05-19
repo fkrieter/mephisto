@@ -158,7 +158,6 @@ class Stack(MethodProxy, ROOT.THStack):
             stack.SetMaximum(ymax / (1 + ROOT.gStyle.GetHistTopMargin()))
             stack.SetMinimum(ymin)
         else:
-            # TODO: Fix these:
             stack.SetMaximum(ymax / (1 + 0.2 * ROOT.TMath.Log10(ymax / ymin)))
             stack.SetMinimum(ymin * (1 + 0.5 * ROOT.TMath.Log10(ymax / ymin)))
 
@@ -285,13 +284,15 @@ if __name__ == "__main__":
     s.Register(h[nbkgs + 1], stack=False, template="signal", linecolor="#ff8200")
     s.Register(h[nbkgs + 2], stack=False, template="signal", linecolor="#00c892")
 
-    s.Print(
-        "test_stack.pdf",
-        contribution=True,
-        ratio=True,
-        # ymax=3e2,
-        logy=False,
-        xtitle="E_{T}^{miss}",
-        xunits="GeV",
-        luminosity=139,
-    )
+    for j in range(3):
+        s.Print(
+            "test_stack_{}.pdf".format(j),
+            contribution=j >= 1,
+            ratio=j >= 2,
+            ymax=1e5,
+            ymin=1e-10,
+            logy=True,
+            xtitle="E_{T}^{miss}",
+            xunits="GeV",
+            luminosity=139,
+        )
