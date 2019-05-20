@@ -48,9 +48,9 @@ class Legend(MethodProxy, ROOT.TLegend):
                 self._store.append(histo)
 
     def Draw(self, option="", **kwargs):
+        self.BuildFrame()
         for histo in self._store:
             self.AddEntry(histo, histo.GetTitle(), histo.GetLegendDrawOption())
-        self.BuildFrame()
         # Scaling (keep Legend frame independent of pad/canvas aspect ratio)
         cpad = ROOT.gPad  # current pad
         canvasheight = cpad.GetCanvas().GetWh() * cpad.GetCanvas().GetAbsHNDC()
@@ -137,7 +137,7 @@ class Legend(MethodProxy, ROOT.TLegend):
             )
             + self._xshift
         )
-        y2 = 0.955 + self._yshift
+        y2 = 0.94 + self._yshift
         y1 = y2 - (1.2 * self.GetNRows() * maxtitleheight) + self._yshift
         self.DeclareProperties(x1=x1, y1=y1, x2=x2, y2=y2)
 
