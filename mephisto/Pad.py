@@ -123,7 +123,7 @@ class Pad(MethodProxy, ROOT.TPad):
 
     def SetYMin(self, ymin):
         if self.GetLogy() and ymin <= 0:
-            loggger.error("Cannot set 'ymin' to {} on log-axis!".format(ymin))
+            logger.error("Cannot set 'ymin' to {} on log-axis!".format(ymin))
             raise ValueError
         self._ymin = ymin
 
