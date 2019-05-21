@@ -1,0 +1,10 @@
+{
+    "common": {
+        "direction":                    "+",
+        "includeunderflow":             true,
+        "includeoverflow":              true,
+        "flatbkgsys":                   0.3,
+        "sensitivitymeasure":           "ROOT.RooStats.NumberCountingUtils.BinomialExpZ(s, b, db)",
+        "ymin":                         0.0
+    }
+}
