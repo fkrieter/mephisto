@@ -68,5 +68,33 @@
         "topmargin":        0.01,
         "ytitle":           "Ratio",
         "yndivisions":      505
+    },
+    "4;0": {
+        "padposition":      [0.0, 0.495, 1.0, 1.0],
+        "bottommargin":     0.0,
+        "ytitle":           "Entries",
+        "drawlegend":       true,
+        "legendyshift":     0.027
+    },
+    "4;1": {
+        "padposition":      [0.0, 0.355, 1.0, 0.495],
+        "topmargin":        0.01,
+        "bottommargin":     0.0,
+        "ytitle":           "Contribution",
+        "yndivisions":      505
+    },
+    "4;2": {
+        "padposition":      [0.0, 0.215, 1.0, 0.355],
+        "topmargin":        0.01,
+        "bottommargin":     0.0,
+        "ytitle":           "Ratio",
+        "yndivisions":      505
+    },
+    "4;3": {
+        "padposition":      [0.0, 0.0, 1.0, 0.215],
+        "topmargin":        0.01,
+        "ytitle":           "Sensitivity",
+        "yndivisions":      505
     }
+
 }
