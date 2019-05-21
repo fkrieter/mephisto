@@ -163,24 +163,38 @@ class Stack(MethodProxy, ROOT.THStack):
 
     def Print(self, path, **kwargs):
         from RatioPlot import RatioPlot
+        from SensitivityScan import SensitivityScan
         from ContributionPlot import ContributionPlot
 
         contribution = kwargs.pop("contribution", False)
         ratio = kwargs.pop("ratio", False)
+        sensitivity = kwargs.pop("sensitivity", False)
         if ratio is True:
             try:  # it's just a guess...
                 datahisto = filter(
                     lambda h: h.GetDrawOption().upper() != "HIST",
                     self._store["nostack"],
                 )[0]
-                ratio = [datahisto, self._stacksumhisto]
+                ratio = [datahisto, self._stacksumhisto]  # overwrite boolean
             except IndexError:
                 logger.error(
                     "Failed to identify appropriate numerator histogram for RatioPlot "
                     "pad!"
                 )
                 ratio = False
-        npads = sum([contribution, bool(ratio)]) + 1
+        if sensitivity:
+            try:  # again just making assumptions here...
+                sensitivity = filter(
+                    lambda h: h.GetDrawOption().upper() == "HIST",
+                    self._store["nostack"],  # overwrite boolean with list of sig histos
+                )
+            except IndexError:
+                logger.error(
+                    "Failed to identify appropriate numerator histogram for RatioPlot "
+                    "pad!"
+                )
+                sensitivity = False
+        npads = sum([contribution, bool(ratio), bool(sensitivity)]) + 1
         properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad])
         self.BuildStack()
         plot = Plot(npads=npads)
@@ -204,11 +218,12 @@ class Stack(MethodProxy, ROOT.THStack):
                 )
         for histo in self._store["nostack"]:
             plot.Register(histo, **properties["Pad"])
+        idx = 1
         if contribution:
             contribplot = ContributionPlot(self)
             plot.Register(
                 contribplot,
-                pad=1,
+                pad=idx,
                 ytitle="Contrib.",
                 logy=False,
                 ymin=0,
@@ -216,15 +231,27 @@ class Stack(MethodProxy, ROOT.THStack):
                 xtitle=properties["Pad"]["xtitle"],
                 xunits=properties["Pad"]["xunits"],
             )
+            idx += 1
         if ratio:
             ratioplot = RatioPlot(*ratio)
             plot.Register(
                 ratioplot,
-                pad=npads - 1,
+                pad=idx,
                 ytitle="Data / SM",
                 logy=False,
                 ymin=0.2,
                 ymax=1.8,
+                xtitle=properties["Pad"]["xtitle"],
+                xunits=properties["Pad"]["xunits"],
+            )
+            idx += 1
+        if sensitivity:
+            sensitivityscan = SensitivityScan(sensitivity, self._stacksumhisto)
+            plot.Register(
+                sensitivityscan,
+                pad=idx,
+                ytitle="Z_{N}-value",  # default (see template 'common')
+                logy=False,
                 xtitle=properties["Pad"]["xtitle"],
                 xunits=properties["Pad"]["xunits"],
             )
@@ -284,13 +311,14 @@ if __name__ == "__main__":
     s.Register(h[nbkgs + 1], stack=False, template="signal", linecolor="#ff8200")
     s.Register(h[nbkgs + 2], stack=False, template="signal", linecolor="#00c892")
 
-    for j in range(3):
+    for j in range(4):
         s.Print(
             "test_stack_{}.pdf".format(j),
             contribution=j >= 1,
             ratio=j >= 2,
-            ymax=1e5,
-            ymin=1e-10,
+            sensitivity=j >= 3,
+            # ymax=1e5,
+            ymin=1e-1,
             logy=True,
             xtitle="E_{T}^{miss}",
             xunits="GeV",
