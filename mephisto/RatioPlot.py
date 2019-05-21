@@ -114,9 +114,11 @@ class RatioPlot(Histo1D):
         ymin = currentpad.GetUymin()
         ymax = currentpad.GetUymax()
         self._benchmarklines = []
-        for bm in [0.5, 1.5]:
-            if bm < ymin or bm > ymax:
+        for bm in [i * 0.1 for i in range(-5, 41, 5)]:
+            if bm < ymin:
                 continue
+            if bm > ymax:
+                break
             self._benchmarklines.append(
                 Line(xmin, bm, xmax, bm, linestyle=7, linecoloralpha=(ROOT.kBlack, 0.6))
             )
