@@ -130,6 +130,7 @@ def MephistofyObject(copy=False):
             from Text import Text
             from Stack import Stack
             from Histo1D import Histo1D
+            from Histo2D import Histo2D
 
             def lookupbases(cls):
                 bases = list(cls.__bases__)
@@ -144,7 +145,9 @@ def MephistofyObject(copy=False):
                 if not copy:
                     return object
             suffix = "mephistofied" if not copy else "copy"
-            if object.InheritsFrom("TH1"):
+            if object.InheritsFrom("TH2"):
+                return Histo2D("{}_{}".format(object.GetName(), suffix), object)
+            elif object.InheritsFrom("TH1"):
                 return Histo1D("{}_{}".format(object.GetName(), suffix), object)
             elif object.InheritsFrom("THStack"):
                 return Stack("{}_{}".format(object.GetName(), suffix), object)
