@@ -1,5 +1,6 @@
 *.pyc
 *.pdf
+*.png
 *.DS_Store
 venv/
 data/
