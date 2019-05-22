@@ -40,12 +40,14 @@ class Legend(MethodProxy, ROOT.TLegend):
     def Register(self, histo, **kwargs):
         if histo.InheritsFrom("THStack"):
             for h in histo.GetHists():
-                if h.GetAddToLegend():
-                    self._store.append(h)
+                self.Register(h)
         else:
             histo.DeclareProperties(**kwargs)
-            if histo.GetAddToLegend():
-                self._store.append(histo)
+            try:
+                if histo.GetAddToLegend():
+                    self._store.append(histo)
+            except AttributeError:
+                pass
 
     def Draw(self, option="", **kwargs):
         self.BuildFrame()
