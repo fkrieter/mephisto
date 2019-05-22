@@ -19,6 +19,13 @@ from IOManager import IOManager
 from Helpers import DissectProperties, MergeDicts
 
 
+def ExtendProperties(cls):
+    # Add properties to configure the countour lines
+    cls._properties += ["contour{}".format(p) for p in cls._properties]  # append!
+    return cls
+
+
+@ExtendProperties
 @PreloadProperties
 class Histo2D(MethodProxy, ROOT.TH2D):
 
@@ -31,8 +38,9 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         self._varexp = None
         self._cuts = None
         self._weight = None
-        self._errorband = None
         self._drawoption = ""
+        self._contours = []
+        self._contourproperties = {}
         if len(args) == 1:
             if isinstance(args[0], ROOT.TH2D):
                 ROOT.TH2D.__init__(self, args[0].Clone(name))
@@ -41,6 +49,8 @@ class Histo2D(MethodProxy, ROOT.TH2D):
                 self._varexp = args[0]._varexp
                 self._cuts = args[0]._cuts
                 self._weight = args[0]._cuts
+                self._contours = args[0]._contours
+                self._contourproperties = args[0]._contourproperties
         elif len(args) == 3:
             assert isinstance(args[0], str)
             assert isinstance(args[1], (list, tuple))
@@ -92,6 +102,15 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         self._nbinsx = len(self._xlowbinedges) - 1
         self._nbinsy = len(self._ylowbinedges) - 1
 
+    def DeclareProperty(self, property, args):
+        # Properties starting with "contour" will be stored in a dictionary and get
+        # applied when the object is drawn.
+        property = property.lower()
+        if property.startswith("contour") and property != "contour":
+            self._contourproperties[property[7:]] = args
+        else:
+            super(Histo2D, self).DeclareProperty(property, args)
+
     def Fill(self, *args, **kwargs):
         self._varexp = kwargs.get("varexp")
         self._cuts = kwargs.get("cuts", [])
@@ -135,13 +154,21 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         return frame
 
     def Draw(self, drawoption=None):
+        hash = uuid4().hex[:8]
         if drawoption is not None:
             self.SetDrawOption(drawoption)
-        self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
+        self.DrawCopy(self.GetDrawOption(), "_{}".format(hash))
+        if self._contours:
+            super(Histo2D, self).SetContour(
+                len(self._contours), array("d", self._contours)
+            )
+            with UsingProperties(self, **self._contourproperties):
+                self.DrawCopy(
+                    self.GetDrawOption() + "SAME", "_{}_contours".format(hash)
+                )
 
     def Print(self, path, **kwargs):
-        kwargs.setdefault("logx", False)
-        kwargs.setdefault("logy", False)
+        kwargs.setdefault("logy", False)  # overwriting Pad template's default value!
         properties = DissectProperties(kwargs, [Histo2D, Plot, Canvas, Pad])
         plot = Plot(npads=1)
         plot.Register(self, **MergeDicts(properties["Histo2D"], properties["Pad"]))
@@ -180,25 +207,42 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         else:
             super(Histo2D, self).Interpolate(*args)
 
+    def SetContour(self, *args):
+        for contour in args:
+            self._contours.append(contour)
+
+    def GetContour(self):
+        return self._contours
+
 
 if __name__ == "__main__":
 
-    nbinsx = 40
-    nbinsy = 40
+    nbinsx = 100
+    nbinsy = 100
 
     xsparsity = 4
     ysparsity = 4
+
+    norm = float(nbinsx ** 2 + nbinsy ** 2)
 
     h1 = Histo2D("test1", "test1", nbinsx, 0, nbinsx, nbinsy, 0, nbinsy)
 
     for x in range(nbinsx + 1):
         for y in range(nbinsy + 1):
             if x % xsparsity == 0 and y % ysparsity == 0:
-                h1.Fill(x, y, (x + 1) ** 2 + (2 * y + 2) ** 2)
+                h1.Fill(x, y, ((x + 1) ** 2 + (y + 1) ** 2) / norm)
 
     h1.Interpolate()  # because TH2::Smooth sucks
 
-    h1.Print("test_histo2d_1.png", rightmargin=0.15)
+    h1.Print(
+        "test_histo2d_1.png",
+        xtitle="X",
+        ytitle="Y",
+        xunits="k#AA",
+        yunits="#mub^{-2}",
+        rightmargin=0.15,
+        contour=[0.2, 0.5, 0.6],
+    )
 
     h2 = Histo2D("test2", "test2", 40, 0, 400, 40, 0, 400)
     h2.Fill(

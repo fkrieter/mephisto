@@ -1,5 +1,9 @@
 {
     "common": {
-        "drawoption":           "COLZ"
+        "drawoption":           "COLZ",
+        "contourdrawoption":    "CONT3",
+        "contourlinewidth":     3,
+        "contourlinestyle":     1,
+        "contourlinecolor":     "#ff0000"
     }
 }
