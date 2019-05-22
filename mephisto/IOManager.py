@@ -115,7 +115,7 @@ class IOManager(object):
         histoclass = histo.ClassName()
         if not ":" in varexp:
             assert histoclass.startswith("TH1")
-        elif len(varexp.split(":") == 2):
+        elif len(varexp.split(":")) == 2:
             assert histoclass.startswith("TH2")
         else:
             raise NotImplementedError
