@@ -108,19 +108,21 @@ class MethodProxy(object):
                     self.__class__.__name__, property
                 )
             )
-        return getattr(
-            self,
-            filter(
+        try:
+            method = filter(
                 lambda m: m.lower() == "get{}".format(property), self.__class__._methods
-            )[0],
-        )()
+            )[0]
+        except IndexError:
+            return None
+        return getattr(self, method)()
 
     def GetProperties(self, prefix=""):
         properties = {}
-        for getter in [g for g in self.__class__._methods if g.startswith("Get")]:
-            property = getter[3:].lower()
+        for property in self.__class__._properties:
             if property in self.__class__._properties:
-                properties[str(prefix) + property] = getattr(self, getter)()
+                value = self.GetProperty(property)
+                if value is not None:
+                    properties[str(prefix) + property] = value
         return properties
 
     def CacheProperties(self):
