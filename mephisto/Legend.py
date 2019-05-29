@@ -37,15 +37,18 @@ class Legend(MethodProxy, ROOT.TLegend):
         return self._autoncolumns
 
     @MephistofyObject(copy=True)
-    def Register(self, histo, **kwargs):
-        if histo.InheritsFrom("THStack"):
-            for h in histo.GetHists():
-                self.Register(h)
+    def Register(self, obj, **kwargs):
+        if obj.InheritsFrom("THStack"):
+            for histo in obj.GetHists():
+                self.Register(histo)
+            if obj.__class__.__name__ == "Stack":
+                for histo in obj._store["nostack"]:
+                    self.Register(histo)
         else:
-            histo.DeclareProperties(**kwargs)
+            obj.DeclareProperties(**kwargs)
             try:
-                if histo.GetAddToLegend():
-                    self._store.append(histo)
+                if obj.GetAddToLegend():
+                    self._store.append(obj)
             except AttributeError:
                 pass
 

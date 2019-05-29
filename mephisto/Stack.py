@@ -23,6 +23,9 @@ def ExtendProperties(cls):
 @ExtendProperties
 @PreloadProperties
 class Stack(MethodProxy, ROOT.THStack):
+
+    _ignore_properties = ["name", "xtitle", "ytitle", "ztitle", "histogram"]
+
     def __init__(self, name=uuid4().hex[:8], *args, **kwargs):
         MethodProxy.__init__(self)
         self._stacksumhisto = None
@@ -39,8 +42,17 @@ class Stack(MethodProxy, ROOT.THStack):
             elif args[0].InheritsFrom("THStack"):
                 ROOT.THStack.__init__(self, args[0])
                 self.SetName(name)
-                if args[0]._stacksumhisto is not None:
-                    self._stacksumhisto = Histo1D("{}_stacksum", args[0]._stacksumhisto)
+                if args[0].__class__.__name__ == "Stack":
+                    if args[0]._stacksumhisto is not None:
+                        self._stacksumhisto = Histo1D(
+                            "{}_stacksum", args[0]._stacksumhisto
+                        )
+                    for key, store in args[0]._store.items():
+                        for histo in store:
+                            self._store[key].append(
+                                Histo1D("{}_{}".format(histo.GetName(), name), histo)
+                            )
+                    self.DeclareProperties(**args[0].GetProperties())
             else:
                 raise TypeError
         else:
@@ -69,6 +81,12 @@ class Stack(MethodProxy, ROOT.THStack):
             self._stacksumhisto.DeclareProperty(property[8:], args)
         else:
             super(Stack, self).DeclareProperty(property, args)
+
+    def GetProperty(self, property):
+        if property.startswith("stacksum"):
+            return self._stacksumhisto.GetProperty(property[8:])
+        else:
+            super(Stack, self).GetProperty(property)
 
     def AddStackSortingProperty(self, property, reverse=False):
         if self._stacksorting is None:
@@ -185,7 +203,7 @@ class Stack(MethodProxy, ROOT.THStack):
         if sensitivity:
             try:  # again just making assumptions here...
                 sensitivity = filter(
-                    lambda h: h.GetDrawOption().upper() == "HIST",
+                    lambda h: "HIST" in h.GetDrawOption().upper(),
                     self._store["nostack"],  # overwrite boolean with list of sig histos
                 )
             except IndexError:
@@ -198,26 +216,35 @@ class Stack(MethodProxy, ROOT.THStack):
         properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad])
         self.BuildStack()
         plot = Plot(npads=npads)
+        # Register the Stack to the upper Pad (pad=0):
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
-        if self._drawstacksum and self._stacksumhisto is not None:
-            addstacksumtolegend = self._stacksumhisto.GetAddToLegend()
-            plot.Register(self._stacksumhisto, addtolegend=False)
-            if self._stacksumhisto.GetAddToLegend():
-                # Dummy histo with the correct legend entry styling:
-                h = Histo1D(
-                    "{}_legendentry".format(self._stacksumhisto.GetName()),
-                    self._stacksumhisto.GetTitle(),
-                    [0, 1],
-                )
-                plot.Register(
-                    h,
-                    linecolor=self._stacksumhisto.GetLineColor(),
-                    fillcolor=self._stacksumhisto._errorband.GetFillColor(),
-                    fillstyle=self._stacksumhisto._errorband.GetFillStyle(),
-                    legenddrawoption=self._stacksumhisto.GetLegendDrawOption(),
-                )
-        for histo in self._store["nostack"]:
-            plot.Register(histo, **properties["Pad"])
+        if self._drawstacksum and self._stacksumhisto.GetAddToLegend():
+            # Dummy histo with the correct legend entry styling:
+            htmp = Histo1D(
+                "{}_legendentry".format(self._stacksumhisto.GetName()),
+                self._stacksumhisto.GetTitle(),
+                [0, 1],
+                **{
+                    k[8:]: v
+                    for k, v in DissectProperties(
+                        properties["Stack"],
+                        [
+                            {
+                                "Stacksum": [
+                                    "stacksum{}".format(p)
+                                    for p in Histo1D.GetListOfProperties()
+                                ]
+                            }
+                        ],
+                    )["Stacksum"].items()
+                }
+            )
+            plot.Register(
+                htmp,
+                fillcolor=self._stacksumhisto._errorband.GetFillColor(),
+                fillstyle=self._stacksumhisto._errorband.GetFillStyle(),
+                legenddrawoption=self._stacksumhisto.GetLegendDrawOption(),
+            )
         idx = 1
         if contribution:
             contribplot = ContributionPlot(self)
@@ -279,6 +306,10 @@ class Stack(MethodProxy, ROOT.THStack):
         if drawoption is not None:
             self.SetDrawOption(drawoption)
         super(Stack, self).Draw(self.GetDrawOption())
+        for histo in self._store["nostack"]:
+            histo.Draw(histo.GetDrawOption() + "SAME")
+        if self._drawstacksum:
+            self._stacksumhisto.Draw(self._stacksumhisto.GetDrawOption() + "SAME")
 
 
 if __name__ == "__main__":
@@ -323,4 +354,5 @@ if __name__ == "__main__":
             xtitle="E_{T}^{miss}",
             xunits="GeV",
             luminosity=139,
+            stacksumtitle="SUM",
         )

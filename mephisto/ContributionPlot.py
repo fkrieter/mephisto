@@ -14,7 +14,7 @@ class ContributionPlot(Stack):
         name = "{}_ContributionPlotStack".format(args[0].GetName())
         super(ContributionPlot, self).__init__(name)
         if len(args) == 1 and args[0].InheritsFrom("THStack"):
-            for histo in args[0]._store["stack"]:
+            for histo in args[0].GetHists():
                 self.Register(histo, stack=True)
         else:
             for histo in args:
