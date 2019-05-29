@@ -24,5 +24,5 @@ setuptools.setup(
         "Programming Language :: Python :: 2.7",
     ],
     scripts=[],
-    install_requires=["root_numpy"],
+    install_requires=["root_numpy", "scipy"],
 )
