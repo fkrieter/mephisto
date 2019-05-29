@@ -151,7 +151,7 @@ class Plot(MethodProxy):
         x1, y1, x2, y2 = self._padproperties[pad]["padposition"]
         return x2 - x1
 
-    def AddPlotDecorations(self, refx=0.18, refy=0.91):
+    def AddPlotDecorations(self, refx=0.18, refy=0.935):
         # Maybe make the ref points a property?
         # Watch out, some highly phenomenological scaling ahead...
         refy += (
