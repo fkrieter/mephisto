@@ -23,4 +23,5 @@ from Arrow import Arrow
 from logger import logger
 from Canvas import Canvas
 from Histo1D import Histo1D
+from Histo2D import Histo2D
 from IOManager import IOManager
