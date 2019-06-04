@@ -4,6 +4,8 @@
         "baselinefillalpha":            0.0,
         "baselinelinecolor":            "#000000",
         "baselineerrorbanddrawoption":  "E2",
-        "baselineerrorbandfillcolor":   "#000000"
+        "baselineerrorbandfillcolor":   "#000000",
+        "drawarrows":                   true,
+        "drawbenchmarklines":           true
     }
 }

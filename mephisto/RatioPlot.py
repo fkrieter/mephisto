@@ -10,12 +10,20 @@ from Line import Line
 from Arrow import Arrow
 from Histo1D import Histo1D
 from MethodProxy import *
-from Helpers import DissectProperties, MergeDicts
+from Helpers import DissectProperties, MergeDicts, IsInherited
 
 
 def ExtendProperties(cls):
-    # Add properties to configure the _baseline member histogram of RatioPlots.
+    # Add properties to configure the _baseline member histogram of RatioPlots and add
+    # new properties and methods manually since RatioPlot does not inherit from
+    # MethodProxy directly.
     cls._properties += ["baseline{}".format(p) for p in cls._properties]  # append!
+    for setter in [
+        f for f in dir(cls) if f.startswith("Set") and callable(getattr(cls, f))
+    ]:
+        if not IsInherited(cls, setter):
+            cls._properties.append(setter[3:].lower())
+            cls._methods.append(setter)
     return cls
 
 
@@ -23,6 +31,8 @@ def ExtendProperties(cls):
 class RatioPlot(Histo1D):
     def __init__(self, num, denom=0, **kwargs):
         self._loadTemplates()
+        self._drawarrows = False
+        self._drawbenchmarklines = False
         assert num.InheritsFrom("TH1")
         kwargs.setdefault("template", "common")
         if denom.InheritsFrom("TH1"):
@@ -58,9 +68,11 @@ class RatioPlot(Histo1D):
     def Draw(self, drawoption=None):
         self._baseline.Draw(self._baseline.GetDrawOption() + "SAME")  # Histo1D.Draw
         self._baseline.DrawCopy("HIST SAME", "_{}".format(uuid4().hex[:8]))
-        self.DrawBenchmarkLines()
+        if self._drawbenchmarklines:
+            self.DrawBenchmarkLines()
         super(RatioPlot, self).Draw(drawoption)
-        self.DrawArrows()
+        if self._drawarrows:
+            self.DrawArrows()
 
     def DeclareProperty(self, property, args):
         property = property.lower()
@@ -124,6 +136,18 @@ class RatioPlot(Histo1D):
             )
         for line in self._benchmarklines:
             line.Draw()
+
+    def SetDrawArrows(self, boolean):
+        self._drawarrows = boolean
+
+    def GetDrawArrows(self):
+        return self._drawarrows
+
+    def SetDrawBenchmarkLines(self, boolean):
+        self._drawbenchmarklines = boolean
+
+    def GetDrawBenchmarklines(self):
+        return self._drawbenchmarklines
 
 
 if __name__ == "__main__":
