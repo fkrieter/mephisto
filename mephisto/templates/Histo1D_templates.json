@@ -1,5 +1,6 @@
 {   "common": {
-        "addtolegend":          true
+        "addtolegend":          true,
+        "errorbandmarkerstyle": 1
     },
     "background": {
         "drawoption":           "HIST",
