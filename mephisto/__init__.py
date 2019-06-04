@@ -24,4 +24,6 @@ from logger import logger
 from Canvas import Canvas
 from Histo1D import Histo1D
 from Histo2D import Histo2D
+from RatioPlot import RatioPlot
 from IOManager import IOManager
+from ContributionPlot import ContributionPlot
