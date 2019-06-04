@@ -196,18 +196,6 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         super(Histo1D, self).Add(histo, scale)
         self.SetEntries(raw_entries)
 
-    def SetBinLabel(self, index, label, **kwargs):
-        scale = kwargs.pop("scale", 1.0)
-        option = kwargs.pop("option", "h")
-        if kwargs:
-            raise KeyError(
-                "Unknown keyword argument(s) '{}'".format(", ".join(kwargs.keys()))
-            )
-        xaxis = self.GetXaxis()
-        xaxis.SetLabelSize(xaxis.GetLabelSize() * scale)
-        xaxis.SetBinLabel(index, label)
-        self.LabelsOption(option)
-
     def SetLegendDrawOption(self, option):
         self._legenddrawoption = option
 

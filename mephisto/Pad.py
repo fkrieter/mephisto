@@ -18,10 +18,12 @@ def ExtendMethods(cls):
     # (See: https://www.reddit.com/r/learnpython/comments/50yk7s/)
     cls._frameproperties = []
     for prop in [
+        "BinLabels",
         "LabelFont",
         "LabelSize",
         "LabelColor",
         "LabelOffset",
+        "LabelOption",
         "TitleFont",
         "TitleSize",
         "TitleColor",
@@ -60,6 +62,7 @@ class Pad(MethodProxy, ROOT.TPad):
         self._drawlegend = False
         self._legendxshift = 0.0
         self._legendyshift = 0.0
+        self._labeloption = {}
         if len(args) > 0:
             self._xposlow, self._yposlow = args[0:2]
             self._xposup, self._yposup = args[2:4]
@@ -373,3 +376,24 @@ class Pad(MethodProxy, ROOT.TPad):
 
     def GetYPadding(self):
         return self._ypadding
+
+    def SetBinLabels(self, listoflabels, axes="x"):
+        for coord in axes:
+            axis = {
+                "x": self._frame.GetXaxis(),
+                "y": self._frame.GetYaxis(),
+                "z": self._frame.GetZaxis(),
+            }.get(coord.lower(), None)
+            for i, label in enumerate(listoflabels):
+                axis.SetBinLabel(
+                    (i * axis.GetNbins() / len(listoflabels)) + 1, str(label)
+                )
+            self._frame.LabelsOption(self._labeloption.get(coord, "h"))
+
+    def SetLabelOption(self, option, axes="xyz"):
+        for coord in axes:
+            self._labeloption[coord] = option
+        try:
+            self._frame.LabelsOption(option)
+        except:
+            pass
