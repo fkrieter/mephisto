@@ -189,3 +189,13 @@ def timeit(method):
         return result
 
     return timed
+
+
+def IsInherited(cls, method):
+    # https://stackoverflow.com/a/7752095/10986034
+    if method not in cls.__dict__:  # Not defined in cls -> inherited
+        return True
+    # elif hasattr(super(cls), method):  # Present in parent -> overloaded
+    #     return False
+    else:  # Not present in parent -> newly defined
+        return False
