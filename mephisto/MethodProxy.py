@@ -51,7 +51,7 @@ class MethodProxy(object):
             or f[3:].lower() in cls._ignore_properties
         ]
         cls._methods = [
-            f for f in setter if "Get{}".format(f[3:]) not in unwntd_getter
+            f for f in setter if f[3:].lower() not in cls._ignore_properties
         ] + [
             f
             for f in getter
