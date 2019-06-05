@@ -7,8 +7,8 @@
 <a href="https://github.com/ambv/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square"></a>
 </p>
 
-Mephisto aims to deliver a smoother and more intuitive workflow for making plots with the python extension of the [ROOT](https://root.cern.ch/) Data Analysis Framework.
-By enhancing the functionality of the fundamental classes implemented in ROOT and offering simple and efficient I/O solutions for frequent tasks the user can hopefully dedicate more time to *make pretty histograms!*
+**Mephisto** aims to deliver a smoother and more intuitive workflow for making plots with the python extension of the [ROOT](https://root.cern.ch/) Data Analysis Framework.
+By enhancing the functionality of the fundamental classes implemented in **ROOT** and offering simple and efficient I/O solutions for frequent tasks the user can hopefully dedicate more time to *make pretty histograms!*
 
 ## Installation
 
@@ -19,6 +19,8 @@ cd mephisto/
 pip install --user -e .
 ```
 Make sure you have **ROOT** version **6.14** or higher installed.
+
+If this is your first time using **Mephisto**, consider taking the interactive tutorials [here](https://github.com/fkrieter/mephisto/tree/master/examples).
 
 ---
 
