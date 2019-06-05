@@ -6,3 +6,4 @@ venv/
 data/
 mephisto.egg-info/
 docs/build/
+examples/.ipynb_checkpoints/
