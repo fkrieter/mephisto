@@ -130,14 +130,13 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         return self._drawoption
 
     def BuildFrame(self, **kwargs):
-        # TODO: Fix ytitle default value and maybe add ypadding option (->TH2::Rebin)?
         logx = kwargs.pop("logx", False)
         logy = kwargs.pop("logy", False)
         xtitle = kwargs.pop("xtitle", None)
         ytitle = kwargs.pop("ytitle", None)
         if xtitle is None:
             xtitle = self._varexp.split(":")[0] if self._varexp is not None else ""
-        if ytitle is None:
+        if ytitle is None or ytitle == "Entries":  # Pad default
             ytitle = self._varexp.split(":")[1] if self._varexp is not None else ""
         frame = {
             "xmin": self._xlowbinedges[0],
