@@ -13,7 +13,7 @@ from Plot import Plot
 from MethodProxy import *
 from Canvas import Canvas
 from IOManager import IOManager
-from Helpers import DissectProperties, MergeDicts
+from Helpers import DissectProperties, MergeDicts, CheckPath, roundsig
 
 
 def ExtendProperties(cls):
@@ -154,7 +154,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         xunits = kwargs.get("xunits", None)
         if xtitle is None:
             xtitle = self._varexp if self._varexp is not None else ""
-        binwidths = self.GetBinWidths()
+        binwidths = [roundsig(w, 4, decimals=True) for w in self.GetBinWidths()]
         if len(set(binwidths)) == 1:
             binwidth = (
                 int(binwidths[0])
@@ -185,6 +185,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             frame["ymax"] *= scale
         return frame
 
+    @CheckPath(mode="w")
     def Print(self, path, **kwargs):
         properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas, Pad])
         plot = Plot(npads=1)
