@@ -6,6 +6,8 @@ import os
 import uuid
 import time
 
+from math import log10
+
 from logger import logger
 
 
@@ -199,3 +201,17 @@ def IsInherited(cls, method):
     #     return False
     else:  # Not present in parent -> newly defined
         return False
+
+
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+    # https://stackoverflow.com/a/33024979/10986034
+    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
+
+def roundsig(x, nsig=1, **kwargs):
+    # Round to 'nsig' significant digits. If decimals=True 'x' will be rounded to 'nsig'
+    # decimals instead.
+    decimals = int(log10(abs(x)))
+    if kwargs.get("decimals", False):
+        decimals = 0 if decimals > 0 else decimals
+    return round(x, nsig - decimals)
