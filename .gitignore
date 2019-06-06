@@ -1,6 +1,7 @@
 *.pyc
 *.pdf
 *.png
+*.root
 *.DS_Store
 venv/
 data/
