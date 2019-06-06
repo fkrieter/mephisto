@@ -20,7 +20,7 @@ pip install --user -e .
 ```
 Make sure you have **ROOT** version **6.14** or higher installed.
 
-If this is your first time using **Mephisto**, consider taking the interactive tutorials [here](https://github.com/fkrieter/mephisto/tree/master/examples).
+If this is your first time using **Mephisto**, consider taking the interactive tutorial [here](https://github.com/fkrieter/mephisto/tree/master/tutorial).
 
 ---
 
@@ -30,7 +30,7 @@ Some things are not quite (read: *not at all*) done yet:
 * Unit tests
 * Continuous integration
 * Documentation
-* Jupyter tutorials and examples
+* More Jupyter tutorials
 * Many other cool features!
 
 Stay tuned for updates! :wink::see_no_evil:
