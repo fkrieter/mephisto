@@ -59,11 +59,6 @@ class Plot(MethodProxy):
     @MephistofyObject()
     def Register(self, object, pad=0, **kwargs):
         self.AssertPadIndex(pad)
-        extraflags = {}
-        # THStack behave weird when it comes to setting a y-axis range...
-        if object.InheritsFrom("THStack"):
-            for key in ["ymin", "ymax"]:
-                extraflags["use_{}".format(key)] = key in kwargs.keys()
         properties = DissectProperties(kwargs, [object, Pad])
         objclsname = object.__class__.__name__
         logger.debug(
@@ -79,7 +74,7 @@ class Plot(MethodProxy):
         self._padproperties[pad].update(properties["Pad"])
         try:
             for key, value in object.BuildFrame(
-                **MergeDicts(self._padproperties[pad], extraflags)
+                **MergeDicts(self._padproperties[pad])
             ).items():
                 if (
                     key.endswith("max")

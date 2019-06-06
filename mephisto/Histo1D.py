@@ -174,9 +174,9 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             "ytitle": ytitle,
         }
         if logx:
-            frame["xmin"] = 1e-2
+            frame["xmin"] = kwargs.get("xmin", 1e-2)
         if logy:
-            frame["ymin"] = 1e-2
+            frame["ymin"] = kwargs.get("ymin", 1e-2)
             frame["ymax"] = 10 ** (
                 scale * ROOT.TMath.Log10(frame["ymax"] / frame["ymin"])
                 + ROOT.TMath.Log10(frame["ymin"])
