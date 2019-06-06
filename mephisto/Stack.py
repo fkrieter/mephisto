@@ -145,8 +145,6 @@ class Stack(MethodProxy, ROOT.THStack):
         self.DeclareProperties(**self._stacksumproperties)
 
     def BuildFrame(self, **kwargs):
-        use_ymin = kwargs.pop("use_ymin", False)
-        use_ymax = kwargs.pop("use_ymax", False)
         logy = kwargs.get("logy", False)
         frame = {}
         for histo in [self._stacksumhisto] + self._store["nostack"]:
@@ -160,9 +158,7 @@ class Stack(MethodProxy, ROOT.THStack):
                     ("ymax", max),
                 ]:
                     frame[key] = func(frame[key], histo.BuildFrame(**kwargs)[key])
-        ymin = frame["ymin"] if not use_ymin else kwargs.get("ymin")
-        ymax = frame["ymax"] if not use_ymax else kwargs.get("ymax")
-        Stack.UpdateYAxisRange(self, ymin, ymax, logy)
+        Stack.UpdateYAxisRange(self, frame["ymin"], frame["ymax"], logy)
         return frame
 
     @staticmethod
@@ -190,7 +186,7 @@ class Stack(MethodProxy, ROOT.THStack):
         if ratio is True:
             try:  # it's just a guess...
                 datahisto = filter(
-                    lambda h: h.GetDrawOption().upper() != "HIST",
+                    lambda h: not h.GetDrawOption().upper().startswith("HIST"),
                     self._store["nostack"],
                 )[0]
                 ratio = [datahisto, self._stacksumhisto]  # overwrite boolean
@@ -244,6 +240,7 @@ class Stack(MethodProxy, ROOT.THStack):
                 fillcolor=self._stacksumhisto._errorband.GetFillColor(),
                 fillstyle=self._stacksumhisto._errorband.GetFillStyle(),
                 legenddrawoption=self._stacksumhisto.GetLegendDrawOption(),
+                **properties["Pad"]
             )
         idx = 1
         if contribution:
