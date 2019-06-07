@@ -9,7 +9,7 @@ However, new or enhanced class methods await you, that will make your life much 
 So what are you waiting for? Open a shell, navigate to the *examples* folder and fire up the [**Jupyter**](https://jupyter.readthedocs.io/en/latest/install.html) notebooks:
 
 ```
-cd examples/
+cd tutorial/
 jupyter notebook
 ```
 
