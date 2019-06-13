@@ -105,6 +105,8 @@ def CheckPath(mode="r"):
                 if bool(func.__name__ in dir(args[0])):
                     if len(args) > 1:
                         idx = 1
+                    else:
+                        return func(*args, **kwargs)
                 else:
                     idx = 0
                 args[idx] = check(args[idx], overwrite=overwrite, mkdir=mkdir)
@@ -251,8 +253,6 @@ def TeX2PDF(content, path, **kwargs):
         r"\usepackage[titles,subfigure]{tocloft}" + "\n"
         r"\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}" + "\n"
         r"\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape}" + "\n"
-        r"\title{Brief Article}" + "\n"
-        r"\author{The Author}" + "\n"
         r"\begin{document}" + "\n"
         r"\pagenumbering{gobble}"
     )
@@ -290,9 +290,8 @@ def TeX2PDF(content, path, **kwargs):
             raise ValueError
     else:
         logger.debug("Successfully compiled '{}'!".format(tmptexfile))
-    os.unlink(os.path.join(outdir, "{}.tex".format(tmpname)))
-    os.unlink(os.path.join(outdir, "{}.log".format(tmpname)))
-    os.unlink(os.path.join(outdir, "{}.aux".format(tmpname)))
+    for ext in ["tex", "log", "aux"]:
+        os.unlink("{}.{}".format(tmpname, ext))
     # Crop PDF file
     if crop:
         logger.debug("Cropping PDF file '{}.pdf'...".format(tmpname))
@@ -302,10 +301,10 @@ def TeX2PDF(content, path, **kwargs):
         retcode = proc.returncode
         if not retcode == 0:
             logger.error(
-                "Error {} executing command: '{}'".format(retcode_2, " ".join(cmd))
+                "Error {} executing command: '{}'".format(retcode, " ".join(cmd))
             )
             raise ValueError
         else:
-            os.unlink(os.path.join(outdir, "{}.pdf".format(tmpname)))
+            os.unlink(os.path.join("{}.pdf".format(tmpname)))
             logger.debug("Successfully cropped PDF file '{}.pdf'!".format(tmpname))
     logger.debug("PDF file has been created: '{}'".format(path))
