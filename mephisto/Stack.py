@@ -12,7 +12,7 @@ from Plot import Plot
 from Canvas import Canvas
 from MethodProxy import *
 from Histo1D import Histo1D
-from Helpers import DissectProperties, MephistofyObject, MergeDicts, TeX2PDF
+from Helpers import CheckPath, DissectProperties, MephistofyObject, MergeDicts, TeX2PDF
 
 
 def ExtendProperties(cls):
@@ -74,6 +74,7 @@ class Stack(MethodProxy, ROOT.THStack):
         self.DeclareProperties(**properties["Stack"])
         self._stacksumproperties = properties["Stacksum"]
 
+    @CheckPath(mode="w")
     def PrintYieldTable(self, path=None, **kwargs):
         silent = kwargs.pop("silent", False)  # don't print table to stdout
         precision = kwargs.pop("precision", 2)
@@ -273,6 +274,7 @@ class Stack(MethodProxy, ROOT.THStack):
             stack.SetMaximum(ymax / (1 + 0.2 * ROOT.TMath.Log10(ymax / ymin)))
             stack.SetMinimum(ymin * (1 + 0.5 * ROOT.TMath.Log10(ymax / ymin)))
 
+    @CheckPath(mode="w")
     def Print(self, path, **kwargs):
         from RatioPlot import RatioPlot
         from SensitivityScan import SensitivityScan
@@ -437,7 +439,7 @@ if __name__ == "__main__":
     s.Register(h[nbkgs + 1], stack=False, template="signal", linecolor="#ff8200")
     s.Register(h[nbkgs + 2], stack=False, template="signal", linecolor="#00c892")
 
-    s.PrintYieldTable("table.pdf")
+    s.PrintYieldTable("tmp/table.pdf", mkdir=True)
 
     for j in range(4):
         s.Print(
