@@ -5,13 +5,14 @@ from __future__ import print_function
 import ROOT
 
 from uuid import uuid4
+from distutils.spawn import find_executable
 
 from Pad import Pad
 from Plot import Plot
 from Canvas import Canvas
 from MethodProxy import *
 from Histo1D import Histo1D
-from Helpers import DissectProperties, MephistofyObject, MergeDicts
+from Helpers import DissectProperties, MephistofyObject, MergeDicts, TeX2PDF
 
 
 def ExtendProperties(cls):
@@ -73,6 +74,101 @@ class Stack(MethodProxy, ROOT.THStack):
         self.DeclareProperties(**properties["Stack"])
         self._stacksumproperties = properties["Stacksum"]
 
+    def PrintYieldTable(self, path=None, **kwargs):
+        silent = kwargs.pop("silent", False)  # don't print table to stdout
+        precision = kwargs.pop("precision", 2)
+        crop = kwargs.pop("crop", True)  # get a nice PDF table!
+        yields = [["Process", "Yield", "Stat. error", "Raw"]]
+        for histo in (
+            sorted(
+                self._store["stack"],
+                key=lambda h: h.Integral(0, h.GetNbinsX() + 1),
+                reverse=True,
+            )
+            + [self._stacksumhisto]
+            + sorted(
+                self._store["nostack"],
+                key=lambda h: h.Integral(0, h.GetNbinsX() + 1),
+                reverse=True,
+            )
+        ):
+            staterr = ROOT.Double(0)
+            integral = "{:.{prec}f}".format(
+                histo.IntegralAndError(0, histo.GetNbinsX() + 1, staterr),
+                prec=precision,
+            )
+            staterr = "{:.{prec}f}".format(staterr, prec=precision)
+            raw = str(int(histo.GetEntries()))
+            yields.append([histo.GetTitle(), integral, staterr, raw])
+        colwidths = [
+            max(w) for w in zip(*[[len(str(e)) for e in entries] for entries in yields])
+        ]
+        if not silent:
+            for i, row in enumerate(yields):
+                for j, item in enumerate(row):
+                    print(
+                        str(item).ljust(colwidths[j])
+                        if j == 0
+                        else str(item).rjust(colwidths[j] + 4),
+                        end="" if j < len(row) - 1 else "\n",
+                    )
+                if i == len(self._store["stack"]):
+                    print("-" * (sum(colwidths) + (len(colwidths) - 1) * 4))
+        if path is not None:
+            if path.endswith(".csv"):
+                with open(path, "w") as out:
+                    for row in yields:
+                        out.write(";".join(row) + "\n")
+            elif path.endswith((".tex", ".pdf")):
+                latextable = []
+                latextable.append("""\\begin{tabular}{lrlr}""")
+                latextable.append("""\\toprule""")
+                for i, row in enumerate(yields):
+                    if i == 0:
+                        latextable.append(
+                            """{} \\\\""".format(
+                                " & ".join(["""\\textbf{""" + e + """}""" for e in row])
+                            )
+                        )
+                        latextable.append("""\\midrule""")
+                    else:
+                        latextable.append(
+                            """{} \\\\""".format(
+                                " & ".join(
+                                    [
+                                        r"$\pm$ " + e if j == 2 else e
+                                        for j, e in enumerate(row)
+                                    ]
+                                )
+                            )
+                        )
+                        if i == len(self._store["stack"]):
+                            latextable.append("""\midrule""")
+                latextable.append("""\\bottomrule""")
+                latextable.append("""\\end{tabular}""")
+                if path.endswith(".tex"):
+                    with open(path, "w") as out:
+                        for line in latextable:
+                            out.write(line + "\n")
+                if path.endswith(".pdf"):
+                    if find_executable("pdflatex") is None:
+                        logger.error(
+                            "Cannot compile LaTeX yields table: Command "
+                            "'pdflatex' not found!"
+                        )
+                    elif crop and find_executable("pdfcrop") is None:
+                        logger.error(
+                            "Cannot crop PDF yields table: Command 'pdfcrop' not found!"
+                        )
+                        crop = False
+                    else:
+                        TeX2PDF("\n".join(latextable), path, crop=crop)  # verbosity=2
+            else:
+                raise IOError(
+                    "File extension '{}' not supported!".format(path.split(".")[-1])
+                )
+            logger.info("Created yields table: '{}'".format(path))
+
     def DeclareProperty(self, property, args):
         # Properties starting with "stacksum" will be applied to self._stacksumhisto.
         # All stacksum properties will be applied after the main stack properties.
@@ -107,7 +203,9 @@ class Stack(MethodProxy, ROOT.THStack):
         if stack:
             if self._stacksumhisto is None:
                 self._stacksumhisto = Histo1D(
-                    "{}_totalstack".format(self.GetName()), histo
+                    "{}_totalstack".format(self.GetName()),
+                    histo,
+                    title=self._stacksumproperties.get("stacksumtitle", None),
                 )
             else:
                 self._stacksumhisto.Add(histo)
@@ -338,6 +436,8 @@ if __name__ == "__main__":
     s.Register(h[1], stack=False, template="data")
     s.Register(h[nbkgs + 1], stack=False, template="signal", linecolor="#ff8200")
     s.Register(h[nbkgs + 2], stack=False, template="signal", linecolor="#00c892")
+
+    s.PrintYieldTable("table.pdf")
 
     for j in range(4):
         s.Print(
