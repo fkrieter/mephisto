@@ -6,6 +6,13 @@ import os
 import uuid
 import time
 
+from subprocess import Popen, PIPE, STDOUT
+
+try:
+    from subprocess import DEVNULL
+except ImportError:
+    DEVNULL = open(os.devnull, "wb")
+
 from math import log10
 
 from logger import logger
@@ -215,3 +222,90 @@ def roundsig(x, nsig=1, **kwargs):
     if kwargs.get("decimals", False):
         decimals = 0 if decimals > 0 else decimals
     return round(x, nsig - decimals)
+
+
+def TeX2PDF(content, path, **kwargs):
+    verbosity = kwargs.get("vebosity", 0)
+    assert verbosity in range(3)
+    crop = kwargs.get("crop", True)
+    header = (
+        r"\documentclass[11pt]{article}" + "\n"
+        r"\usepackage[utf8]{inputenc}" + "\n"
+        r"\usepackage{geometry}" + "\n"
+        r"\geometry{a3paper}" + "\n"
+        r"\usepackage{graphicx}" + "\n"
+        r"\usepackage{rotating}" + "\n"
+        r"\usepackage{booktabs}" + "\n"
+        r"\usepackage{array}" + "\n"
+        r"\usepackage{paralist}" + "\n"
+        r"\usepackage{verbatim}" + "\n"
+        r"\usepackage{subfig}" + "\n"
+        r"\usepackage{fancyhdr}" + "\n"
+        r"\pagestyle{fancy}" + "\n"
+        r"\renewcommand{\headrulewidth}{0pt}" + "\n"
+        r"\lhead{}\chead{}\rhead{}" + "\n"
+        r"\lfoot{}\cfoot{\thepage}\rfoot{}" + "\n"
+        r"\usepackage{sectsty}" + "\n"
+        r"\allsectionsfont{\sffamily\mdseries\upshape}" + "\n"
+        r"\usepackage[nottoc,notlof,notlot]{tocbibind}" + "\n"
+        r"\usepackage[titles,subfigure]{tocloft}" + "\n"
+        r"\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}" + "\n"
+        r"\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape}" + "\n"
+        r"\title{Brief Article}" + "\n"
+        r"\author{The Author}" + "\n"
+        r"\begin{document}" + "\n"
+        r"\pagenumbering{gobble}"
+    )
+    tmpname = "tmp_{}".format(uuid.uuid4().hex[:8])
+    outdir = os.path.dirname(path)
+    tmptexfile = os.path.join("{}.tex".format(tmpname))
+    # Write TeX file
+    with open(tmptexfile, "w") as tmp:
+        tmp.write(header)
+        tmp.write(content)
+        tmp.write("\n" + r"\end{document}")
+    # Compile TeX file
+    logger.debug("Compiling TeX file '{}'...".format(tmptexfile))
+    cmd = [
+        "pdflatex",
+        "-interaction",
+        "nonstopmode" if verbosity == 2 else "batchmode",
+        # "-output-directory={}".format(outdir),
+        tmptexfile,
+    ]
+    procoptions = dict(stdout=DEVNULL) if verbosity == 0 else {}
+    proc = Popen(cmd, **procoptions)
+    proc.communicate()
+    retcode = proc.returncode
+    if not retcode == 0:
+        if retcode == 1:
+            logger.warning(
+                "Non-critical error (code {}) executing command: '{}'. Will keep going "
+                "anyway...".format(retcode, " ".join(cmd))
+            )
+        else:
+            logger.error(
+                "Error {} executing command: '{}'".format(retcode, " ".join(cmd))
+            )
+            raise ValueError
+    else:
+        logger.debug("Successfully compiled '{}'!".format(tmptexfile))
+    os.unlink(os.path.join(outdir, "{}.tex".format(tmpname)))
+    os.unlink(os.path.join(outdir, "{}.log".format(tmpname)))
+    os.unlink(os.path.join(outdir, "{}.aux".format(tmpname)))
+    # Crop PDF file
+    if crop:
+        logger.debug("Cropping PDF file '{}.pdf'...".format(tmpname))
+        cmd = ["pdfcrop", "--margins", "10", "{}.pdf".format(tmpname), path]
+        proc = Popen(cmd, **procoptions)
+        proc.communicate()
+        retcode = proc.returncode
+        if not retcode == 0:
+            logger.error(
+                "Error {} executing command: '{}'".format(retcode_2, " ".join(cmd))
+            )
+            raise ValueError
+        else:
+            os.unlink(os.path.join(outdir, "{}.pdf".format(tmpname)))
+            logger.debug("Successfully cropped PDF file '{}.pdf'!".format(tmpname))
+    logger.debug("PDF file has been created: '{}'".format(path))
