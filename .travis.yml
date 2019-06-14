@@ -1,0 +1,25 @@
+language: python
+python:
+    - "2.7"
+
+sudo: "required"
+
+services:
+    - docker
+
+env: SH="docker exec -t mephisto-test bash -i -c"
+
+before_install:
+  - docker --version
+  - docker run -d --name mephisto-test --user physicist fkrieter/root-ubuntu18:6.14.06 tail -f /dev/null
+  - docker ps
+
+install:
+  - $SH "git clone https://github.com/fkrieter/mephisto"
+  - $SH "cd mephisto && pip install --user -e ."
+
+script:
+  - $SH "cd mephisto && python -m unittest discover tests"
+
+notifications:
+    email: false
