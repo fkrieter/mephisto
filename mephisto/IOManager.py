@@ -315,6 +315,7 @@ class IOManager(object):
                 raise NotImplementedError
             self._store.append((histo, options))
 
+        @timeit
         def Run(self, batchsize=int(1e5)):
             branchexprs = set()
             for histo, options in self._store:
