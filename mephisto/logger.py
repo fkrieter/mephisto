@@ -20,7 +20,8 @@ formatter = logging.Formatter("<%(levelname)s> %(module)s : %(message)s")
 ch.setFormatter(formatter)
 
 # add ch to logger
-logger.addHandler(ch)
+if not logger.handlers:
+    logger.addHandler(ch)
 
 # based on stackoverflow post - quick and dirty hack for colors ;)
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = [30 + _i for _i in range(8)]

@@ -27,3 +27,6 @@ from Histo2D import Histo2D
 from RatioPlot import RatioPlot
 from IOManager import IOManager
 from ContributionPlot import ContributionPlot
+
+while logger.handlers:
+    logger.handlers.pop()
