@@ -2,9 +2,10 @@
 **MakE Pretty HISTOgrams**
 
 <p align="center">
-<a href="https://github.com/fkrieter/mephisto"><img alt="Supported Python version: 2.7" src="https://img.shields.io/badge/python-2.7-blue.svg?style=flat-square"></a>
-<a href="https://github.com/root-project/root"><img alt="Supported ROOT versions: 6.14+" src="https://img.shields.io/badge/ROOT-6.14%2B-brightgreen.svg?style=flat-square"></a>
-<a href="https://github.com/ambv/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square"></a>
+<a href="https://travis-ci.org/fkrieter/mephisto"><img alt="Travis CI" src="https://api.travis-ci.org/fkrieter/mephisto.svg?branch=master"></a>
+<a href="https://github.com/fkrieter/mephisto"><img alt="Supported Python version: 2.7" src="https://img.shields.io/badge/python-2.7-blue.svg"></a>
+<a href="https://github.com/root-project/root"><img alt="Supported ROOT versions: 6.14+" src="https://img.shields.io/badge/ROOT-6.14%2B-blue.svg"></a>
+<a href="https://github.com/ambv/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 
 **Mephisto** aims to deliver a smoother and more intuitive workflow for making plots with the python extension of the [ROOT](https://root.cern.ch/) Data Analysis Framework.
@@ -27,9 +28,8 @@ If this is your first time using **Mephisto**, consider taking the interactive t
 ### Work in Progress
 
 Some things are not quite (read: *not at all*) done yet:
-* Unit tests
-* Continuous integration
-* Documentation
+* More unit tests
+* More documentation
 * More Jupyter tutorials
 * Many other cool features!
 
