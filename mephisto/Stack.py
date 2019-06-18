@@ -199,7 +199,7 @@ class Stack(MethodProxy, ROOT.THStack):
 
     @MephistofyObject(copy=True)
     def Register(self, histo, **kwargs):
-        stack = kwargs.pop("stack", False)
+        stack = kwargs.pop("stack", histo.GetStack())
         histo.SetDrawErrorband(False)
         if stack:
             if self._stacksumhisto is None:
@@ -343,6 +343,9 @@ class Stack(MethodProxy, ROOT.THStack):
                 **properties["Pad"]
             )
         idx = 1
+        xaxisprops = {
+            k: v for k, v in properties["Pad"].items() if k in ["xtitle", "xunits"]
+        }
         if contribution:
             contribplot = ContributionPlot(self)
             plot.Register(
@@ -352,8 +355,7 @@ class Stack(MethodProxy, ROOT.THStack):
                 logy=False,
                 ymin=0,
                 ymax=1,
-                xtitle=properties["Pad"]["xtitle"],
-                xunits=properties["Pad"]["xunits"],
+                **xaxisprops
             )
             idx += 1
         if ratio:
@@ -365,8 +367,7 @@ class Stack(MethodProxy, ROOT.THStack):
                 logy=False,
                 ymin=0.2,
                 ymax=1.8,
-                xtitle=properties["Pad"]["xtitle"],
-                xunits=properties["Pad"]["xunits"],
+                **xaxisprops
             )
             idx += 1
         if sensitivity:
@@ -376,8 +377,7 @@ class Stack(MethodProxy, ROOT.THStack):
                 pad=idx,
                 ytitle="Z_{N}-value",  # default (see template 'common')
                 logy=False,
-                xtitle=properties["Pad"]["xtitle"],
-                xunits=properties["Pad"]["xunits"],
+                **xaxisprops
             )
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 

@@ -40,6 +40,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._drawerrorband = False
         self._addtolegend = True
         self._legenddrawoption = ""
+        self._stack = False  # Stack property!
         self._attalpha = defaultdict(lambda: 1.0)
         if len(args) == 1:
             if isinstance(args[0], ROOT.TH1D):
@@ -49,6 +50,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 self._varexp = args[0]._varexp
                 self._cuts = args[0]._cuts
                 self._weight = args[0]._cuts
+                self._stack = args[0]._stack
                 if args[0]._errorband is not None:
                     self._errorband = Histo1D(
                         "{}_errorband".format(name), args[0]._errorband
@@ -242,6 +244,13 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
     def GetAddToLegend(self):
         return self._addtolegend
+
+    def SetStack(self, boolean):
+        """Set how the object is displayed if added to a Stack."""
+        self._stack = boolean
+
+    def GetStack(self):
+        return self._stack
 
 
 def main():
