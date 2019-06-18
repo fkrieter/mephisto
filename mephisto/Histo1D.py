@@ -71,6 +71,10 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             raise TypeError
         if not name.endswith("_errorband") and self._errorband is None:
             self._errorband = Histo1D("{}_errorband".format(self.GetName()), self)
+            for key, value in self.GetTemplate(
+                kwargs.get("template", "common")
+            ).items():
+                kwargs.setdefault(key, value)
         self.DeclareProperties(**kwargs)
         self._lowbinedges = IOManager._getBinning(self)["xbinning"]
         self._nbins = len(self._lowbinedges) - 1
