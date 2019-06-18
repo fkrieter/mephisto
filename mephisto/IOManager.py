@@ -197,7 +197,7 @@ class IOManager(object):
 
         :param cuts: string or list of strings of boolean expressions, the latter\
         will default to a logical AND of all items (default: '1')
-        :type cuts: str, list
+        :type cuts: str, list, tuple
 
         :param weight: number or branch name to be applied as a weight (default: '1')
         :type weight: str
@@ -205,11 +205,13 @@ class IOManager(object):
         :returntype: ROOT.TH1D, ROOT.TH2D
         """
         cuts = kwargs.get("cuts", [])
-        if isinstance(cuts, list):
+        if isinstance(cuts, (list, tuple)):
             if cuts:
                 kwargs["cuts"] = (
                     "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
                 )
+        elif not isinstance(cuts, str):
+            raise TypeError
         for binning in ["xbinning", "ybinning", "zbinning"]:
             kwargs[binning] = IOManager._convertBinning(kwargs.get(binning), csv=True)
         return IOManager._getHistogram(infile, **kwargs)
@@ -288,10 +290,14 @@ class IOManager(object):
 
         def Register(self, histo, **kwargs):
             cuts = kwargs.pop("cuts", [])
-            if isinstance(cuts, list):
+            if isinstance(cuts, (list, tuple)):
                 cutstring = (
                     "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
                 )
+            elif isinstance(cuts, str):
+                cutstring = cuts
+            else:
+                raise TypeError
             options = {
                 "varexp": kwargs.pop("varexp"),
                 "weight": kwargs.pop("weight", "1"),
