@@ -4,7 +4,7 @@ import ROOT
 
 import os
 
-from mephisto import logger
+from mephisto.logger import logger
 
 logger.setLevel(10)
 
