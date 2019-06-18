@@ -1,45 +1,56 @@
 """
-Logger template
+ _    ___   ___  ___ ___ ___
+| |  / _ \ / __|/ __| __| _ \
+| |_| (_) | (_ | (_ | _||   /
+|____\___/ \___|\___|___|_|_\
+
 """
 
 import logging
 
-# create logger
-logger = (
-    logging.getLogger()
-)  # Here we can supply a name, not sure if we need or want to
-logger.setLevel(logging.INFO)
 
-# create console handler and set level to debug
-ch = logging.StreamHandler()
+class CustomFormatter(logging.Formatter):
+    width = 10
 
-# create formatter
-formatter = logging.Formatter("<%(levelname)s> %(module)s : %(message)s")
+    def format(self, record):
+        return "%s %s: %s" % (
+            "[{}]".format(record.levelname).ljust(self.width),
+            # record.name,
+            record.module,
+            record.msg,
+        )
 
-# add formatter to ch
-ch.setFormatter(formatter)
 
-# add ch to logger
-if not logger.handlers:
+logger = logging.getLogger("MEPHISTO")
+
+if not logger.handlers and not logging.getLogger().handlers:
+
+    logger.setLevel(logging.INFO)
+
+    ch = logging.StreamHandler()
+
+    # formatter = logging.Formatter("<%(levelname)s> %(module)s : %(message)s")
+    formatter = CustomFormatter()
+
+    ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-# based on stackoverflow post - quick and dirty hack for colors ;)
-BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = [30 + _i for _i in range(8)]
-RESET_SEQ = "\033[0m"
-COLOR_SEQ = "\033[1;%dm"
-BOLD_SEQ = "\033[1m"
-colorMapping = {
-    logging.INFO: GREEN,
-    logging.DEBUG: BLUE,
-    logging.WARNING: YELLOW,
-    logging.ERROR: RED,
-}
-for loglevel, color in colorMapping.items():
-    logging.addLevelName(
-        loglevel,
-        "{COLOR_SEQ}{LEVELNAME}{RESET_SEQ}".format(
-            COLOR_SEQ=COLOR_SEQ % color,
-            LEVELNAME=logging.getLevelName(loglevel),
-            RESET_SEQ=RESET_SEQ,
-        ),
-    )
+    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = [30 + _i for _i in range(8)]
+    RESET_SEQ = "\033[0m"
+    COLOR_SEQ = "\033[1;%dm"
+    BOLD_SEQ = "\033[1m"
+    colorMapping = {
+        logging.INFO: GREEN,
+        logging.DEBUG: BLUE,
+        logging.WARNING: YELLOW,
+        logging.ERROR: RED,
+    }
+    for loglevel, color in colorMapping.items():
+        logging.addLevelName(
+            loglevel,
+            "{COLOR_SEQ}{LEVELNAME}{RESET_SEQ}".format(
+                COLOR_SEQ=COLOR_SEQ % color,
+                LEVELNAME=logging.getLevelName(loglevel),
+                RESET_SEQ=RESET_SEQ,
+            ),
+        )
