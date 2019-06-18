@@ -320,6 +320,8 @@ class IOManager(object):
             for histo, options in self._store:
                 branchexprs.update(options["varexp"].split(":"))
                 branchexprs.add("({})*({})".format(options["weight"], options["cuts"]))
+                if not options["append"]:
+                    histo.Reset()
             for start in range(0, self._entries, batchsize):
                 array = rnp.root2array(
                     self._filepath,
@@ -335,8 +337,6 @@ class IOManager(object):
                         varexp = rnp.rec2array(array[options["varexp"].split(":")])
                     cuts = array["({})*({})".format(options["weight"], options["cuts"])]
                     mask = np.where(cuts != 0)
-                    if not options["append"]:
-                        histo.Reset()
                     rnp.fill_hist(histo, varexp[mask], weights=cuts[mask])
             for histo, options in self._store:
                 if histo.GetEntries() == 0:
