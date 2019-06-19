@@ -43,6 +43,11 @@ class Text(MethodProxy, ROOT.TLatex):
         tmptitle = self.GetTitle()
         if ignoreformulas:
             tmptitle = re.sub("[\_\^]{(.*?)}", "", tmptitle)  # remove sub-/superscripts
+            for mod in ["bar", "tilde"]:  # remove bar, tilde, ...
+                rgx = "[\#]" + mod + "{(.*?)}"
+                match = re.search(rgx, tmptitle)
+                if match is not None:
+                    tmptitle = re.sub(rgx, match.group()[len(mod) + 2 : -1], tmptitle)
         with UsingProperties(
             self, textfont=10 * (font - (font % 10) / 10) + 2, title=tmptitle
         ):
