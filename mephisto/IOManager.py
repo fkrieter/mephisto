@@ -289,7 +289,15 @@ class IOManager(object):
             infile.Close()
 
         def Register(self, histo, **kwargs):
+            varexp = kwargs.pop("varexp")
             cuts = kwargs.pop("cuts", [])
+            weight = kwargs.pop("weight", "1")
+            append = kwargs.pop("append", False)
+            # Save metadata to Histo1D/2D:
+            if histo.__class__.__name__ in ["Histo1D", "Histo1D"]:
+                histo._varexp = varexp
+                histo._cuts = cuts
+                histo._weight = weight
             if isinstance(cuts, (list, tuple)):
                 cutstring = (
                     "&&".join(["({})".format(cut) for cut in cuts]) if cuts else "1"
@@ -299,10 +307,10 @@ class IOManager(object):
             else:
                 raise TypeError
             options = {
-                "varexp": kwargs.pop("varexp"),
-                "weight": kwargs.pop("weight", "1"),
+                "varexp": varexp,
+                "weight": weight,
                 "cuts": cutstring,
-                "append": kwargs.pop("append", False),
+                "append": append,
             }
             histoname = histo.GetName()
             histotitle = histo.GetTitle()
