@@ -167,7 +167,10 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 if binwidths[0].is_integer()
                 else round(binwidths[0], 1)
             )
-            if not ytitle.endswith((str(binwidth), str(xunits))):
+            if (
+                not ytitle.endswith((str(binwidth), str(xunits)))
+                and self.GetNbinsX() > 1
+            ):
                 ytitle += " / {}".format(binwidth)
             if xunits and not ytitle.endswith(xunits):
                 ytitle += " {}".format(xunits)
