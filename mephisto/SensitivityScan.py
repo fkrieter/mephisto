@@ -9,6 +9,7 @@ from uuid import uuid4
 from Line import Line
 from Histo1D import Histo1D
 from MethodProxy import *
+from Helpers import AsymptoticFormulae
 
 
 @PreloadProperties
@@ -119,6 +120,7 @@ class SensitivityScan(MethodProxy):
           * func = lambda s, b, db : s / b
           * func = 's / b'
           * func = ROOT.RooStats.NumberCountingUtils.BinomialExpZ(s, b, db)
+          * func = 'AsymptoticFormulae.AsimovExpZ(s, b, db)'
 
         :param func: function or string of code used to evaluate the sensitivity
         :type func: function or str

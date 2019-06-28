@@ -312,3 +312,49 @@ def TeX2PDF(content, path, **kwargs):
             os.unlink(os.path.join("{}.pdf".format(tmpname)))
             logger.debug("Successfully cropped PDF file '{}.pdf'!".format(tmpname))
     logger.debug("PDF file has been created: '{}'".format(path))
+
+
+class AsymptoticFormulae(object):
+    """A collection of useful asymptotic formulae for hypothesis tests."""
+
+    @staticmethod
+    def BinomialExpZ(s, b, db):
+        return ROOT.RooStats.NumberCountingUtils.BinomialExpZ(s, b, db)
+
+    @staticmethod
+    def BinomialExpP(s, b, db):
+        return ROOT.RooStats.NumberCountingUtils.BinomialExpP(s, b, db)
+
+    @staticmethod
+    def BinomialExpCLs(s, b, db):
+        # CL_s = p_s+b / 1 - p_b
+        return psb / (
+            AsymptoticFormulae.BinomialExpP(s, b, db)
+            - AsymptoticFormulae.BinomialExpP(0.0, b, db)
+        )
+
+    @staticmethod
+    def AsimovExpZ(s, b, db):
+        # [1] http://www.pp.rhul.ac.uk/~cowan/stat/medsig/medsigNote.pdf
+        # [2] https://arxiv.org/pdf/1007.1727.pdf
+        s = float(s)
+        b = float(b)
+        db = b * db  # convert relative to absolute uncertainty
+        return sqrt(
+            2
+            * (
+                (s + b) * log(((s + b) * (b + db ** 2)) / (b ** 2 + (s + b) * db ** 2))
+                - ((b ** 2 / db ** 2) * log(1 + s * db ** 2 / (b * (b + db ** 2))))
+            )
+        )
+
+    @staticmethod
+    def AsimovExpP(s, b, db):
+        return ROOT.RooStats.SignificanceToPValue(
+            AsymptoticFormulae.AsimovExpZ(s, b, db)
+        )
+
+    @staticmethod
+    def AsimovExpCLs(s, b, db):
+        # CL_s = p_s+b / 1 - p_b with p_b = 0.5 (asymptotic limit)
+        return 2.0 * AsymptoticFormulae.AsimovExpP(s, b, db)
