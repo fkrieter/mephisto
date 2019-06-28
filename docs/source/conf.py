@@ -83,7 +83,7 @@ html_theme_options = {
     "style_nav_header_background": "#333333",
     "collapse_navigation": False,
 }
-html_logo = "_static/mephisto-logo.png"
+html_logo = "mephisto-logo.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory.
