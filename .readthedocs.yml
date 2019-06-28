@@ -1,0 +1,4 @@
+python:
+   version: 2.7
+   install:
+      - requirements: docs/rtd_dependencies.txt
