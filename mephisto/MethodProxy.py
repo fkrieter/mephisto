@@ -148,25 +148,19 @@ class MethodProxy(object):
                     property, ", ".join(match)
                 )
             )
-        if isinstance(args, tuple) or isinstance(args, list):
-            args = list(args)
-            if "color" in property.lower():
-                args[0] = ColorID(args[0])
-            try:
-                return getattr(self, match[0])(*args)
-            except TypeError:
-                if logger.isEnabledFor(logging.DEBUG):
-                    raise
-                pass
-        else:
-            if "color" in property.lower():
-                args = ColorID(args)
-            try:
-                return getattr(self, match[0])(args)
-            except TypeError:
-                if logger.isEnabledFor(logging.DEBUG):
-                    raise
-                pass
+        args = list(args) if isinstance(args, (list, tuple)) else [args]
+        if "color" in property.lower():
+            args[0] = ColorID(args[0])
+        try:
+            return getattr(self, match[0])(*args)
+        except TypeError:
+            logger.debug(
+                "Caught <TypeError> exception: {} object has no attribute called '{}' "
+                "taking the arguments {}!".format(
+                    self.__class__.__name__, match[0], args
+                )
+            )
+            pass
 
     def DeclareProperties(self, **kwargs):
         # First all template properties are updated with kwargs and then applied first.
