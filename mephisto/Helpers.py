@@ -17,6 +17,10 @@ from math import log10
 
 from logger import logger
 
+# Don't decorate functions when building the documentation
+# https://stackoverflow.com/a/22023805/10986034
+IS_SPHINX_BUILD = bool(os.getenv("SPHINX_BUILD"))
+
 
 def ColorID(color):
     # Convert a hex color code into a TColor.
@@ -112,7 +116,7 @@ def CheckPath(mode="r"):
                 args[idx] = check(args[idx], overwrite=overwrite, mkdir=mkdir)
             return func(*args, **kwargs)
 
-        return wrapper
+        return func if IS_SPHINX_BUILD else wrapper
 
     return decorator
 
@@ -179,27 +183,27 @@ def MephistofyObject(copy=False):
                 args[idx] = mephistofy(args[idx])
             return func(*args, **kwargs)
 
-        return wrapper
+        return func if IS_SPHINX_BUILD else wrapper
 
     return decorator
 
 
-def timeit(method):
+def timeit(func):
     # https://goo.gl/XmaqC7
     def timed(*args, **kw):
         ts = time.time()
-        result = method(*args, **kw)
+        result = func(*args, **kw)
         te = time.time()
         if "log_time" in kw:
-            name = kw.get("log_name", method.__name__.upper())
+            name = kw.get("log_name", func.__name__.upper())
             kw["log_time"][name] = int((te - ts) * 1000)
         else:
             logger.debug(
-                "Executed {} in {:.2f} ms".format(method.__name__, (te - ts) * 1000)
+                "Executed {} in {:.2f} ms".format(func.__name__, (te - ts) * 1000)
             )
         return result
 
-    return timed
+    return func if IS_SPHINX_BUILD else timed
 
 
 def IsInherited(cls, method):
