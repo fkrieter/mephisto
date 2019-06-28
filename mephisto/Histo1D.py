@@ -25,12 +25,74 @@ def ExtendProperties(cls):
 @ExtendProperties
 @PreloadProperties
 class Histo1D(MethodProxy, ROOT.TH1D):
+    r"""Class for 1-dimensional histograms.
+
+    +-------------------------------------------------------------------------------+
+    | Inherits from :class:`ROOT.TH1D`, see                                         |
+    | official `documentation <https://root.cern.ch/doc/master/classTH1.html>`_     |
+    | as well!                                                                      |
+    +-------------------------------------------------------------------------------+
+
+    By default :func:`ROOT.TH1.SumW2` is called upon initialization. The properties of
+    **errorband** (which is itself of type ``Histo1D``) of the histogram object can be
+    accessed by prepending the prefix 'errorband' in front of the property name. By
+    default the errorband's fillcolor and markercolor matches the histogram's linecolor.
+
+    In order to avoid memory leaks **name** is not an available property despite having
+    corresponding getter and setter methods. Furthermore the properties **xtitle**,
+    **ytitle** and **ztitle** are defined to be exclusive to the :class:`.Pad` class.
+    """
 
     _ignore_properties = ["name", "xtitle", "ytitle", "ztitle"]
 
     ROOT.TH1.SetDefaultSumw2(True)
 
     def __init__(self, name, *args, **kwargs):
+        r"""Initialize a 1-dimensional histograms.
+
+        Create an instance of :class:`.Histo1D` with the specified **name** and binning
+        (either with uniform or vairable bin widths). Can also to be used to copy
+        another histogram (or upgrade from a :class:`ROOT.TH1D`).
+
+        :param name: name of the histogram
+        :type name: ``str``
+
+        :param \*args:
+            see below
+
+        :param \**kwargs:
+            :class:`.Histo1D` properties
+
+        :Arguments:
+            Depending on the number of arguments (besides **name**) there are three ways
+            to initialize a :class:`.Histo1D` object\:
+
+            * *one* argument\:
+
+                #. **histo** (``Histo1D``, ``TH1D``) -- histogram to be copied
+
+            * *two* arguments\:
+
+                #. **title** (``str``) -- histogram title that will be used by the
+                   :class:`.Legend` class
+
+                #. **lowbinedges** (``list``, ``tuple``) -- list of lower bin-edges (for
+                   a histogram with variable bin widths)
+
+            * *four* arguments\:
+
+                #. **title** (``str``) -- histogram title that will be used by the
+                   :class:`.Legend` class
+
+                #. **nbins** (``int``) -- number of bins (for a histogram  with equal
+                   widths)
+
+                #. **xmin** (``float``) -- minimum x-axis value (lower bin-edge of first
+                   bin)
+
+                #. **xmax** (``float``) -- maximal x-axis value (upper bin-edge of last
+                   bin)
+        """
         MethodProxy.__init__(self)
         self._varexp = None
         self._cuts = None
@@ -83,8 +145,8 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
     def DeclareProperty(self, property, args):
         # Properties starting with "errorband" will be applied to self._errorband.
-        # All errorband properties will be applied after the main histo properties.
-        # By default the errorband fillcolor and markercolor matches the histograms
+        # All errorband's properties will be applied after the main histo properties.
+        # By default the errorband fillcolor and markercolor matches the histogram's
         # linecolor.
         property = property.lower()
         if property.startswith("errorband"):
@@ -101,6 +163,48 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             super(Histo1D, self._errorband).DeclareProperty("markercolor", errbndcol)
 
     def Fill(self, *args, **kwargs):
+        r"""Fill the histogram with entries.
+
+        If a path (``str``) to an **infile** is given as the only argument the histogram
+        if filled using the events in there as specified by the keyword arguments.
+        Otherwise the standard :func:`ROOT.TH1.Fill` functionality is used.
+
+        :param \*args:
+            see below
+
+        :param \**kwargs:
+            see below
+
+        :Arguments:
+            Depending on the number of arguments (besides **name**) there are three ways
+            to initialize a :class:`.Histo1D` object\:
+
+            * *one* argument of type ``str``\:
+
+                #. **infile** (``str``) -- path to the input :py:mod:`ROOT` file (use
+                   keyword arguments to define which events to select)
+
+            * otherwise\:
+
+                see :py:mod:`ROOT` documentation of :func:`TH1.Fill` (keyword arguments
+                will be ignored)
+
+        :Keyword Arguments:
+
+            * **tree** (``str``) -- name of the input tree
+
+            * **varexp** (``str``) -- name of the branch to be plotted on the x-axis
+
+            * **cuts** (``str``, ``list``, ``tuple``) -- string or list of strings of
+              boolean expressions, the latter will default to a logical *AND* of all
+              items (default: '1')
+
+            * **weight** (``str``) -- number or branch name to be applied as a weight
+              (default: '1')
+
+            * **append** (``bool``) -- append entries to the histogram instead of
+              overwriting it (default: ``False``)
+        """
         self._varexp = kwargs.get("varexp")
         self._cuts = kwargs.get("cuts", [])
         self._weight = kwargs.get("weight", "1")
