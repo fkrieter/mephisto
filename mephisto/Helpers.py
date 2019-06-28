@@ -3,6 +3,7 @@
 import ROOT
 
 import os
+import re
 import uuid
 import time
 
@@ -312,6 +313,15 @@ def TeX2PDF(content, path, **kwargs):
             os.unlink(os.path.join("{}.pdf".format(tmpname)))
             logger.debug("Successfully cropped PDF file '{}.pdf'!".format(tmpname))
     logger.debug("PDF file has been created: '{}'".format(path))
+
+
+def SplitCutExpr(cutexpr):
+    assert isinstance(cutexpr, str)
+    rgx = "(?P<varexp>[A-Za-z0-9\_]+)(?P<comparator>(>=|<=|==|>|<))(?P<value>\d+$)"
+    match = re.match(rgx, cutexpr)
+    if match is not None:
+        return match.groupdict()
+    raise ValueError("Argument '{}' is not a valid cut expression!".format(cutexpr))
 
 
 class AsymptoticFormulae(object):
