@@ -6,7 +6,7 @@ If you're already familiar with **ROOT** histograms such as ```TH1D```, ```TH2D`
 The core classes of Mephisto like ```Histo1D```, ```Histo2D``` or ```Stack``` all inherit from their respective ROOT counterparts so that you can use them just like you normally would.
 However, new or enhanced class methods await you, that will make your life much easier!
 
-So what are you waiting for? Open a shell, navigate to the *examples* folder and fire up the [**Jupyter**](https://jupyter.readthedocs.io/en/latest/install.html) notebooks:
+So what are you waiting for? Open a shell, navigate to the *tutorial* folder and fire up the [**Jupyter**](https://jupyter.readthedocs.io/en/latest/install.html) notebooks:
 
 ```
 cd tutorial/

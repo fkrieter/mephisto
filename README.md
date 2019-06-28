@@ -3,6 +3,7 @@
 
 <p align="center">
 <a href="https://travis-ci.org/fkrieter/mephisto"><img alt="Travis CI" src="https://api.travis-ci.org/fkrieter/mephisto.svg?branch=master"></a>
+<a href='https://mephisto.readthedocs.io/en/latest/?badge=latest'><img alt="Documentation Status" src="https://readthedocs.org/projects/mephisto/badge/?version=latest"></a>
 <a href="https://github.com/fkrieter/mephisto"><img alt="Supported Python version: 2.7" src="https://img.shields.io/badge/python-2.7-blue.svg"></a>
 <a href="https://github.com/root-project/root"><img alt="Supported ROOT versions: 6.14+" src="https://img.shields.io/badge/ROOT-6.14%2B-blue.svg"></a>
 <a href="https://github.com/ambv/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
@@ -21,7 +22,7 @@ pip install --user -e .
 ```
 Make sure you have **ROOT** version **6.14** or higher installed.
 
-If this is your first time using **Mephisto**, consider taking the interactive tutorial [here](https://github.com/fkrieter/mephisto/tree/master/tutorial).
+If this is your first time using **Mephisto**, consider taking the interactive [tutorial](https://github.com/fkrieter/mephisto/tree/master/tutorial) and have a look at the [documenation](https://mephisto.readthedocs.io/en/latest/).
 
 ---
 
