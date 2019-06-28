@@ -174,18 +174,27 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
     def Interpolate(self, *args, **kwargs):
-        """Replace zero valued data points by nterpolating between all non-zero data
-        point of the grid (if no arguments are given, else see TH2::Interpolate).
+        r"""Replace zero valued data points by nterpolating between all non-zero data
+        point of the grid if no arguments are given Otherwise else see TH2::Interpolate.
+
+        :param \*args:
+            See :py:mod:`ROOT` documentation of :func:`TH2D.Interpolate`
+
+        :param \**kwargs:
+            see below
 
         :Keyword Arguments:
-        :param method: method of interpolation (default: cubic):
-          * nearest: return the value at the data point closest to the point of
-            interpolation
-          * linear: tessellate the input point set to n-dimensional simplices, and
-            interpolate linearly on each simplex
-          * cubic: return the value determined from a piecewise cubic, continuously
-            differentiable and approximately curvature-minimizing polynomial surface
-        :type method: str
+            * **method** (``str``) -- method of interpolation (default: 'cubic')
+
+                * *nearest*: return the value at the data point closest to the point of
+                  interpolation
+
+                * *linear*: tessellate the input point set to n-dimensional simplices,
+                  and interpolate linearly on each simplex
+
+                * *cubic*: return the value determined from a piecewise cubic,
+                  continuously differentiable and approximately curvature-minimizing
+                  polynomial surface
         """
         if len(args) == 0:
             # https://stackoverflow.com/a/39596856/10986034

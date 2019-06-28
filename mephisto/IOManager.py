@@ -21,37 +21,41 @@ ROOT.gErrorIgnoreLevel = 2000
 
 
 class IOManager(object):
-    """Class for easy ROOT I/O.
+    r"""Static class providing easy-to-use methods for common :py:mod:`ROOT` I/O
+    operations.
 
-    Can be used to read from and write to ROOT files. Multiple histograms from one tree
-    can be created simultaneously using the Factory subclass.
+    Can be used to read from and write to :py:mod:`ROOT` files. Multiple histograms from
+    one tree can be filled simultaneously using the :class:`.Factory` subclass.
     """
 
     @staticmethod
     @CheckPath(mode="w")
     def CreateTestSample(path, **kwargs):
-        """Creates a ROOT file with toy data to be used for tests.
+        r"""Creates a :py:mod:`ROOT` file with toy data to be used for tests.
 
-        The output file contains one tree with `nevents` number of entries represented
+        The output file contains one tree with **nevents** number of entries represented
         by `nbranches` branches. Random numbers for each branch are drawn according to a
         chisquare distribution with a mean indicated by the branch index. The name of
-        the output tree is given by `tree` and the branches are of the form 'branch_1',
-        'branch_2', ...
+        the output tree is given by **tree** and the branches are of the form
+        'branch_1', 'branch_2', ...
 
-        Numbers are drawn using numpy's random module and the output file is created
-        using root_numpy's array2root function.
+        Numbers are generated using the :class:`numpy.random` module and the output file
+        is filled using the :func:`root_numpy.array2root` method.
 
-        :param path: path of output ROOT file
-        :type path: str
+        :param path: path of output :py:mod:`ROOT` file
+        :type path: ``str``
 
-        :param nevents: number of events in the output tree (default: 10000)
-        :type nevents: int
+        :param \**kwargs:
+            see below
 
-        :param nbranches: number of branches (default 10)
-        :type nbranches: int
+        :Keyword Arguments:
 
-        :param tree: name of the output tree (default 'tree')
-        :type tree: str
+            * **nevents** (``int``) -- number of events in the output tree (default:
+              10000)
+
+            * **nbranches** (``int``) -- number of branches (default: 10)
+
+            * **tree** (``int``) -- name of the output tree (default: 'tree')
         """
         basedir = os.path.abspath(path)
         if not basedir:
@@ -74,38 +78,41 @@ class IOManager(object):
 
     @staticmethod
     def FillHistogram(histo, infile, **kwargs):
-        """Fill a given histograms with events from a tree.
+        r"""Fill a given histograms with events from a tree.
 
-        The given histogram will be filled with values for the `varexp` for all events
-        assing the `cuts` and weighted by `weight`. Via the `append` option one can
-        decide whether the given histogram should be overwritten or if the new entries
-        should be appended to its existing content. Basis for the input is the specified
-        `tree` of the `infile`.
+        The given histogram will be filled with values for the **varexp** for all events
+        assing the **cuts** and weighted by **weight**. Via the **append** option one
+        can decide whether the given histogram should be overwritten or if the new
+        entries should be appended to its existing content. Basis for the input is the
+        specified **tree** of the **infile**.
 
-        The histogram is filled using ROOT's TTree::Project method.
+        The histogram is filled using :py:mod:`ROOT`'s ``TTree::Project`` method.
 
         :param histo: histogram object to be filled
-        :type histo: ROOT.TH1D, ROOT.TH2D
+        :type histo: ``ROOT.TH1D``, ``ROOT.TH2D``
 
-        :param infile: path to the input ROOT file
-        :type infile: str
+        :param infile: path to the input :py:mod:`ROOT` file
+        :type infile: ``str``
 
-        :param tree: name of the input tree
-        :type tree: str
+        :param \**kwargs:
+            see below
 
-        :param varexp: name of the branch to be plotted (format: 'x' or 'x:y')
-        :type varexp: str
+        :Keyword Arguments:
 
-        :param cuts: string or list of strings of boolean expressions, the latter\
-        will default to a logical AND of all items (default: '1')
-        :type cuts: str, list
+            * **tree** (``str``) -- name of the input tree
 
-        :param weight: number or branch name to be applied as a weight (default: '1')
-        :type weight: str
+            * **varexp** (``str``) -- name of the branch to be plotted (format: 'x' or
+              'x:y')
 
-        :param append: append or overwrite entries to the specified `histo` (default:\
-        False)
-        :type append: bool
+            * **cuts** (``str``, ``list``, ``tuple``) -- string or list of strings of
+              boolean expressions, the latter will default to a logical *AND* of all
+              items (default: '1')
+
+            * **weight** (``str``) -- number or name of the branch which will be applied
+              as a weight (default: '1')
+
+            * **append** (``bool``) -- append entries to the specified **histo** instead
+              of overwriting it (default: ``False``)
         """
         append = kwargs.pop("append", False)
         kwargs.update(IOManager._getBinning(histo))
@@ -171,38 +178,40 @@ class IOManager(object):
     @staticmethod
     @timeit
     def GetHistogram(infile, **kwargs):
-        """Create a histograms filled with events from a tree.
+        r"""Create a histograms filled with events from a tree.
 
-        The created histogram will be filled with values for the `varexp` for all events
-        passing the `cuts` and weighted by `weight`. Basis for the input is the
-        specified `tree` of the `infile`. The name and title of the histogram can be set
-        via `name` and `title`, respectively.
+        The created histogram will be filled with values for the **varexp** for all
+        events passing the **cuts** and weighted by **weight**. Basis for the input is
+        the specified **tree** of the **infile**. The name and title of the histogram
+        can be set via **name** and **title**, respectively.
 
-        The histogram is filled using ROOT's TTree::Project method.
+        The histogram is filled using :py:mod:`ROOT`'s :func:`TTree.Project` method.
 
-        :param infile: path to the input ROOT file
+        :param infile: path to the input :py:mod:`ROOT` file
         :type infile: str
 
-        :param name: name of the returned histogram
-        :type name: str
+        :param \**kwargs:
+            see below
 
-        :param title: title of the returned histogram
-        :type title: str
+        :Keyword Arguments:
 
-        :param tree: name of the input tree
-        :type tree: str
+            * **name** (``str``) -- name of the returned histogram
 
-        :param varexp: name of the branch to be plotted (format: 'x' or 'x:y')
-        :type varexp: str
+            * **title** (``str``) -- title of the returned histogram
 
-        :param cuts: string or list of strings of boolean expressions, the latter\
-        will default to a logical AND of all items (default: '1')
-        :type cuts: str, list, tuple
+            * **tree** (``str``) -- name of the input tree
 
-        :param weight: number or branch name to be applied as a weight (default: '1')
-        :type weight: str
+            * **varexp** (``str``) -- name of the branch to be plotted (format: 'x' or
+              'x:y')
 
-        :returntype: ROOT.TH1D, ROOT.TH2D
+            * **cuts** (``str``, ``list``, ``tuple``) -- string or list of strings of
+              boolean expressions, the latter will default to a logical *AND* of all
+              items (default: '1')
+
+            * **weight** (``str``) -- number or branch name to be applied as a weight
+              (default: '1')
+
+        :returntype: ``ROOT.TH1D``, ``ROOT.TH2D``
         """
         cuts = kwargs.get("cuts", [])
         if isinstance(cuts, (list, tuple)):
@@ -272,10 +281,28 @@ class IOManager(object):
         return branches
 
     class Factory(object):
+        r"""Subclass for filling multiple histograms from one tree in just one go.
+
+        Create an instance of :class:`.Factory` for some tree in a given :py:mod:`ROOT`
+        file and register histograms with the desired options to it. All registered
+        histograms will then be filled simultaneously by only looping once over the
+        tree, resulting in a significant time saving compared to calling
+        :func:`~IOManager.IOManager.FillHistogram` multiple times.
+        """
+
         @CheckPath(mode="r")
-        def __init__(self, path, treename):
+        def __init__(self, path, tree):
+            r"""Initialize the :class:`.Factory` for a given **tree** in a
+            :py:mod:`ROOT` file located at **path**.
+
+            :param infile: path to the input :py:mod:`ROOT` file
+            :type infile: ``str``
+
+            :param tree: name of the input tree
+            :type infile: ``str``
+            """
             self._filepath = path
-            self._treename = treename
+            self._treename = tree
             self._store = []
             infile = ROOT.TFile.Open(path)
             intree = infile.Get(self._treename)
@@ -289,6 +316,30 @@ class IOManager(object):
             infile.Close()
 
         def Register(self, histo, **kwargs):
+            r"""Register a histograms to the factory.
+
+            The registered histogram will be filled with values for the **varexp**
+            for all events passing the **cuts** and weighted by **weight** upon calling
+            :func:`~IOManager.IOManager.Factory.Run`.
+
+            :param histo: histogram object to be filled
+            :type histo: ``ROOT.TH1D``, ``ROOT.TH2D``
+
+            :param \**kwargs:
+                see below
+
+            :Keyword Arguments:
+
+                * **varexp** (``str``) -- name of the branch to be plotted (format: 'x'
+                  or 'x:y')
+
+                * **cuts** (``str``, ``list``, ``tuple``) -- string or list of strings
+                  of boolean expressions, the latter will default to a logical *AND* of
+                  all items (default: '1')
+
+                * **weight** (``str``) -- number or branch name to be applied as a
+                  weight (default: '1')
+            """
             varexp = kwargs.pop("varexp")
             cuts = kwargs.pop("cuts", [])
             weight = kwargs.pop("weight", "1")
@@ -325,6 +376,13 @@ class IOManager(object):
 
         @timeit
         def Run(self, batchsize=int(1e5)):
+            r"""Fill all registered histograms.
+
+            The histograms are filled using the :func:`root_numpy.root2array` method.
+
+            :param batchsize: number of events to processed at once (default: 100000)
+            :type batchsize: ``int``
+            """
             branchexprs = set()
             for histo, options in self._store:
                 branchexprs.update(options["varexp"].split(":"))
