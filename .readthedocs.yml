@@ -11,4 +11,4 @@ sphinx:
 python:
    version: 2.7
    install:
-      - requirements: docs/rtd_dependencies.txt
+      - requirements: docs/requirements.txt
