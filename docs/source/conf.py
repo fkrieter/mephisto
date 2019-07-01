@@ -15,9 +15,41 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         return MagicMock()
 
-    # Placeholder class
-    class PH:
-        pass
+    class ROOT(object):
+        class TH1D(object):
+            pass
+
+        class TH2D(object):
+            pass
+
+        class THStack(object):
+            pass
+
+        class TPad(object):
+            pass
+
+        class TCanvas(object):
+            pass
+
+        class TLatex(object):
+            pass
+
+        class TLegend(object):
+            pass
+
+        class TLine(object):
+            pass
+
+        class TArrow(object):
+            pass
+
+
+def get_subclasses(cls):
+    return [
+        getattr(cls, sub_cls)
+        for sub_cls in dir(cls)
+        if isinstance(getattr(cls, sub_cls), type) and not sub_cls.startswith("__")
+    ]
 
 
 # https://stackoverflow.com/a/22023805/10986034
@@ -25,12 +57,10 @@ os.environ["SPHINX_BUILD"] = "1"
 
 sys.path.insert(0, os.path.abspath("../../mephisto/"))
 
-MOCK_MODULES = ["ROOT"]
-MOCK_CLASSES = ["TH1D", "TH2D", "TPad", "TCanvas", "TLatex", "TLegend"]
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+sys.modules.update((mod.__name__, Mock()) for mod in get_subclasses(Mock))
 
-for cls in MOCK_CLASSES:
-    setattr(sys.modules["ROOT"], cls, Mock.PH)
+for cls in get_subclasses(Mock.ROOT):
+    setattr(sys.modules["ROOT"], cls.__name__, cls)
 
 autodoc_mock_imports = ["numpy", "root_numpy", "scipy"]
 
