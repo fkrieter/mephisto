@@ -15,7 +15,7 @@ import numpy as np
 from array import array
 
 
-ROOT.gROOT.SetBatch()
+ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gErrorIgnoreLevel = 2000
 
@@ -42,11 +42,15 @@ class IOManager(object):
         Numbers are generated using the :class:`numpy.random` module and the output file
         is filled using the :func:`root_numpy.array2root` method.
 
+        If a file with the same name already exists it will be overwritten (can be
+        changed  with the **overwrite** keyword argument). If **mkdir** is set to
+        ``True`` (default: ``False``) directories in **path** with do not yet exist will
+        be created automatically.
+
         :param path: path of output :py:mod:`ROOT` file
         :type path: ``str``
 
-        :param \**kwargs:
-            see below
+        :param \**kwargs: see below
 
         :Keyword Arguments:
 
@@ -56,6 +60,12 @@ class IOManager(object):
             * **nbranches** (``int``) -- number of branches (default: 10)
 
             * **tree** (``int``) -- name of the output tree (default: 'tree')
+
+            * **overwrite** (``bool``) -- overwrite an existing file located at **path**
+              (default: ``True``)
+
+            * **mkdir** (``bool``) -- create non-existing directories in **path**
+              (default: ``False``)
         """
         basedir = os.path.abspath(path)
         if not basedir:
@@ -94,8 +104,7 @@ class IOManager(object):
         :param infile: path to the input :py:mod:`ROOT` file
         :type infile: ``str``
 
-        :param \**kwargs:
-            see below
+        :param \**kwargs: see below
 
         :Keyword Arguments:
 
@@ -190,8 +199,7 @@ class IOManager(object):
         :param infile: path to the input :py:mod:`ROOT` file
         :type infile: str
 
-        :param \**kwargs:
-            see below
+        :param \**kwargs: see below
 
         :Keyword Arguments:
 
@@ -325,8 +333,7 @@ class IOManager(object):
             :param histo: histogram object to be filled
             :type histo: ``ROOT.TH1D``, ``ROOT.TH2D``
 
-            :param \**kwargs:
-                see below
+            :param \**kwargs: see below
 
             :Keyword Arguments:
 

@@ -34,11 +34,11 @@ class Histo1D(MethodProxy, ROOT.TH1D):
     +-------------------------------------------------------------------------------+
 
     By default :func:`ROOT.TH1.SumW2` is called upon initialization. The properties of
-    **errorband** (which is itself of type ``Histo1D``) of the histogram object can be
-    accessed by prepending the prefix 'errorband' in front of the property name. By
+    the **errorband** (which is itself of type ``Histo1D``) of the histogram object can
+    be accessed by prepending the prefix 'errorband' in front of the property name. By
     default the errorband's fillcolor and markercolor matches the histogram's linecolor.
 
-    In order to avoid memory leaks **name** is not an available property despite having
+    In order to avoid memory leaks, **name** is an inaccessible property despite having
     corresponding getter and setter methods. Furthermore the properties **xtitle**,
     **ytitle** and **ztitle** are defined to be exclusive to the :class:`.Pad` class.
     """
@@ -51,17 +51,15 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         r"""Initialize a 1-dimensional histograms.
 
         Create an instance of :class:`.Histo1D` with the specified **name** and binning
-        (either with uniform or vairable bin widths). Can also to be used to copy
-        another histogram (or upgrade from a :class:`ROOT.TH1D`).
+        (either with uniform or vairable bin widths). Can also be used to copy another
+        histogram (or upgrade from a :class:`ROOT.TH1D`).
 
         :param name: name of the histogram
         :type name: ``str``
 
-        :param \*args:
-            see below
+        :param \*args: see below
 
-        :param \**kwargs:
-            :class:`.Histo1D` properties
+        :param \**kwargs: :class:`.Histo1D` properties
 
         :Arguments:
             Depending on the number of arguments (besides **name**) there are three ways
@@ -76,16 +74,16 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 #. **title** (``str``) -- histogram title that will be used by the
                    :class:`.Legend` class
 
-                #. **lowbinedges** (``list``, ``tuple``) -- list of lower bin-edges (for
-                   a histogram with variable bin widths)
+                #. **xlowbinedges** (``list``, ``tuple``) -- list of lower bin-edges on
+                   the x-axis (for a histogram with variable bin widths)
 
             * *four* arguments\:
 
                 #. **title** (``str``) -- histogram title that will be used by the
                    :class:`.Legend` class
 
-                #. **nbins** (``int``) -- number of bins (for a histogram  with equal
-                   widths)
+                #. **nbinsx** (``int``) -- number of bins on the x-axis (for a histogram
+                   with equal widths)
 
                 #. **xmin** (``float``) -- minimum x-axis value (lower bin-edge of first
                    bin)
@@ -169,11 +167,9 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         if filled using the events in there as specified by the keyword arguments.
         Otherwise the standard :func:`ROOT.TH1.Fill` functionality is used.
 
-        :param \*args:
-            see below
+        :param \*args: see below
 
-        :param \**kwargs:
-            see below
+        :param \**kwargs: see below
 
         :Arguments:
             Depending on the number of arguments (besides **name**) there are three ways
@@ -216,30 +212,89 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         else:
             super(Histo1D, self).Fill(*args)
 
-    def SetDrawOption(self, string):
-        if not isinstance(string, str) and not isinstance(string, unicode):
-            raise Type
-        self._drawoption = string
-        super(Histo1D, self).SetDrawOption(string)
+    @CheckPath(mode="w")
+    def Print(self, path, **kwargs):
+        r"""Print the histogram to a file.
+
+        Creates a PDF/PNG/... file with the absolute path defined by **path**. If a file
+        with the same name already exists it will be overwritten (can be changed  with
+        the **overwrite** keyword argument). If **mkdir** is set to ``True`` (default:
+        ``False``) directories in **path** with do not yet exist will be created
+        automatically. The styling of the histogram, pad and canvas can be configured
+        via their respective properties passed as keyword arguments.
+
+        :param path: path of the output file (must end with '.pdf', '.png', ...)
+        :type path: ``str``
+
+        :param \**kwargs:
+            :class:`.Histo1D`, :class:`.Plot`, :class:`.Canvas` and :class:`.Pad`
+            properties + additional properties (see below)
+
+        Keyword Arguments:
+
+            * **overwrite** (``bool``) -- overwrite an existing file located at **path**
+              (default: ``True``)
+
+            * **mkdir** (``bool``) -- create non-existing directories in **path**
+              (default: ``False``)
+        """
+        properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas, Pad])
+        plot = Plot(npads=1)
+        plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
+        plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
+
+    def SetDrawOption(self, option):
+        r"""Define the draw option for the histogram.
+
+        :param option: draw option (see :class:`ROOT.THistPainter`
+            `class reference <https://root.cern/doc/master/classTHistPainter.html>`_)
+        :type option: ``str``
+        """
+        if not isinstance(option, (str, unicode)):
+            raise TypeError
+        self._drawoption = option
+        super(Histo1D, self).SetDrawOption(option)
 
     def GetDrawOption(self):
+        r"""Return the draw option defined for the histogram.
+
+        :returntype: ``str``
+        """
         return self._drawoption
 
     def SetDrawErrorband(self, boolean):
+        r"""Define whether the errorband should be drawn for the histogram.
+
+        :param boolean: if set to ``True`` the errorband will be drawn
+        :type boolean: ``bool``
+        """
         self._drawerrorband = boolean
 
     def GetDrawErrorband(self):
+        r"""Return whether the errorband should be drawn for the histogram.
+
+        :returntype: ``bool``
+        """
         return self._drawerrorband
 
     def GetXTitle(self):
+        r"""Return the histogram's x-axis title.
+
+        :returntype: ``str``
+        """
         return self.GetXaxis().GetTitle()
 
     def GetYTitle(self):
+        r"""Return the histogram's y-axis title.
+
+        :returntype: ``str``
+        """
         return self.GetYaxis().GetTitle()
 
-    def Draw(self, drawoption=None):
-        if drawoption is not None:
-            self.SetDrawOption(drawoption)
+    def Draw(self, option=None):
+        # Draw the histogram to the current TPad together with it's errorband.
+        if option is not None:
+            self.SetDrawOption(option)
         self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
         if self._drawerrorband:
             self._errorband.Reset()
@@ -249,6 +304,10 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             )
 
     def GetBinWidths(self):
+        r"""Return a list of all bin widths.
+
+        :returntype: ``list``
+        """
         binwidths = [
             self._lowbinedges[i + 1] - self._lowbinedges[i]
             for i in range(len(self._lowbinedges) - 1)
@@ -256,6 +315,8 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         return binwidths
 
     def BuildFrame(self, **kwargs):
+        # Return the optimal axis ranges for the histogram. Gets called by Plot when the
+        # histogram is registered to it.
         scale = 1.0 + kwargs.get("ypadding", 0.25)  # Pad property
         logx = kwargs.get("logx", False)
         logy = kwargs.get("logy", False)
@@ -298,43 +359,87 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             frame["ymax"] *= scale
         return frame
 
-    @CheckPath(mode="w")
-    def Print(self, path, **kwargs):
-        properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas, Pad])
-        plot = Plot(npads=1)
-        plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
-        plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
-
     def Add(self, histo, scale=1):
+        r"""Add another **histo** to the current histogram.
+
+        A global weight can be set for the **histo** via the **scale**. The raw
+        (unweighted) entries of the histograms will be added.
+
+        :param histo: histogram to be added to the current object
+        :type histo: ``Histo1D``, ``TH1D``
+
+        :param scale: global weight multiplied to **histo** (default: 1)
+        :param scale: ``float``
+        """
         raw_entries = self.GetEntries() + histo.GetEntries()
         super(Histo1D, self).Add(histo, scale)
         self.SetEntries(raw_entries)
 
     def SetLegendDrawOption(self, option):
+        r"""Define the draw option for the histogram's legend.
+
+        :param option: draw option (see :class:`ROOT.TLegend`
+            `class reference <https://root.cern/doc/master/classTLegend.html>`_)
+        :type option: ``str``
+        """
         self._legenddrawoption = option
 
     def GetLegendDrawOption(self):
+        r"""Return the draw option defined for the histogram's legend.
+
+        :returntype: ``str``
+        """
         return self._legenddrawoption
 
     def SetLineAlpha(self, alpha):
+        r"""Define the transparency of the histogram's line attribute.
+
+        :param option: transparency of the histogram's line attribute
+            (:math:`\alpha \in [0,1]` )
+        :type option: ``float``
+        """
         self._attalpha["line"] = alpha
         self.SetLineColorAlpha(self.GetLineColor(), alpha)
 
     def GetLineAlpha(self):
+        r"""Return tthe transparency of the histogram's line attribute.
+
+        :returntype: ``float``
+        """
         return self._attalpha["line"]
 
     def SetFillAlpha(self, alpha):
+        r"""Define the transparency of the histogram's fill attribute.
+
+        :param option: transparency of the histogram's fill attribute
+            (:math:`\alpha \in [0,1]` )
+        :type option: ``float``
+        """
         self._attalpha["fill"] = alpha
         self.SetFillColorAlpha(self.GetFillColor(), alpha)
 
     def GetFillAlpha(self):
+        r"""Return tthe transparency of the histogram's fill attribute.
+
+        :returntype: ``float``
+        """
         return self._attalpha["fill"]
 
     def SetMarkerAlpha(self, alpha):
+        r"""Define the transparency of the histogram's marker attribute.
+
+        :param option: transparency of the histogram's marker attribute
+            (:math:`\alpha \in [0,1]` )
+        :type option: ``float``
+        """
         self._attalpha["marker"] = alpha
         self.SetMarkerColorAlpha(self.GetMarkerColor(), alpha)
 
     def GetMarkerAlpha(self):
+        r"""Return tthe transparency of the histogram's marker attribute.
+
+        :returntype: ``float``
+        """
         return self._attalpha["marker"]
 
     def SetLineColor(self, color):
@@ -347,16 +452,38 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self.SetMarkerColorAlpha(color, self._attalpha["marker"])
 
     def SetAddToLegend(self, boolean):
+        r"""Define whether the histogram should be added to the :class:`.Legend`.
+
+        :param boolean: if set to ``True`` the histogram will be added to the
+            :class:`.Legend`
+        :type boolean: ``bool``
+        """
         self._addtolegend = boolean
 
     def GetAddToLegend(self):
+        r"""Return whether the histogram should be added to the :class:`.Legend`.
+
+        :returntype: ``bool``
+        """
         return self._addtolegend
 
     def SetStack(self, boolean):
-        """Set how the object is displayed if added to a Stack."""
+        """Set how the object is displayed if added to a :class:`.Stack`.
+
+        If set to ``True`` and the histogram is registered to a :class:`.Stack`, it will
+        be displayed in the stack of histograms.
+
+        :param boolean: if set to ``True`` the histogram will be displayed in the stack
+            of histograms
+        :type boolean: ``bool``
+        """
         self._stack = boolean
 
     def GetStack(self):
+        r"""Return how the object is displayed if added to a :class:`.Stack`.
+
+        :returntype: ``bool``
+        """
         return self._stack
 
 

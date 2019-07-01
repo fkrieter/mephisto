@@ -29,18 +29,49 @@ def ExtendProperties(cls):
 
 @ExtendProperties
 class RatioPlot(Histo1D):
-    def __init__(self, num, denom=0, **kwargs):
+    r"""Class for comparing 1-dimensional histograms.
+
+    +-------------------------------------------------------------------------------+
+    | Inherits from :class:`.Histo1D` which inherits from :class:`ROOT.TH1D`, see   |
+    | official `documentation <https://root.cern.ch/doc/master/classTH1.html>`_     |
+    | as well!                                                                      |
+    +-------------------------------------------------------------------------------+
+
+    Compares histograms to a **baseline** by computing the ratio for each bin.
+
+    The properties of the **baseline** (which is itself of type ``Histo1D``) of the
+    :class:`.RatioPlot` object can be accessed by prepending the prefix 'baseline' in
+    front of the property name.
+    """
+
+    def __init__(self, numerator, denominator=0, **kwargs):
+        r"""Initialize a ratio plot for 1-dimensional histograms.
+
+        Create an instance of :class:`.RatioPlot` with the specified (list of)
+        **numerator** histogram(s) and **denominator** histogram.
+
+        :param numerator: numerator histogram or list thereof
+        :type name: ``Histo1D``, ``TH1D``, ``list``
+
+        :param denominator: denominator histogram which will act as the **baseline**
+        :type name: ``Histo1D``, ``TH1D``
+
+        :param \**kwargs: :class:`.RatioPlot` properties
+        """
         self._loadTemplates()
         self._drawarrows = False
         self._drawbenchmarklines = False
-        assert num.InheritsFrom("TH1")
+        if isinstance(numerator, list):
+            # TODO: Compute and plot multiple at once
+            raise NotImplementedError
+        assert numerator.InheritsFrom("TH1")
         kwargs.setdefault("template", "common")
-        if denom.InheritsFrom("TH1"):
+        if denominator.InheritsFrom("TH1"):
             super(RatioPlot, self).__init__(
-                "{}_RatioPlotNumerator".format(num.GetName()), num
+                "{}_RatioPlotNumerator".format(numerator.GetName()), numerator
             )
             self._baseline = Histo1D(
-                "{}_RatioPlotDenominator".format(num.GetName()), denom
+                "{}_RatioPlotDenominator".format(numerator.GetName()), denominator
             )
             self.Divide(
                 self, self._baseline, 1.0, 1.0, kwargs.get("divideoption", "pois")
@@ -56,9 +87,9 @@ class RatioPlot(Histo1D):
                     self._baseline.SetBinError(bn, 0.0)
                 self._baseline.SetBinContent(bn, 1.0)
         elif (
-            denom.InheritsFrom("TFitResult")
-            or denom == 0
-            or denom.InheritsFrom("THStack")
+            denominator.InheritsFrom("TFitResult")
+            or denominator == 0
+            or denominator.InheritsFrom("THStack")
         ):
             raise NotImplementedError
         else:
@@ -66,6 +97,8 @@ class RatioPlot(Histo1D):
         self.DeclareProperties(**kwargs)
 
     def Draw(self, drawoption=None):
+        # Draw the baseline, its errorband, the numerator histograms and 'out-of-range'
+        # arrows.
         self._baseline.Draw(self._baseline.GetDrawOption() + "SAME")  # Histo1D.Draw
         self._baseline.DrawCopy("HIST SAME", "_{}".format(uuid4().hex[:8]))
         if self._drawbenchmarklines:
@@ -75,6 +108,8 @@ class RatioPlot(Histo1D):
             self.DrawArrows()
 
     def DeclareProperty(self, property, args):
+        # Properties starting with "baseline" will be applied to the self._baseline
+        # histogram.
         property = property.lower()
         if property.startswith("baseline"):
             self._baseline.DeclareProperty(property[8:], args)
@@ -82,6 +117,7 @@ class RatioPlot(Histo1D):
             super(RatioPlot, self).DeclareProperty(property, args)
 
     def DrawArrows(self, **kwargs):
+        # Draw the 'out-of-range' arrows for ratio value outside the given y-axis range.
         currentpad = ROOT.gPad
         if not currentpad:
             return
@@ -118,6 +154,7 @@ class RatioPlot(Histo1D):
             arrow.Draw()
 
     def DrawBenchmarkLines(self):
+        # Draw benchmark lines.
         currentpad = ROOT.gPad
         if not currentpad:
             return
@@ -138,15 +175,34 @@ class RatioPlot(Histo1D):
             line.Draw()
 
     def SetDrawArrows(self, boolean):
+        r"""Define whether the arrows should be drawn.
+
+        :param boolean: if set to ``True`` arrows will be drawn whenever the ratio is
+            outside the given y-axis range
+        :type boolean: ``bool``
+        """
         self._drawarrows = boolean
 
     def GetDrawArrows(self):
+        r"""Return whether the arrows should be drawn.
+
+        :returntype: ``bool``
+        """
         return self._drawarrows
 
     def SetDrawBenchmarkLines(self, boolean):
+        r"""Define whether the benchmark lines should be drawn.
+
+        :param boolean: if set to ``True`` the benchmark lines will be drawn
+        :type boolean: ``bool``
+        """
         self._drawbenchmarklines = boolean
 
     def GetDrawBenchmarklines(self):
+        r"""Return whether the benchmark lines should be drawn.
+
+        :returntype: ``bool``
+        """
         return self._drawbenchmarklines
 
 

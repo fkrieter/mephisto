@@ -28,12 +28,117 @@ def ExtendProperties(cls):
 @ExtendProperties
 @PreloadProperties
 class Histo2D(MethodProxy, ROOT.TH2D):
+    r"""Class for 2-dimensional histograms.
+
+    +-------------------------------------------------------------------------------+
+    | Inherits from :class:`ROOT.TH2D`, see                                         |
+    | official `documentation <https://root.cern.ch/doc/master/classTH1.html>`_     |
+    | as well!                                                                      |
+    +-------------------------------------------------------------------------------+
+
+    By default :func:`ROOT.TH2.SumW2` is called upon initialization. The properties of
+    the **contour** (which is itself of type ``Histo2D``) of the histogram object can be
+    accessed by prepending the prefix 'contour' in front of the property name.
+
+    In order to avoid memory leaks, **name** is an inaccessible property despite having
+    corresponding getter and setter methods. Furthermore the properties **xtitle**,
+    **ytitle** and **ztitle** are defined to be exclusive to the :class:`.Pad` class.
+    """
 
     _ignore_properties = ["name", "xtitle", "ytitle", "ztitle"]
 
     ROOT.TH2.SetDefaultSumw2(True)
 
     def __init__(self, name, *args, **kwargs):
+        r"""Initialize a 2-dimensional histograms.
+
+        Create an instance of :class:`.Histo2D` with the specified **name** and binning
+        (either with uniform or vairable bin widths). Can also be used to copy another
+        histogram (or upgrade from a :class:`ROOT.TH2D`).
+
+        :param name: name of the histogram
+        :type name: ``str``
+
+        :param \*args: see below
+
+        :param \**kwargs: :class:`.Histo2D` properties
+
+        :Arguments:
+            Depending on the number of arguments (besides **name**) there are three ways
+            to initialize a :class:`.Histo2D` object\:
+
+            * *one* argument\:
+
+                #. **histo** (``Histo2D``, ``TH2D``) -- histogram to be copied
+
+            * *three* arguments\:
+
+                #. **title** (``str``) -- histogram title that will be used by the
+                   :class:`.Legend` class
+
+                #. **xlowbinedges** (``list``, ``tuple``) -- list of lower bin-edges on
+                   the x-axis (for a histogram with variable bin widths)
+
+                #. **ylowbinedges** (``list``, ``tuple``) -- list of lower bin-edges on
+                   the y-axis (for a histogram with variable bin widths)
+
+            * *five* arguments (variable x-axis binning)\:
+
+                #. **title** (``str``) -- histogram title that will be used by the
+                   :class:`.Legend` class
+
+                #. **xlowbinedges** (``list``, ``tuple``) -- list of lower bin-edges on
+                   the x-axis (for a histogram with variable bin widths)
+
+                #. **nbinsy** (``int``) -- number of bins on the y-axis (for a histogram
+                   with equal widths)
+
+                #. **ymin** (``float``) -- minimum y-axis value (lower bin-edge of first
+                   bin)
+
+                #. **ymax** (``float``) -- maximal y-axis value (upper bin-edge of last
+                   bin)
+
+            * *five* arguments (variable y-axis binning)\:
+
+                #. **title** (``str``) -- histogram title that will be used by the
+                   :class:`.Legend` class
+
+                #. **nbinsx** (``int``) -- number of bins on the x-axis (for a histogram
+                   with equal widths)
+
+                #. **xmin** (``float``) -- minimum x-axis value (lower bin-edge of first
+                   bin)
+
+                #. **xmax** (``float``) -- maximal x-axis value (upper bin-edge of last
+                   bin)
+
+                #. **ylowbinedges** (``list``, ``tuple``) -- list of lower bin-edges on
+                   the y-axis (for a histogram with variable bin widths)
+
+            * *seven* arguments\:
+
+                #. **title** (``str``) -- histogram title that will be used by the
+                   :class:`.Legend` class
+
+                #. **nbinsx** (``int``) -- number of bins on the x-axis (for a histogram
+                   with equal widths)
+
+                #. **xmin** (``float``) -- minimum x-axis value (lower bin-edge of first
+                   bin)
+
+                #. **xmax** (``float``) -- maximal x-axis value (upper bin-edge of last
+                   bin)
+
+                #. **nbinsy** (``int``) -- number of bins on the y-axis (for a histogram
+                   with equal widths)
+
+                #. **ymin** (``float``) -- minimum y-axis value (lower bin-edge of first
+                   bin)
+
+                #. **ymax** (``float``) -- maximal y-axis value (upper bin-edge of last
+                   bin)
+        """
         MethodProxy.__init__(self)
         self._varexp = None
         self._cuts = None
@@ -112,6 +217,47 @@ class Histo2D(MethodProxy, ROOT.TH2D):
             super(Histo2D, self).DeclareProperty(property, args)
 
     def Fill(self, *args, **kwargs):
+        r"""Fill the histogram with entries.
+
+        If a path (``str``) to an **infile** is given as the only argument the histogram
+        if filled using the events in there as specified by the keyword arguments.
+        Otherwise the standard :func:`ROOT.TH2.Fill` functionality is used.
+
+        :param \*args: see below
+
+        :param \**kwargs: see below
+
+        :Arguments:
+            Depending on the number of arguments (besides **name**) there are three ways
+            to initialize a :class:`.Histo2D` object\:
+
+            * *one* argument of type ``str``\:
+
+                #. **infile** (``str``) -- path to the input :py:mod:`ROOT` file (use
+                   keyword arguments to define which events to select)
+
+            * otherwise\:
+
+                see :py:mod:`ROOT` documentation of :func:`TH1.Fill` (keyword arguments
+                will be ignored)
+
+        :Keyword Arguments:
+
+            * **tree** (``str``) -- name of the input tree
+
+            * **varexp** (``str``) -- name of the branch to be plotted on the x-axis and
+              y-axis (format 'x:y')
+
+            * **cuts** (``str``, ``list``, ``tuple``) -- string or list of strings of
+              boolean expressions, the latter will default to a logical *AND* of all
+              items (default: '1')
+
+            * **weight** (``str``) -- number or branch name to be applied as a weight
+              (default: '1')
+
+            * **append** (``bool``) -- append entries to the histogram instead of
+              overwriting it (default: ``False``)
+        """
         self._varexp = kwargs.get("varexp")
         self._cuts = kwargs.get("cuts", [])
         self._weight = kwargs.get("weight", "1")
@@ -121,15 +267,28 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         else:
             super(Histo2D, self).Fill(*args)
 
-    def SetDrawOption(self, string):
-        assert isinstance(string, (str, unicode))
-        self._drawoption = string
-        super(Histo2D, self).SetDrawOption(string)
+    def SetDrawOption(self, option):
+        r"""Define the draw option for the histogram.
+
+        :param option: draw option (see :class:`ROOT.THistPainter`
+            `class reference <https://root.cern/doc/master/classTHistPainter.html>`_)
+        :type option: ``str``
+        """
+        if not isinstance(option, (str, unicode)):
+            raise TypeError
+        self._drawoption = option
+        super(Histo2D, self).SetDrawOption(option)
 
     def GetDrawOption(self):
+        r"""Return the draw option defined for the histogram.
+
+        :returntype: ``str``
+        """
         return self._drawoption
 
     def BuildFrame(self, **kwargs):
+        # Return the optimal axis ranges for the histogram. Gets called by Plot when the
+        # histogram is registered to it.
         logx = kwargs.pop("logx", False)
         logy = kwargs.pop("logy", False)
         xtitle = kwargs.pop("xtitle", None)
@@ -153,6 +312,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         return frame
 
     def Draw(self, drawoption=None):
+        # Draw the histogram to the current TPad together with it's contours.
         hash = uuid4().hex[:8]
         if drawoption is not None:
             self.SetDrawOption(drawoption)
@@ -167,6 +327,28 @@ class Histo2D(MethodProxy, ROOT.TH2D):
                 )
 
     def Print(self, path, **kwargs):
+        r"""Print the histogram to a file.
+
+        Creates a PDF/PNG/... file with the absolute path defined by **path**. If a file
+        with the same name already exists it will be overwritten (can be changed  with
+        the **overwrite** keyword argument). If **mkdir** is set to ``True`` (default:
+        ``False``) directories in **path** with do not yet exist will be created
+        automatically. The styling of the histogram, pad and canvas can be configured
+        via their respective properties passed as keyword arguments.
+
+        :param path: path of the output file (must end with '.pdf', '.png', ...)
+        :type path: ``str``
+
+        :param \**kwargs: :class:`.Histo2D`, :class:`.Plot`, :class:`.Canvas` and
+            :class:`.Pad` properties + additional properties (see below)
+
+        Keyword Arguments:
+
+            * **overwrite** (``bool``) -- overwrite an existing file located at **path**
+              (default: ``True``)
+            * **mkdir** (``bool``) -- create non-existing directories in **path**
+              (default: ``False``)
+        """
         kwargs.setdefault("logy", False)  # overwriting Pad template's default value!
         properties = DissectProperties(kwargs, [Histo2D, Plot, Canvas, Pad])
         plot = Plot(npads=1)
@@ -174,25 +356,27 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
 
     def Interpolate(self, *args, **kwargs):
-        r"""Replace zero valued data points by nterpolating between all non-zero data
-        point of the grid if no arguments are given Otherwise else see TH2::Interpolate.
+        r"""Replace zero valued data points by interpolating between all non-zero data
+        point of the grid if no arguments are given. Otherwise the standard
+        :func:`ROOT.TH2.Interpolate` functionality is used.
 
-        :param \*args:
-            See :py:mod:`ROOT` documentation of :func:`TH2D.Interpolate`
+        In the former case the :py:mod:`scipy`'s :func:`interpolate.griddata` function
+        is used.
 
-        :param \**kwargs:
-            see below
+        :param \*args: See :py:mod:`ROOT` documentation of :func:`ROOT.TH2.Interpolate`
+
+        :param \**kwargs: see below
 
         :Keyword Arguments:
             * **method** (``str``) -- method of interpolation (default: 'cubic')
 
-                * *nearest*: return the value at the data point closest to the point of
-                  interpolation
+                * **nearest**: return the value at the data point closest to the point
+                  of interpolation
 
-                * *linear*: tessellate the input point set to n-dimensional simplices,
+                * **linear**: tessellate the input point set to n-dimensional simplices,
                   and interpolate linearly on each simplex
 
-                * *cubic*: return the value determined from a piecewise cubic,
+                * **cubic**: return the value determined from a piecewise cubic,
                   continuously differentiable and approximately curvature-minimizing
                   polynomial surface
         """
@@ -216,10 +400,22 @@ class Histo2D(MethodProxy, ROOT.TH2D):
             super(Histo2D, self).Interpolate(*args)
 
     def SetContour(self, *args):
+        r"""Define the contour levels.
+
+        A contour line will be drawn at values of the histogram equal to the specified
+        levels.
+
+        :param \*args: contour levels
+        :type \*args: ``float``
+        """
         for contour in args:
             self._contours.append(contour)
 
     def GetContour(self):
+        r"""Return a list of all contour levels.
+
+        :returntype: ``list``
+        """
         return self._contours
 
 

@@ -8,7 +8,42 @@ from Stack import Stack
 
 
 class ContributionPlot(Stack):
+    r"""Class for a normalized stack of 1-dimensional.
+
+    +-------------------------------------------------------------------------------+
+    | Inherits from :class:`.Stack` which inherits from :class:`ROOT.THStack`, see  |
+    | official `documentation <https://root.cern.ch/doc/master/classTHStack.html>`_ |
+    | as well!                                                                      |
+    +-------------------------------------------------------------------------------+
+
+    Has the same features as :class:`.Stack` but only draws all stacked histograms
+    normalized with respect to their sum (**stacksum**).
+    """
+
     def __init__(self, *args, **kwargs):
+        r"""Initialize a stack of 1-dimensional histograms.
+
+        Create an instance of :class:`.ContributionPlot` from a given ``Stack`` or list
+        of histograms (**\*args**).
+
+        :param \*args: see below
+
+        :param \**kwargs: :class:`.ContributionPlot` properties
+
+        :Arguments:
+            Depending on the number of arguments there are two ways to initialize a
+            :class:`.ContributionPlot` object\:
+
+            * *one* argument of type ``Stack`` or ``THStack``\:
+
+                #. **stack** (``Stack``, ``THStack``) -- copy all stacked histograms
+                   from the **stack**
+
+            * *multiple* arguments of type ``Histo1D`` or ``TH1D``\:
+
+                #. **\*args** (``Stack``, ``THStack``) -- register a list of histograms
+                   to a new stack
+        """
         self._loadTemplates()
         kwargs.setdefault("template", "common")
         name = "{}_ContributionPlotStack".format(args[0].GetName())
