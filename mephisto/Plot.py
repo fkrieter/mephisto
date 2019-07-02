@@ -91,8 +91,9 @@ class Plot(MethodProxy):
         The associated :class:`.Pad` is defined by **pad**. Properties of the **object**
         and the associated :class:`.Pad` can be changed via keyword arguments.
 
-        :param object: drawable :class:`ROOT` object to be registered to the plot
-        :type object: ``Histo1D``, ``TH1D``, ``Histo2D``, ``TH2D``, ``Stack``, ...
+        :param object: *drawable* :class:`ROOT` object to be registered to the plot,
+            e.g. ``Histo1D``, ``TH1D``, ``Histo2D``, ``TH2D``, ``Stack``, ...
+        :type object: ``ROOT.TObject``
 
         :param pad: index of the target pad (default: 0)
         :type pad: ``int``
@@ -171,6 +172,12 @@ class Plot(MethodProxy):
 
         Keyword Arguments:
 
+            * **inject<N>** (``list``, ``tuple``, ``ROOT.TObject``) -- inject a (list
+              of) *drawable* :class:`ROOT` object(s) to pad **<N>** (default: 0), object
+              properties can be specified by passing instead a ``tuple`` of the format
+              :code:`(obj, props)` where :code:`props` is a ``dict`` holding the object
+              properties (default: \[\])
+
             * **overwrite** (``bool``) -- overwrite an existing file located at **path**
               (default: ``True``)
 
@@ -178,6 +185,14 @@ class Plot(MethodProxy):
               (default: ``False``)
 
         """
+        for idx, injections in {
+            int(k[6:]) if len(k) > 6 else 0: kwargs.pop(k)
+            for k in dict(kwargs.items())
+            if k.startswith("inject")
+        }.items():
+            if not isinstance(injections, list):
+                injections = [injections]
+            self.Inject(idx, *injections)
         properties = DissectProperties(kwargs, [Plot, Canvas])
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetPaintTextFormat("4.2f")
@@ -214,6 +229,33 @@ class Plot(MethodProxy):
         if os.path.isfile(path):
             logger.info("Created plot: '{}'".format(path))
         canvas.Delete()
+
+    def Inject(self, pad=0, *args):
+        r"""Inject a (list of) *drawable* object(s) to the pad with index **pad**.
+
+        Object properties can be specified by passing instead a ``tuple`` of the format
+        :code:`(obj, props)` where :code:`props` is a ``dict`` holding the object
+        properties.
+
+        :param pad: index of the target pad (default: 0)
+        :type pad: ``int``
+
+        :param \*args: *drawable* :class:`ROOT` object or ``tuple`` of the format
+            :code:`(obj, props)` where :code:`props` is a ``dict`` holding the object
+            properties
+        :type \*args: ``tuple``, ``ROOT.TObject``
+        """
+        self.AssertPadIndex(pad)
+        for arg in args:
+            if isinstance(object, tuple):
+                obj, props = object
+                if not isinstance(props, dict):
+                    raise TypeError(
+                        "Injection failed: {} is not a valid format!".format(arg)
+                    )
+                self.Register(obj, pad, **props)
+            else:
+                self.Register(arg, pad)
 
     def SetLabel(self, label):
         r"""Set the plot label.
