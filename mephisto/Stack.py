@@ -272,6 +272,12 @@ class Stack(MethodProxy, ROOT.THStack):
               signal histograms and using the (asumed) total background as reference in
               an additional :class:`.Pad` (default: ``False``)
 
+            * **inject<N>** (``list``, ``tuple``, ``ROOT.TObject``) -- inject a (list
+              of) *drawable* :class:`ROOT` object(s) to pad **<N>** (default: 0), object
+              properties can be specified by passing instead a ``tuple`` of the format
+              :code:`(obj, props)` where :code:`props` is a ``dict`` holding the object
+              properties (default: \[\])
+
             * **overwrite** (``bool``) -- overwrite an existing file located at **path**
               (default: ``True``)
 
@@ -286,6 +292,9 @@ class Stack(MethodProxy, ROOT.THStack):
         contribution = kwargs.pop("contribution", False)
         ratio = kwargs.pop("ratio", False)
         sensitivity = kwargs.pop("sensitivity", False)
+        injections = {
+            k: kwargs.pop(k) for k in dict(kwargs).keys() if k.startswith("inject")
+        }
         if ratio is True:
             try:  # it's just a guess...
                 datahisto = filter(
@@ -382,7 +391,9 @@ class Stack(MethodProxy, ROOT.THStack):
                 logy=False,
                 **xaxisprops
             )
-        plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
+        plot.Print(
+            path, **MergeDicts(properties["Plot"], properties["Canvas"], injections)
+        )
 
     @CheckPath(mode="w")
     def PrintYieldTable(self, path=None, **kwargs):
@@ -582,9 +593,12 @@ class Stack(MethodProxy, ROOT.THStack):
 
 if __name__ == "__main__":
 
+    from Text import Text
+
     filename = "../data/ds_data18.root"
 
     nbkgs = 6
+    t = Text(0.0, 0.5, "MEEP", ndc=False, textcolor=ROOT.kRed)  # to be injected
 
     threshold = (
         [220]
@@ -625,4 +639,5 @@ if __name__ == "__main__":
             xunits="GeV",
             luminosity=139,
             stacksumtitle="SUM",
+            **{k: v for k, v in {"inject1": t}.items() if j > 0}
         )

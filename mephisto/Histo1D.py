@@ -232,16 +232,25 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
         Keyword Arguments:
 
+            * **inject** (``list``, ``tuple``, ``ROOT.TObject``) -- inject a (list of)
+              *drawable* :class:`ROOT` object(s) to the main pad, object properties can
+              be specified by passing instead a ``tuple`` of the format
+              :code:`(obj, props)` where :code:`props` is a ``dict`` holding the object
+              properties (default: \[\])
+
             * **overwrite** (``bool``) -- overwrite an existing file located at **path**
               (default: ``True``)
 
             * **mkdir** (``bool``) -- create non-existing directories in **path**
               (default: ``False``)
         """
+        injections = kwargs.pop("inject", [])
         properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas, Pad])
         plot = Plot(npads=1)
         plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
-        plot.Print(path, **MergeDicts(properties["Plot"], properties["Canvas"]))
+        plot.Print(
+            path, **MergeDicts(properties["Plot"], properties["Canvas"], injections)
+        )
 
     def SetDrawOption(self, option):
         r"""Define the draw option for the histogram.
