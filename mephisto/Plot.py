@@ -329,18 +329,18 @@ class Plot(MethodProxy):
         x1, y1, x2, y2 = self._padproperties[pad]["padposition"]
         return x2 - x1
 
-    def AddPlotDecorations(self, refx=0.18, refy=0.935):
+    def AddPlotDecorations(self):
         # Register the plot label, state, CME and lumi to the main pad (0).
         # TODO: Maybe make the ref points a property?
-        # Watch out, some highly phenomenological scaling ahead...
-        refy += (
-            (ROOT.gPad.GetTopMargin() - ROOT.gPad.GetBottomMargin())
-            * 175.0
-            / (ROOT.gPad.GetWh() * ROOT.gPad.GetAbsHNDC())
-            / (
-                self._padproperties[0]["padposition"][3]
-                - self._padproperties[0]["padposition"][1]
-            )
+        refx = (
+            self._padproperties[0]["padposition"][0]  # x1
+            + self._padproperties[0]["leftmargin"]
+            + 0.04
+        )
+        refy = (
+            self._padproperties[0]["padposition"][3]  # y2
+            - self._padproperties[0]["topmargin"]
+            - 0.09
         )
         label = None
         if self._label:
