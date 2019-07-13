@@ -231,6 +231,21 @@ def roundsig(x, nsig=1, **kwargs):
     return round(x, nsig - decimals)
 
 
+def clean_str(string, **kwargs):
+    # Remove unwanted characters from a string. By default almost all special characters
+    # are removed. Special replacements can be defined with the "special" keyword as
+    # a dictionary The default replacement is given by the "substitute" keyword.
+    remove = kwargs.pop("remove", """~!@#$%^&*()+=<>\[\]{}:,;`'"/\|""")
+    substitute = kwargs.pop("substitute", "")
+    special = kwargs.pop("special", {".": "p"})
+    for char, sub in special.items():
+        if not char in remove:
+            continue
+        remove = remove.replace(char, "")
+        string = string.replace(char, sub)
+    return re.sub("[{}]".format(remove), "", string)
+
+
 def TeX2PDF(content, path, **kwargs):
     verbosity = kwargs.get("vebosity", 0)
     assert verbosity in range(3)
