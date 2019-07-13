@@ -1,0 +1,12 @@
+{
+    "common": {
+        "linewidth":        4,
+        "linecoloralpha":   ["#ff9900", 1.0],
+        "fillcoloralpha":   ["#ff9900", 1.0],
+        "rellinelength":    0.6,
+        "relarrowlength":   0.15,
+        "drawarrow":        true,
+        "arrowsize":        0.015,
+        "option":           "|>"
+    }
+}
