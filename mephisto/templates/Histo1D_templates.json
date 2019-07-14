@@ -1,9 +1,11 @@
 {   "common": {
         "addtolegend":          true,
+        "stack":                false,
         "errorbandmarkerstyle": 1
     },
     "background": {
         "drawoption":           "HIST",
+        "stack":                true,
         "linestyle":            1,
         "linewidth":            1,
         "linecolor":            "#000000",
