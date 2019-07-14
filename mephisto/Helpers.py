@@ -243,6 +243,8 @@ def clean_str(string, **kwargs):
             continue
         remove = remove.replace(char, "")
         string = string.replace(char, sub)
+    if not remove:
+        return string
     return re.sub("[{}]".format(remove), "", string)
 
 
@@ -332,7 +334,9 @@ def TeX2PDF(content, path, **kwargs):
 
 def SplitCutExpr(cutexpr):
     assert isinstance(cutexpr, str)
-    rgx = "(?P<varexp>[A-Za-z0-9\_]+)(?P<comparator>(>=|<=|==|>|<))(?P<value>\d+$)"
+    rgx = (
+        "(?P<varexp>[A-Za-z0-9\_]+)(?P<comparator>(>=|<=|==|>|<))(?P<value>\d*\.?\d*$)"
+    )
     match = re.match(rgx, cutexpr)
     if match is not None:
         return match.groupdict()
