@@ -7,6 +7,7 @@ import re
 import uuid
 import time
 
+from math import sqrt, log
 from subprocess import Popen, PIPE, STDOUT
 
 try:
@@ -348,24 +349,25 @@ class AsymptoticFormulae(object):
 
     @staticmethod
     def BinomialExpZ(s, b, db):
+        # Discovery significance
         return ROOT.RooStats.NumberCountingUtils.BinomialExpZ(s, b, db)
 
     @staticmethod
     def BinomialExpP(s, b, db):
+        # p_b value
         return ROOT.RooStats.NumberCountingUtils.BinomialExpP(s, b, db)
 
     @staticmethod
     def BinomialExpCLs(s, b, db):
+        # Quite "experimental" way of computing CLs. Gives bad results for b < 1 and
+        # otherwise seems to slightly underestimate the exclusion (overestimate CLs).
         # CL_s = p_s+b / 1 - p_b
-        return psb / (
-            AsymptoticFormulae.BinomialExpP(s, b, db)
-            - AsymptoticFormulae.BinomialExpP(0.0, b, db)
-        )
+        psb = 1.0 - AsymptoticFormulae.BinomialExpP(-s, s + b, db)
+        return psb / (1.0 - AsymptoticFormulae.BinomialExpP(0, b, db))
 
     @staticmethod
     def AsimovExpZ(s, b, db):
         # [1] http://www.pp.rhul.ac.uk/~cowan/stat/medsig/medsigNote.pdf
-        # [2] https://arxiv.org/pdf/1007.1727.pdf
         s = float(s)
         b = float(b)
         db = b * db  # convert relative to absolute uncertainty
@@ -378,12 +380,33 @@ class AsymptoticFormulae(object):
         )
 
     @staticmethod
-    def AsimovExpP(s, b, db):
-        return ROOT.RooStats.SignificanceToPValue(
-            AsymptoticFormulae.AsimovExpZ(s, b, db)
-        )
-
-    @staticmethod
     def AsimovExpCLs(s, b, db):
-        # CL_s = p_s+b / 1 - p_b with p_b = 0.5 (asymptotic limit)
-        return 2.0 * AsymptoticFormulae.AsimovExpP(s, b, db)
+        # [1] http://www.pp.rhul.ac.uk/~cowan/stat/medsig/medsigNote.pdf
+        # [2] https://arxiv.org/pdf/1007.1727.pdf
+        logLH = lambda n, m, mu, s, b, tau: n * log(mu * s + b) + (
+            m * log(tau * b) - mu * s - (1 + tau) * b
+        )
+        mu = 1
+        tau = b / (db ** 2)  # db: relative *SYST* uncertainty on the background
+
+        # Asimov dataset for mu = 0 (expected exclusion)
+        n = b
+        m = tau * b
+
+        # Maximum-likelihood estimators
+        muhat = (n - m / tau) / s
+        bhat = m / tau
+        bhathat = (
+            (n + m - (1 + tau) * mu * s)
+            + sqrt((n + m - (1 + tau) * mu * s) ** 2 + 4 * (1 + tau) * m * mu * s)
+        ) / (2 * (1 + tau))
+
+        cond_logLH = logLH(n, m, mu, s, bhathat, tau)
+        uncond_logLH = logLH(n, m, muhat, s, bhat, tau)
+
+        # Compute the exclusion significance and transform it into p_s+b.
+        # In the asymptotic limit, the expected p_b = 0.5.
+        # CL_s = p_s+b / 1 - p_b
+        return 2.0 * ROOT.RooStats.SignificanceToPValue(
+            sqrt(-2.0 * (cond_logLH - uncond_logLH))
+        )
