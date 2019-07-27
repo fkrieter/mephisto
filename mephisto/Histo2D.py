@@ -409,6 +409,13 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         injections = kwargs.pop("inject", [])
         kwargs.setdefault("logy", False)  # overwriting Pad template's default value!
         properties = DissectProperties(kwargs, [Histo2D, Plot, Canvas, Pad])
+        if any(
+            map(
+                lambda s: "Z" in s.upper(),
+                [self.GetDrawOption(), properties["Pad"].get("drawoption", "")],
+            )
+        ):
+            properties["Pad"].setdefault("rightmargin", 0.18)
         plot = Plot(npads=1)
         plot.Register(self, **MergeDicts(properties["Histo2D"], properties["Pad"]))
         plot.Print(
@@ -508,7 +515,7 @@ if __name__ == "__main__":
         contour=[0.2, 0.5, 0.6],
     )
 
-    h2 = Histo2D("test2", "test2", 40, 0, 400, 40, 0, 400)
+    h2 = Histo2D("test2", "test2", 45, -50, 400, 35, 50, 400)
     h2.Fill(
         "../data/ds_data18.root",
         tree="DirectStau",
@@ -517,7 +524,7 @@ if __name__ == "__main__":
     )
     h2.Print(
         "test_histo2d_2.png",
-        rightmargin=0.18,
+        # rightmargin=0.18,
         ztitleoffset=1.2,
         ztitle="meep",
         zmin=10.0,
