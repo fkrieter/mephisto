@@ -367,10 +367,13 @@ class AsymptoticFormulae(object):
 
     @staticmethod
     def AsimovExpZ(s, b, db):
-        # [1] http://www.pp.rhul.ac.uk/~cowan/stat/medsig/medsigNote.pdf
+        # [1] http://www.pp.rhul.ac.uk/~cowan/stat/medsig/medsigNote.pdf (Eq. 20)
         s = float(s)
         b = float(b)
-        db = b * db  # convert relative to absolute uncertainty
+        # Transform the relalive total bkg. unc. to an absolute total-minus-poisson unc.
+        # that includes the stat. MC unc. correction to the poisson unc. (i.e. weighted
+        # events work fine)
+        db = sqrt((db * b) ** 2 - b)  # here: db = relative *SYST* unc. on the bkg.
         return sqrt(
             2
             * (
@@ -381,19 +384,24 @@ class AsymptoticFormulae(object):
 
     @staticmethod
     def AsimovExpCLs(s, b, db):
-        # [1] http://www.pp.rhul.ac.uk/~cowan/stat/medsig/medsigNote.pdf
-        # [2] https://arxiv.org/pdf/1007.1727.pdf
+        # [1] https://arxiv.org/pdf/1007.1727.pdf (Sec. 5.1)
         logLH = lambda n, m, mu, s, b, tau: n * log(mu * s + b) + (
             m * log(tau * b) - mu * s - (1 + tau) * b
         )
+
+        # Transform the relalive total bkg. unc. to an absolute total-minus-poisson unc.
+        # that includes the stat. MC unc. correction to the poisson unc. (i.e. weighted
+        # events work fine)
+        db = sqrt((db * b) ** 2 - b)  # here: db = relative *SYST* unc. on the bkg.
+
         mu = 1
-        tau = b / (db ** 2)  # db: relative *SYST* uncertainty on the background
+        tau = b / (db ** 2)
 
         # Asimov dataset for mu = 0 (expected exclusion)
         n = b
         m = tau * b
 
-        # Maximum-likelihood estimators
+        # Maximum-likelihood estimators from [1]
         muhat = (n - m / tau) / s
         bhat = m / tau
         bhathat = (
@@ -405,6 +413,7 @@ class AsymptoticFormulae(object):
         uncond_logLH = logLH(n, m, muhat, s, bhat, tau)
 
         # Compute the exclusion significance and transform it into p_s+b.
+        # Z_excl = sqrt(teststat), teststat = - 2 ln(condLH / uncondLH)
         # In the asymptotic limit, the expected p_b = 0.5.
         # CL_s = p_s+b / 1 - p_b
         return 2.0 * ROOT.RooStats.SignificanceToPValue(
