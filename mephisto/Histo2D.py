@@ -20,8 +20,26 @@ from Helpers import DissectProperties, MergeDicts
 
 
 def ExtendProperties(cls):
-    # Add properties to configure the countour lines
+    # Add properties to configure the countour lines. Define proxies for z-axis
+    # properties.
     cls._properties += ["contour{}".format(p) for p in cls._properties]  # append!
+    cls._zaxisproxies = {}
+    for prop in [
+        "Title",
+        "TitleFont",
+        "TitleSize",
+        "TitleColor",
+        "TitleOffset",
+        "LabelFont",
+        "LabelSize",
+        "LabelColor",
+        "LabelOffset",
+    ]:
+        setter = "Set{}".format(prop)
+        cls._zaxisproxies[
+            "z{}".format(prop.lower())
+        ] = lambda z, v, bound_setter=setter: getattr(z, bound_setter)(v)
+    cls._properties += cls._zaxisproxies.keys()
     return cls
 
 
@@ -42,10 +60,12 @@ class Histo2D(MethodProxy, ROOT.TH2D):
 
     In order to avoid memory leaks, **name** is an inaccessible property despite having
     corresponding getter and setter methods. Furthermore the properties **xtitle**,
-    **ytitle** and **ztitle** are defined to be exclusive to the :class:`.Pad` class.
+    **ytitle** are defined to be exclusive to the :class:`.Pad` class. However, the
+    title and other properties of the z-axis (automatically created if the specified
+    drawoption contains ``Z``) are tied to the ``Histo2D`` class.
     """
 
-    _ignore_properties = ["name", "xtitle", "ytitle", "ztitle"]
+    _ignore_properties = ["name", "xtitle", "ytitle"]
 
     ROOT.TH2.SetDefaultSumw2(True)
 
@@ -146,6 +166,9 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         self._drawoption = ""
         self._contours = []
         self._contourproperties = {}
+        self._zmin = 0.0
+        self._zmax = None  # = max. bin content
+        self._zaxisproperties = {}
         if len(args) == 1:
             if isinstance(args[0], ROOT.TH2D):
                 ROOT.TH2D.__init__(self, args[0].Clone(name))
@@ -213,6 +236,8 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         property = property.lower()
         if property.startswith("contour") and property != "contour":
             self._contourproperties[property[7:]] = args
+        elif property in self._zaxisproxies.keys():
+            self._zaxisproperties[property] = args
         else:
             super(Histo2D, self).DeclareProperty(property, args)
 
@@ -291,6 +316,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         # histogram is registered to it.
         logx = kwargs.pop("logx", False)
         logy = kwargs.pop("logy", False)
+        logz = kwargs.pop("logz", False)
         xtitle = kwargs.pop("xtitle", None)
         ytitle = kwargs.pop("ytitle", None)
         if xtitle is None:
@@ -309,14 +335,38 @@ class Histo2D(MethodProxy, ROOT.TH2D):
             raise NotImplementedError
         if logy:
             raise NotImplementedError
+        if logz:
+            raise NotImplementedError
         return frame
+
+    def SetZMin(self, value):
+        self.GetZaxis().SetRangeUser(value, self.GetZMax())
+        self._zmin = value
+
+    def GetZMin(self):
+        return self._zmin
+
+    def SetZMax(self, value):
+        self.GetZaxis().SetRangeUser(self.GetZMin(), value)
+        self._zmax = value
+
+    def GetZMax(self):
+        if self._zmax is None:
+            self._zmax = self.GetMaximum()
+        return self._zmax
 
     def Draw(self, drawoption=None):
         # Draw the histogram to the current TPad together with it's contours.
+        # TODO: Make TPaletteAxis properties configurable (like z-axis properties).
         hash = uuid4().hex[:8]
+        for prop, args in self._zaxisproperties.items():
+            self._zaxisproxies[prop](self.GetZaxis(), args)
         if drawoption is not None:
             self.SetDrawOption(drawoption)
         self.DrawCopy(self.GetDrawOption(), "_{}".format(hash))
+        # ROOT.gPad.Update()
+        # copy = ROOT.gROOT.FindObject("{}_{}".format(self.GetName(), hash))
+        # self._palette = copy.GetListOfFunctions().FindObject("palette")
         if self._contours:
             super(Histo2D, self).SetContour(
                 len(self._contours), array("d", self._contours)
@@ -465,4 +515,10 @@ if __name__ == "__main__":
         varexp="tau1Pt:tau2Pt",
         cuts="MET>100",
     )
-    h2.Print("test_histo2d_2.png", rightmargin=0.15)
+    h2.Print(
+        "test_histo2d_2.png",
+        rightmargin=0.18,
+        ztitleoffset=1.2,
+        ztitle="meep",
+        zmin=10.0,
+    )
