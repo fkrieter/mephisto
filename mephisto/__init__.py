@@ -18,6 +18,7 @@ ROOT.gErrorIgnoreLevel = 2000
 from Pad import Pad
 from Plot import Plot
 from Line import Line
+from Text import Text
 from Stack import Stack
 from Arrow import Arrow
 from logger import logger
