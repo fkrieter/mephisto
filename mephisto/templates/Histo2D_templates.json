@@ -2,6 +2,11 @@
     "common": {
         "drawoption":           "COLZ",
         "palette":              57,
+        "zlabelfont":           43,
+        "zlabelsize":           24,
+        "ztitlefont":           43,
+        "ztitlesize":           24,
+        "ztitleoffset":         1.2,
         "contourdrawoption":    "CONT3",
         "contourlinewidth":     3,
         "contourlinestyle":     1,
