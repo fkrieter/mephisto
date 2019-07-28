@@ -1,6 +1,7 @@
 {
     "common": {
         "drawoption":           "COLZ",
+        "palette":              57,
         "contourdrawoption":    "CONT3",
         "contourlinewidth":     3,
         "contourlinestyle":     1,

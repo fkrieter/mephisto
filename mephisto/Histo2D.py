@@ -68,6 +68,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
     _ignore_properties = ["name", "xtitle", "ytitle"]
 
     ROOT.TH2.SetDefaultSumw2(True)
+    ROOT.gStyle.SetNumberContours(999)
 
     def __init__(self, name, *args, **kwargs):
         r"""Initialize a 2-dimensional histograms.
@@ -164,9 +165,10 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         self._cuts = None
         self._weight = None
         self._drawoption = ""
+        self._palette = 57  # ROOT default
         self._contours = []
         self._contourproperties = {}
-        self._zmin = 0.0
+        self._zmin = None
         self._zmax = None  # = max. bin content
         self._zaxisproperties = {}
         if len(args) == 1:
@@ -311,6 +313,23 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         """
         return self._drawoption
 
+    def SetPalette(self, num):
+        r"""Define the color palette ID for the histogram.
+
+        :param num: color palette ID (see :class:`ROOT.TColor`
+            `class reference <https://root.cern.ch/doc/master/classTColor.html>`_)
+        :type option: ``int``
+        """
+        self._palette = num
+        ROOT.gStyle.SetPalette(self._palette)
+
+    def GetPalette(self):
+        r"""Return the color palette ID defined for the histogram.
+
+        :returntype: ``int``
+        """
+        return self._palette
+
     def BuildFrame(self, **kwargs):
         # Return the optimal axis ranges for the histogram. Gets called by Plot when the
         # histogram is registered to it.
@@ -344,6 +363,8 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         self._zmin = value
 
     def GetZMin(self):
+        if self._zmin is None:
+            self._zmin = self.GetMinimum()
         return self._zmin
 
     def SetZMax(self, value):
@@ -527,5 +548,5 @@ if __name__ == "__main__":
         # rightmargin=0.18,
         ztitleoffset=1.2,
         ztitle="meep",
-        zmin=10.0,
+        # zmin=10.0,
     )
