@@ -427,7 +427,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
             * **mkdir** (``bool``) -- create non-existing directories in **path**
               (default: ``False``)
         """
-        injections = kwargs.pop("inject", [])
+        injections = {"inject0": kwargs.pop("inject", [])}
         kwargs.setdefault("logy", False)  # overwriting Pad template's default value!
         properties = DissectProperties(kwargs, [Histo2D, Plot, Canvas, Pad])
         if any(

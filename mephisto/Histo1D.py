@@ -244,7 +244,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             * **mkdir** (``bool``) -- create non-existing directories in **path**
               (default: ``False``)
         """
-        injections = kwargs.pop("inject", [])
+        injections = {"inject0": kwargs.pop("inject", [])}
         properties = DissectProperties(kwargs, [Histo1D, Plot, Canvas, Pad])
         plot = Plot(npads=1)
         plot.Register(self, **MergeDicts(properties["Histo1D"], properties["Pad"]))
