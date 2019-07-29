@@ -68,7 +68,6 @@ class Histo2D(MethodProxy, ROOT.TH2D):
     _ignore_properties = ["name", "xtitle", "ytitle"]
 
     ROOT.TH2.SetDefaultSumw2(True)
-    ROOT.gStyle.SetNumberContours(999)
 
     def __init__(self, name, *args, **kwargs):
         r"""Initialize a 2-dimensional histograms.
@@ -379,6 +378,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
     def Draw(self, drawoption=None):
         # Draw the histogram to the current TPad together with it's contours.
         # TODO: Make TPaletteAxis properties configurable (like z-axis properties).
+        ROOT.gStyle.SetNumberContours(999)  # smooth color gradient
         hash = uuid4().hex[:8]
         for prop, args in self._zaxisproperties.items():
             self._zaxisproxies[prop](self.GetZaxis(), args)
