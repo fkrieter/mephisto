@@ -16,7 +16,7 @@ from Plot import Plot
 from Canvas import Canvas
 from MethodProxy import *
 from IOManager import IOManager
-from Helpers import DissectProperties, MergeDicts
+from Helpers import DissectProperties, MergeDicts, CheckPath
 
 
 def ExtendProperties(cls):
@@ -397,6 +397,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
                     self.GetDrawOption() + "SAME", "_{}_contours".format(hash)
                 )
 
+    @CheckPath(mode="w")
     def Print(self, path, **kwargs):
         r"""Print the histogram to a file.
 
