@@ -269,9 +269,12 @@ class SensitivityScan(MethodProxy):
             statbkgunc = ROOT.Double(0.0)
             totsig = sighisto.Integral(start, end)
             totbkg = self._bkghisto.IntegralAndError(start, end, statbkgunc)
-            totrelbkgunc = ROOT.TMath.Sqrt(
-                (statbkgunc / totbkg) ** 2 + self._flatbkgsys ** 2
-            )
+            try:
+                totrelbkgunc = ROOT.TMath.Sqrt(
+                    (statbkgunc / totbkg) ** 2 + self._flatbkgsys ** 2
+                )
+            except ZeroDivisionError:
+                totrelbkgunc = 1
             try:
                 z = self._sensitivitymeasure(totsig, totbkg, totrelbkgunc)
             except ZeroDivisionError:
