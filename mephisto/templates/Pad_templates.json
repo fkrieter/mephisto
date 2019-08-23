@@ -5,6 +5,7 @@
         "leftmargin":       0.14,
         "rightmargin":      0.05,
         "fillstyle":        4000,
+        "framefillstyle":   4000,
         "fillcolor":        0,
         "drawframe":        true,
         "drawlegend":       false,
