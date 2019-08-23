@@ -321,7 +321,10 @@ class Stack(MethodProxy, ROOT.THStack):
                 )
                 sensitivity = False
         npads = sum([contribution, bool(ratio), bool(sensitivity)]) + 1
-        properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad])
+        addcls = [RatioPlot] if ratio else []
+        addcls += [ContributionPlot] if contribution else []
+        addcls += [SensitivityScan] if sensitivity else []
+        properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad] + addcls)
         self.BuildStack(sort=sort)
         plot = Plot(npads=npads)
         # Register the Stack to the upper Pad (pad=0):
@@ -360,6 +363,7 @@ class Stack(MethodProxy, ROOT.THStack):
         }
         if contribution:
             contribplot = ContributionPlot(self)
+            properties["ContributionPlot"].update(xaxisprops)
             plot.Register(
                 contribplot,
                 pad=idx,
@@ -367,11 +371,12 @@ class Stack(MethodProxy, ROOT.THStack):
                 logy=False,
                 ymin=0,
                 ymax=1,
-                **xaxisprops
+                **properties["ContributionPlot"]
             )
             idx += 1
         if ratio:
             ratioplot = RatioPlot(*ratio)
+            properties["RatioPlot"].update(xaxisprops)
             plot.Register(
                 ratioplot,
                 pad=idx,
@@ -379,17 +384,18 @@ class Stack(MethodProxy, ROOT.THStack):
                 logy=False,
                 ymin=0.2,
                 ymax=1.8,
-                **xaxisprops
+                **properties["RatioPlot"]
             )
             idx += 1
         if sensitivity:
             sensitivityscan = SensitivityScan(sensitivity, self._stacksumhisto)
+            properties["SensitivityScan"].update(xaxisprops)
             plot.Register(
                 sensitivityscan,
                 pad=idx,
                 ytitle="Z_{N}-value",  # default (see template 'common')
                 logy=False,
-                **xaxisprops
+                **properties["SensitivityScan"]
             )
         plot.Print(
             path, **MergeDicts(properties["Plot"], properties["Canvas"], injections)
