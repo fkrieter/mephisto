@@ -370,10 +370,7 @@ class AsymptoticFormulae(object):
         # [1] http://www.pp.rhul.ac.uk/~cowan/stat/medsig/medsigNote.pdf (Eq. 20)
         s = float(s)
         b = float(b)
-        # Transform the relalive total bkg. unc. to an absolute total-minus-poisson unc.
-        # that includes the stat. MC unc. correction to the poisson unc. (i.e. weighted
-        # events work fine)
-        db = sqrt((db * b) ** 2 - b)  # here: db = relative *SYST* unc. on the bkg.
+        db *= b
         return sqrt(
             2
             * (
@@ -389,10 +386,7 @@ class AsymptoticFormulae(object):
             m * log(tau * b) - mu * s - (1 + tau) * b
         )
 
-        # Transform the relalive total bkg. unc. to an absolute total-minus-poisson unc.
-        # that includes the stat. MC unc. correction to the poisson unc. (i.e. weighted
-        # events work fine)
-        db = sqrt((db * b) ** 2 - b)  # here: db = relative *SYST* unc. on the bkg.
+        db *= b
 
         mu = 1
         tau = b / (db ** 2)
