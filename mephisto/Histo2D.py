@@ -74,7 +74,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
 
         Create an instance of :class:`.Histo2D` with the specified **name** and binning
         (either with uniform or vairable bin widths). Can also be used to copy another
-        histogram (or upgrade from a :class:`ROOT.TH2D`).
+        histogram (or upgrade from a :class:`ROOT.TH2`).
 
         :param name: name of the histogram
         :type name: ``str``
@@ -89,7 +89,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
 
             * *one* argument\:
 
-                #. **histo** (``Histo2D``, ``TH2D``) -- histogram to be copied
+                #. **histo** (``Histo2D``, ``TH2``) -- histogram to be copied
 
             * *three* arguments\:
 
@@ -171,9 +171,11 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         self._zmax = None  # = max. bin content
         self._zaxisproperties = {}
         if len(args) == 1:
-            if isinstance(args[0], ROOT.TH2D):
-                ROOT.TH2D.__init__(self, args[0].Clone(name))
+            if args[0].InheritsFrom("TH2"):
+                ROOT.TH2D.__init__(self)
+                args[0].Copy(self)
                 self.SetDirectory(0)
+                self.SetName(name)
             if isinstance(args[0], Histo2D):
                 self._varexp = args[0]._varexp
                 self._cuts = args[0]._cuts

@@ -52,7 +52,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
         Create an instance of :class:`.Histo1D` with the specified **name** and binning
         (either with uniform or vairable bin widths). Can also be used to copy another
-        histogram (or upgrade from a :class:`ROOT.TH1D`).
+        histogram (or upgrade from a :class:`ROOT.TH1`).
 
         :param name: name of the histogram
         :type name: ``str``
@@ -67,7 +67,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
 
             * *one* argument\:
 
-                #. **histo** (``Histo1D``, ``TH1D``) -- histogram to be copied
+                #. **histo** (``Histo1D``, ``TH1``) -- histogram to be copied
 
             * *two* arguments\:
 
@@ -103,9 +103,11 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._stack = False  # Stack property!
         self._attalpha = defaultdict(lambda: 1.0)
         if len(args) == 1:
-            if isinstance(args[0], ROOT.TH1D):
-                ROOT.TH1D.__init__(self, args[0].Clone(name))
+            if args[0].InheritsFrom("TH1"):
+                ROOT.TH1D.__init__(self)
+                args[0].Copy(self)
                 self.SetDirectory(0)
+                self.SetName(name)
             if isinstance(args[0], Histo1D):
                 self._varexp = args[0]._varexp
                 self._cuts = args[0]._cuts
