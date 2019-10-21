@@ -1,0 +1,10 @@
+{
+    "common": {
+        "drawoption":           "L3",
+        "fillstyle":            1001,
+        "fillcolor":            798,
+        "linestyle":            1,
+        "linewidth":            104,
+        "linecolor":            632
+    }
+}
