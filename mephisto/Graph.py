@@ -20,7 +20,7 @@ from Helpers import DissectProperties, MergeDicts, CheckPath
 @PreloadProperties
 class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
 
-    _ignore_properties = ["name", "point"]
+    _ignore_properties = ["name", "point", "xtitle", "ytitle"]
 
     def __init__(self, name="Graph_{}".format(uuid4().hex[:8]), *args, **kwargs):
         MethodProxy.__init__(self)
@@ -30,7 +30,21 @@ class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
             self._title = args[0]
             args = args[1:]
         self._drawoption = ""
-        if len(args) == 2:
+        if len(args) == 1 and args[0].InheritsFrom("TGraph"):
+            if args[0].InheritsFrom("TGraphAsymmErrors"):
+                ROOT.TGraphAsymmErrors.__init__(self, args[0])
+            elif isinstance(args[0], ROOT.TGraph):
+                x, y = array("d", []), array("d", [])
+                for i in range(args[0].GetN()):
+                    x_i = ROOT.Double(0.0)
+                    y_i = ROOT.Double(0.0)
+                    args[0].GetPoint(i, x_i, y_i)
+                    x.append(x_i)
+                    y.append(y_i)
+                ROOT.TGraphAsymmErrors.__init__(self, args[0].GetN(), x, y)
+            else:
+                raise NotImplementedError
+        elif len(args) == 2:
             if not all([isinstance(a, (list, tuple)) for a in args]):
                 raise TypeError
             if not len(args[0]) == len(args[1]):
@@ -75,9 +89,9 @@ class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
                 val["y"]["errordown"],
                 val["y"]["errorup"],
             )
-            self.SetTitle(self._title)
         else:
             raise TypeError
+        self.SetTitle(self._title)
         for key, value in self.GetTemplate(kwargs.get("template", "common")).items():
             kwargs.setdefault(key, value)
         self.DeclareProperties(**kwargs)
@@ -107,7 +121,7 @@ class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
         search = re.search("(?P<ERROPT>[2-5])", option)
         if search is not None:
             erropt = search.group("ERROPT")
-            super(Graph, self).Draw("A{}".format(erropt))
+            super(Graph, self).Draw("{}".format(erropt))
             for rmv in ["A", "F", erropt]:
                 option = option.replace(rmv, "")
             super(Graph, self).Draw(option + "X")
@@ -128,13 +142,9 @@ class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
         scale = 1.0 + kwargs.get("ypadding", 0.25)  # Pad property
         logx = kwargs.get("logx", False)
         logy = kwargs.get("logy", False)
-        xtitle = kwargs.get("xtitle", None)
-        ytitle = kwargs.get("ytitle", None)
         frame = {"xmin": None, "xmax": 0, "ymin": 0, "ymax": 0}
         for i in range(self.GetN()):
-            print(i)
             x, y = self.GetPoint(i)
-            print(x, y)
             frame["xmin"] = min(x, frame["xmin"]) if frame["xmin"] is not None else x
             frame["xmax"] = max(x, frame["xmax"])
             frame["ymin"] = min(y, frame["ymin"])
@@ -149,6 +159,8 @@ class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
             )
         else:
             frame["ymax"] *= scale
+        frame["xtitle"] = kwargs.get("xtitle", None)
+        frame["ytitle"] = kwargs.get("ytitle", None)
         return frame
 
 

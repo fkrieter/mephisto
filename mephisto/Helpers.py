@@ -146,6 +146,7 @@ def MephistofyObject(copy=False):
             # circular imports - by calling the copy constructor.
             from Text import Text
             from Stack import Stack
+            from Graph import Graph
             from Histo1D import Histo1D
             from Histo2D import Histo2D
 
@@ -168,6 +169,8 @@ def MephistofyObject(copy=False):
                 return Histo1D("{}_{}".format(object.GetName(), suffix), object)
             elif object.InheritsFrom("THStack"):
                 return Stack("{}_{}".format(object.GetName(), suffix), object)
+            elif object.InheritsFrom("TGraph"):
+                return Graph(object)
             elif object.InheritsFrom("TText") or object.InheritsFrom("TLatex"):
                 return Text(object)
             raise NotImplementedError
