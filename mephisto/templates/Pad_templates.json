@@ -30,13 +30,11 @@
     },
     "1;0": {
         "padposition":      [0.0, 0.0, 1.0, 1.0],
-        "ytitle":           "Entries",
         "drawlegend":       true
     },
     "2;0": {
         "padposition":      [0.0, 0.3, 1.0, 1.0],
         "bottommargin":     0.0,
-        "ytitle":           "Entries",
         "drawlegend":       true,
         "legendyshift":     0.015
     },
@@ -49,7 +47,6 @@
     "3;0": {
         "padposition":      [0.0, 0.4, 1.0, 1.0],
         "bottommargin":     0.0,
-        "ytitle":           "Entries",
         "drawlegend":       true,
         "legendyshift":     0.02
     },
@@ -69,7 +66,6 @@
     "4;0": {
         "padposition":      [0.0, 0.495, 1.0, 1.0],
         "bottommargin":     0.0,
-        "ytitle":           "Entries",
         "drawlegend":       true,
         "legendyshift":     0.027
     },
