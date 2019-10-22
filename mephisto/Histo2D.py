@@ -10,6 +10,7 @@ import root_numpy as rnp
 from uuid import uuid4
 from array import array
 from scipy import interpolate
+from collections import defaultdict
 
 from Pad import Pad
 from Plot import Plot
@@ -499,8 +500,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         :param \*args: contour levels
         :type \*args: ``float``
         """
-        for contour in args:
-            self._contours.append(contour)
+        self._contours = list(args)
 
     def GetContour(self):
         r"""Return a list of all contour levels.
@@ -509,8 +509,34 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         """
         return self._contours
 
+    def RetrieveContourGraphDict(self):
+        r"""Return a dictionary with a list of graphs representing the contour lines
+        for any given contour level.
+
+        :returntype: ``dict``
+        """
+        # https://root.cern/doc/master/classTHistPainter.html#HP16a
+        if not self._contours:
+            return {}
+        graphs = defaultdict(lambda: [])
+        htmp = Histo2D("{}_{}".format(self.GetName(), uuid4().hex[:8]), self)
+        htmp.SetContour(*self._contours)
+        canv = ROOT.TCanvas()
+        canv.cd()
+        super(Histo2D, htmp).Draw("CONT LIST")
+        ROOT.gPad.Update()
+        del canv, htmp
+        conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
+        for i, contour in enumerate(self._contours):
+            contLevel = conts.At(i)
+            curv = contLevel.First()
+            graphs[contour].append(curv)
+        return graphs
+
 
 if __name__ == "__main__":
+
+    from Graph import Graph
 
     nbinsx = 100
     nbinsy = 100
@@ -528,6 +554,13 @@ if __name__ == "__main__":
                 h1.Fill(x, y, ((x + 1) ** 2 + (y + 1) ** 2) / norm)
 
     h1.Interpolate()  # because TH2::Smooth sucks
+
+    h1.SetContour(0.3)
+    graphsdict = h1.RetrieveContourGraphDict()
+    for i, (cont, graphs) in enumerate(graphsdict.items()):
+        for j, graph in enumerate(graphs):
+            g = Graph("mycontour", graph)
+            g.Print("test_contour{}_graph{}.pdf".format(i, j))
 
     h1.Print(
         "test_histo2d_1.png",
