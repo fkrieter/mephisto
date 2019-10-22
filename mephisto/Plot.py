@@ -19,8 +19,8 @@ from Helpers import CheckPath, DissectProperties, MephistofyObject, MergeDicts
 class Plot(MethodProxy):
     r"""Class for creating plots.
 
-    Stores :class:`ROOT` objects like histograms and draws them in their specified :class:`.Pad`
-    onto a :class:`.Canvas`.
+    Stores :class:`ROOT` objects like histograms and draws them in their specified
+    :class:`.Pad` onto a :class:`.Canvas`.
     """
 
     def __init__(self, name=uuid4().hex[:8], **kwargs):
