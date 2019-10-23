@@ -20,6 +20,7 @@ from Plot import Plot
 from Line import Line
 from Text import Text
 from Stack import Stack
+from Graph import Graph
 from Arrow import Arrow
 from logger import logger
 from Canvas import Canvas
