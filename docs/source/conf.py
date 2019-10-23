@@ -25,6 +25,9 @@ class Mock(MagicMock):
         class THStack(object):
             pass
 
+        class TGraphAsymmErrors(object):
+            pass
+
         class TPad(object):
             pass
 

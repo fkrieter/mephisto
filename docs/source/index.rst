@@ -82,6 +82,7 @@ Core classes:
     mephisto.Histo1D
     mephisto.Histo2D
     mephisto.Stack
+    mephisto.Graph
     mephisto.Canvas
     mephisto.Legend
     mephisto.Line
