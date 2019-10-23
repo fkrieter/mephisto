@@ -41,6 +41,7 @@ This folder contains lessons for the following features:
 2. **Histo1D:** Plot 1-dimensional histograms.
 3. **Stack:** Plot a stack of several 1-dimensional histograms without writing a million lines of code.
 4. **Histo2D:** One more dimension!
-5. ...more soon!
+5. **Graph:** Plot arrays of 2-dimensional data.
+6. ...more soon!
 
 Within a notebook you can run each cell of code by hitting ```Ctrl```+```Enter```, or ```Shift```+```Enter``` to also skip to the next one afterwards. For more info on how to use Jupyter notebooks click [here](https://www.datacamp.com/community/tutorials/tutorial-jupyter-notebook).
