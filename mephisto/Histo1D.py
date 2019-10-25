@@ -350,11 +350,12 @@ class Histo1D(MethodProxy, ROOT.TH1D):
                 ytitle += " / {}".format(binwidth)
             if xunits and not ytitle.endswith(xunits):
                 ytitle += " {}".format(xunits)
+        maxbinval = self.GetMaximum()
         frame = {
             "xmin": self._lowbinedges[0],
             "xmax": self._lowbinedges[self._nbins],
             "ymin": 0.0,
-            "ymax": self.GetMaximum(),
+            "ymax": maxbinval if maxbinval > 0 else 1.0,
             "xtitle": xtitle,
             "ytitle": ytitle,
         }
