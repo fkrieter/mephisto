@@ -15,7 +15,6 @@ before_install:
   - docker ps
 
 install:
-  - $SH "pip install --user numpy"
   - $SH "git clone https://github.com/fkrieter/mephisto"
   - $SH "cd mephisto && pip install --user -e ."
 
