@@ -16,6 +16,7 @@ before_install:
 
 install:
   - $SH "pip install --upgrade --user pip"
+  - $SH "export PATH=$HOME/bin:$HOME/.local/bin:$PATH"
   - $SH "git clone https://github.com/fkrieter/mephisto"
   - $SH "cd mephisto && pip install --user -e ."
 
