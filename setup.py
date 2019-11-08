@@ -1,4 +1,7 @@
+import os
 import setuptools
+
+os.system("grep -v '^#' requirements.txt | xargs -L1 pip install --user")
 
 setuptools.setup(
     name="mephisto",
@@ -24,7 +27,5 @@ setuptools.setup(
         "Programming Language :: Python :: 2.7",
     ],
     scripts=[],
-    python_requires="<=2.7",
-    setup_requires=["numpy<=1.16.5a0"],
-    install_requires=["root_numpy<=4.8.0a0", "scipy<=1.2.2a0"],
+    install_requires=["root_numpy", "scipy"],
 )
