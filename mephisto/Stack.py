@@ -329,12 +329,15 @@ class Stack(MethodProxy, ROOT.THStack):
         plot = Plot(npads=npads)
         # Register the Stack to the upper Pad (pad=0):
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
-        if self._drawstacksum and self._stacksumhisto.GetAddToLegend():
+        if self._drawstacksum:
             # Dummy histo with the correct legend entry styling:
             htmp = Histo1D(
                 "{}_legendentry".format(self._stacksumhisto.GetName()),
                 self._stacksumhisto.GetTitle(),
-                [0, 1],
+                [
+                    self._stacksumhisto._lowbinedges[0],
+                    self._stacksumhisto._lowbinedges[self._stacksumhisto._nbins]
+                ],
                 **{
                     k[8:]: v
                     for k, v in DissectProperties(
