@@ -159,15 +159,15 @@ class Stack(MethodProxy, ROOT.THStack):
         """
         stack = kwargs.pop("stack", histo.GetStack())
         histo.SetDrawErrorband(False)
+        if self._stacksumhisto is None:
+            self._stacksumhisto = Histo1D(
+                "{}_totalstack".format(self.GetName()),
+                histo,
+                title=self._stacksumproperties.get("stacksumtitle", None),
+            )
+            self._stacksumhisto.Reset()
         if stack:
-            if self._stacksumhisto is None:
-                self._stacksumhisto = Histo1D(
-                    "{}_totalstack".format(self.GetName()),
-                    histo,
-                    title=self._stacksumproperties.get("stacksumtitle", None),
-                )
-            else:
-                self._stacksumhisto.Add(histo)
+            self._stacksumhisto.Add(histo)
         histo.DeclareProperties(**kwargs)
         self._store["stack" if stack else "nostack"].append(histo)
 
@@ -292,9 +292,22 @@ class Stack(MethodProxy, ROOT.THStack):
         contribution = kwargs.pop("contribution", False)
         ratio = kwargs.pop("ratio", False)
         sensitivity = kwargs.pop("sensitivity", False)
+        if kwargs.get("drawstacksum"):
+            self.SetDrawStackSum(kwargs.pop("drawstacksum"))
         injections = {
             k: kwargs.pop(k) for k in dict(kwargs).keys() if k.startswith("inject")
         }
+        if self.GetNhists() == 0:
+            injections = {"inject0": injections.get("inject0", [])}
+            if contribution:
+                logger.warning("Cannot create ContributionPlot: Missing stack!")
+                contribution = False
+            if ratio:
+                logger.warning("Cannot create RatioPlot: Missing stack!")
+                ratio = False
+            if sensitivity:
+                logger.warning("Cannot create SensitivityScan: Missing stack!")
+                sensitivity = False
         if ratio is True:
             try:  # it's just a guess...
                 datahisto = filter(
@@ -303,11 +316,14 @@ class Stack(MethodProxy, ROOT.THStack):
                 )[0]
                 ratio = [datahisto, self._stacksumhisto]  # overwrite boolean
             except IndexError:
-                logger.error(
-                    "Failed to identify appropriate numerator histogram for RatioPlot "
-                    "pad!"
-                )
-                ratio = False
+                if self._store["nostack"]:
+                    ratio = [self._store["nostack"][0], self._stacksumhisto]
+                else:
+                    logger.error(
+                        "Failed to identify appropriate numerator histogram for "
+                        "RatioPlot pad!"
+                    )
+                    ratio = False
         if sensitivity:
             try:  # again just making assumptions here...
                 sensitivity = filter(
@@ -316,8 +332,8 @@ class Stack(MethodProxy, ROOT.THStack):
                 )
             except IndexError:
                 logger.error(
-                    "Failed to identify appropriate numerator histogram for RatioPlot "
-                    "pad!"
+                    "Failed to identify appropriate numerator histogram for "
+                    "SensitivityScan pad!"
                 )
                 sensitivity = False
         npads = sum([contribution, bool(ratio), bool(sensitivity)]) + 1
@@ -329,7 +345,7 @@ class Stack(MethodProxy, ROOT.THStack):
         plot = Plot(npads=npads)
         # Register the Stack to the upper Pad (pad=0):
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
-        if self._drawstacksum:
+        if self._drawstacksum and self.GetNhists() > 1:
             # Dummy histo with the correct legend entry styling:
             htmp = Histo1D(
                 "{}_legendentry".format(self._stacksumhisto.GetName()),
@@ -451,6 +467,8 @@ class Stack(MethodProxy, ROOT.THStack):
                 reverse=True,
             )
         ):
+            if histo is None:
+                continue
             staterr = ROOT.Double(0)
             integral = "{:.{prec}f}".format(
                 histo.IntegralAndError(0, histo.GetNbinsX() + 1, staterr),

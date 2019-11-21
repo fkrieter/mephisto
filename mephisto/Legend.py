@@ -39,8 +39,9 @@ class Legend(MethodProxy, ROOT.TLegend):
     @MephistofyObject(copy=True)
     def Register(self, obj, **kwargs):
         if obj.InheritsFrom("THStack"):
-            for histo in obj.GetHists():
-                self.Register(histo)
+            if obj.GetNhists() > 0:
+                for histo in obj.GetHists():
+                    self.Register(histo)
             if obj.__class__.__name__ == "Stack":
                 for histo in obj._store["nostack"]:
                     self.Register(histo)
