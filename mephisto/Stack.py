@@ -297,6 +297,12 @@ class Stack(MethodProxy, ROOT.THStack):
         injections = {
             k: kwargs.pop(k) for k in dict(kwargs).keys() if k.startswith("inject")
         }
+        npads = sum([contribution, bool(ratio), bool(sensitivity)]) + 1
+        addcls = [RatioPlot] if ratio else []
+        addcls += [ContributionPlot] if contribution else []
+        addcls += [SensitivityScan] if sensitivity else []
+        properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad] + addcls)
+        self.BuildStack(sort=sort)
         if self.GetNhists() == 0:
             injections = {"inject0": injections.get("inject0", [])}
             if contribution:
@@ -336,12 +342,6 @@ class Stack(MethodProxy, ROOT.THStack):
                     "SensitivityScan pad!"
                 )
                 sensitivity = False
-        npads = sum([contribution, bool(ratio), bool(sensitivity)]) + 1
-        addcls = [RatioPlot] if ratio else []
-        addcls += [ContributionPlot] if contribution else []
-        addcls += [SensitivityScan] if sensitivity else []
-        properties = DissectProperties(kwargs, [Stack, Plot, Canvas, Pad] + addcls)
-        self.BuildStack(sort=sort)
         plot = Plot(npads=npads)
         # Register the Stack to the upper Pad (pad=0):
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
