@@ -26,11 +26,12 @@ IS_SPHINX_BUILD = bool(os.getenv("SPHINX_BUILD"))
 
 def ColorID(color):
     # Convert a hex color code into a TColor.
-    if isinstance(color, str) or isinstance(color, unicode):
+    if isinstance(color, (str, unicode)):
         return ROOT.TColor.GetColor(color)
-    elif isinstance(color, ROOT.TColor) or isinstance(color, int) or color is None:
+    elif isinstance(color, (ROOT.TColor, int, long)) or color is None:
         return color
     else:
+        logger.error("Color '{}' is of invalid type '{}'!".format(color, type(color)))
         raise TypeError
 
 
