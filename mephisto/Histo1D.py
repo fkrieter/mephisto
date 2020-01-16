@@ -355,7 +355,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
             "xmin": self._lowbinedges[0],
             "xmax": self._lowbinedges[self._nbins],
             "ymin": 0.0,
-            "ymax": maxbinval if maxbinval > 0 else 1.0,
+            "ymax": maxbinval if maxbinval > 0 else 1.1e-2,
             "xtitle": xtitle,
             "ytitle": ytitle,
         }
