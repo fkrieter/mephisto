@@ -513,7 +513,7 @@ class Stack(MethodProxy, ROOT.THStack):
                             """{} \\\\""".format(
                                 " & ".join(
                                     [
-                                        r"$\pm$ " + e if j == 2 else e
+                                        r"$\pm$ " + e if j == 2 else e.replace("#", "\\")
                                         for j, e in enumerate(row)
                                     ]
                                 )
