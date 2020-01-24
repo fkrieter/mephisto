@@ -153,7 +153,7 @@ class N1Plotter(MethodProxy):
     def Print(self, outputdir, **kwargs):
         # TODO: Use actual signal and background histograms for the SensitivityScan as
         # defined in Register instead of what is 'guessed' by Stack.Print.
-        kwargs["sensitivity"] = True
+        kwargs.setdefault("sensitivity", True)
         self.CreateHistograms()
         for varexp, comparator, cutvalue in self._drawcuts:
             if not varexp in self._binning:
@@ -167,6 +167,8 @@ class N1Plotter(MethodProxy):
                 "direction": direction,
                 "drawarrow": any([s in comparator for s in "<>"]),
             }
+            if kwargs.get("sensitivity"):
+                kwargs.setdefault("direction", direction)
             cutmarker = CutMarker(float(cutvalue), **cutmarkerprops)
             stack.Print(
                 os.path.join(
@@ -176,7 +178,6 @@ class N1Plotter(MethodProxy):
                     ),
                 ),
                 inject0=cutmarker,
-                direction=direction,
                 **kwargs
             )
 
