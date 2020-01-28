@@ -352,7 +352,6 @@ class Plot(MethodProxy):
             else:
                 label_xsize = 0.125
                 label_ysize = 0.037
-            print("'{}'".format(label.GetTitle()), label_xsize, label_ysize)
         if self._state:
             if label:
                 state = Text(label.GetX() + label_xsize, label.GetY(), self._state)
