@@ -346,9 +346,16 @@ class Plot(MethodProxy):
         if self._label:
             label = Text(refx, refy, "{} ".format(self._label), textfont=73)
             self.Register(label)
+            if not label.GetTitle() == "ATLAS ":
+                label_xsize = label.GetXsize()
+                label_ysize = label.GetYsize()
+            else:
+                label_xsize = 0.125
+                label_ysize = 0.037
+            print("'{}'".format(label.GetTitle()), label_xsize, label_ysize)
         if self._state:
             if label:
-                state = Text(label.GetX() + label.GetXsize(), label.GetY(), self._state)
+                state = Text(label.GetX() + label_xsize, label.GetY(), self._state)
                 self.Register(state)
             else:
                 self.Register(Text(refx, refy, self._state))
@@ -359,7 +366,7 @@ class Plot(MethodProxy):
             if label:
                 cme = Text(
                     label.GetX(),
-                    label.GetY() - 1.75 * label.GetYsize(),
+                    label.GetY() - 1.75 * label_ysize,
                     cmestr,
                     indicesize=1.5,
                 )
