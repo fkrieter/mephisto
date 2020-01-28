@@ -136,7 +136,6 @@ class Legend(MethodProxy, ROOT.TLegend):
     @cache(useJSON=True)
     def _optimizeFrame(**kwargs):
         # TODO: Add top-left, bottom-left and bottom-right alignement.
-        print(kwargs)
         titles = kwargs.get("titles")
         textsize = kwargs.get("textsize")
         ncolumns = kwargs.get("ncolumns")
