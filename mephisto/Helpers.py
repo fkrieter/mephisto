@@ -6,6 +6,7 @@ import os
 import re
 import uuid
 import time
+import inspect
 
 from math import sqrt, log
 from subprocess import Popen, PIPE, STDOUT
@@ -204,9 +205,18 @@ def timeit(func):
             name = kw.get("log_name", func.__name__.upper())
             kw["log_time"][name] = int((te - ts) * 1000)
         else:
-            logger.debug(
-                "Executed {} in {:.2f} ms".format(func.__name__, (te - ts) * 1000)
-            )
+            try:
+                is_method = inspect.getargspec(func)[0][0] == "self"
+            except:
+                is_method = False
+
+            if is_method:
+                funcname = "{}.{}.{}".format(
+                    func.__module__, args[0].__class__.__name__, func.__name__
+                )
+            else:
+                funcname = "{}.{}".format(func.__module__, func.__name__)
+            logger.debug("Executed {} in {:.2f} ms".format(funcname, (te - ts) * 1000))
         return result
 
     return func if IS_SPHINX_BUILD else timed
@@ -418,3 +428,31 @@ class AsymptoticFormulae(object):
         return 2.0 * ROOT.RooStats.SignificanceToPValue(
             sqrt(-2.0 * (cond_logLH - uncond_logLH))
         )
+
+
+try:
+    # https://gitlab.cern.ch/nihartma/meme
+    import meme
+
+    def cache(**options):
+        options.setdefault("ttl", 7 * 24 * 60 * 60)  # 7 days lifetime
+        options.setdefault("cacheDir", "/dev/shm/mephisto/")  # use shared memory
+
+        def decorator(func):
+            meme_cache = meme.cache(**options)
+            return func if IS_SPHINX_BUILD else meme_cache(func)
+
+        return decorator
+
+
+except ImportError:
+    logger.info("Couldn't find meme module. Caching is not available.")
+    # Define a dummy:
+    def cache(**options):
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return func if IS_SPHINX_BUILD else wrapper
+
+        return decorator
