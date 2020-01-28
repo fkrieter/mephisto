@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from Text import Text
 from MethodProxy import *
-from Helpers import DissectProperties, MergeDicts, MephistofyObject
+from Helpers import DissectProperties, MergeDicts, MephistofyObject, cache
 
 
 @PreloadProperties
@@ -120,32 +120,54 @@ class Legend(MethodProxy, ROOT.TLegend):
         self.SortEntries()
         if len(self._store) > 4 and self._autoncolumns:
             self.SetNColumns(2)
+        frame = Legend._optimizeFrame(
+            titles=[h.GetTitle() for h in self._store],
+            nrows=self.GetNRows(),
+            **{
+                k: v
+                for k, v in self.GetProperties().items()
+                if k
+                in ["textsize", "ncolumns", "maxwidth", "margin", "xshift", "yshift",]
+            }
+        )
+        self.DeclareProperties(**frame)
+
+    @staticmethod
+    @cache(useJSON=True)
+    def _optimizeFrame(**kwargs):
         # TODO: Add top-left, bottom-left and bottom-right alignement.
+        print(kwargs)
+        titles = kwargs.get("titles")
+        textsize = kwargs.get("textsize")
+        ncolumns = kwargs.get("ncolumns")
+        nrows = kwargs.get("nrows")
+        maxwidth = kwargs.get("maxwidth")
+        margin = kwargs.get("margin")
+        xshift = kwargs.get("xshift")
+        yshift = kwargs.get("yshift")
         maxtitlewidth = 0.0
         maxtitleheight = 0.0
         lastcolmaxtitlewidth = 0.0
-        for i, histo in enumerate(self._store):
-            title = Text(0.5, 0.5, histo.GetTitle(), textsize=self.GetTextSize())
-            maxtitlewidth = max(maxtitlewidth, title.GetXsize())
-            maxtitleheight = max(maxtitleheight, title.GetYsize())
-            if self.GetNColumns() > 1 and i % self.GetNColumns() == 1:
-                lastcolmaxtitlewidth = max(lastcolmaxtitlewidth, title.GetXsize())
-        x2 = 0.925 + self._xshift
+        for i, title in enumerate(titles):
+            tmptxt = Text(0.5, 0.5, title, textsize=textsize)
+            maxtitlewidth = max(maxtitlewidth, tmptxt.GetXsize())
+            maxtitleheight = max(maxtitleheight, tmptxt.GetYsize())
+            if ncolumns > 1 and i % ncolumns == 1:
+                lastcolmaxtitlewidth = max(lastcolmaxtitlewidth, tmptxt.GetXsize())
+        x2 = 0.925 + xshift
         x1 = (
             max(
-                x2 - self._maxwidth,
+                x2 - maxwidth,
                 x2
                 - max(
-                    self.GetNColumns()
-                    * (1.5 * (self.GetTextSize() / 700.0) + maxtitlewidth),
-                    self.GetMargin() / 1.6,
+                    ncolumns * (1.5 * (textsize / 700.0) + maxtitlewidth), margin / 1.6,
                 ),
             )
-            + self._xshift
+            + xshift
         )
-        y2 = 0.94 + self._yshift
-        y1 = y2 - (1.2 * self.GetNRows() * maxtitleheight) + self._yshift
-        self.DeclareProperties(x1=x1, y1=y1, x2=x2, y2=y2)
+        y2 = 0.94 + yshift
+        y1 = y2 - (1.2 * nrows * maxtitleheight) + yshift
+        return dict(x1=x1, y1=y1, x2=x2, y2=y2)
 
     def SetXShift(self, shift):
         self._xshift = shift

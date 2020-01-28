@@ -7,7 +7,7 @@ import uuid
 import ROOT
 
 from logger import logger
-from Helpers import CheckPath, timeit
+from Helpers import CheckPath, timeit, cache
 
 import root_numpy as rnp
 
@@ -235,6 +235,7 @@ class IOManager(object):
 
     @staticmethod
     @CheckPath(mode="r")
+    @cache()
     def _getHistogram(infile, **kwargs):
         # Returns a TH1D with the given parameters and fills it via TTree::Project.
         # Uses binning in CSV format for faster caching.
