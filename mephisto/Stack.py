@@ -352,7 +352,7 @@ class Stack(MethodProxy, ROOT.THStack):
                 self._stacksumhisto.GetTitle(),
                 [
                     self._stacksumhisto._lowbinedges[0],
-                    self._stacksumhisto._lowbinedges[self._stacksumhisto._nbins]
+                    self._stacksumhisto._lowbinedges[self._stacksumhisto._nbins],
                 ],
                 **{
                     k[8:]: v
@@ -513,7 +513,9 @@ class Stack(MethodProxy, ROOT.THStack):
                             """{} \\\\""".format(
                                 " & ".join(
                                     [
-                                        r"$\pm$ " + e if j == 2 else e.replace("#", "\\")
+                                        r"$\pm$ " + e
+                                        if j == 2
+                                        else e.replace("#", "\\")
                                         for j, e in enumerate(row)
                                     ]
                                 )

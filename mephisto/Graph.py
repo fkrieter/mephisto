@@ -142,7 +142,9 @@ class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
                 val["y"]["errordown"],
                 val["y"]["errorup"],
             )
-            for key, value in self.GetTemplate(kwargs.get("template", "common")).items():
+            for key, value in self.GetTemplate(
+                kwargs.get("template", "common")
+            ).items():
                 kwargs.setdefault(key, value)
         else:
             raise TypeError
