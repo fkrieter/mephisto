@@ -229,8 +229,11 @@ class IOManager(object):
                 )
         elif not isinstance(cuts, str):
             raise TypeError
-        for binning in ["xbinning", "ybinning", "zbinning"]:
-            kwargs[binning] = IOManager._convertBinning(kwargs.get(binning), csv=True)
+        for key in ["xbinning", "ybinning", "zbinning"]:
+            binning = kwargs.get(key)
+            if binning is None:
+                continue
+            kwargs[key] = IOManager._convertBinning(binning, csv=True)
         return IOManager._getHistogram(infile, **kwargs)
 
     @staticmethod
@@ -374,9 +377,9 @@ class IOManager(object):
             histoname = histo.GetName()
             histotitle = histo.GetTitle()
             histoclass = histo.ClassName()
-            if not ":" in options["varexp"]:
+            if not ":" in varexp:
                 assert histoclass.startswith("TH1")
-            elif len(varexp.split(":") == 2):
+            elif len(varexp.split(":")) == 2:
                 assert histoclass.startswith("TH2")
             else:
                 raise NotImplementedError
