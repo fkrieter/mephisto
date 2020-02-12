@@ -172,7 +172,7 @@ def MephistofyObject(copy=False):
             elif object.InheritsFrom("THStack"):
                 return Stack("{}_{}".format(object.GetName(), suffix), object)
             elif object.InheritsFrom("TGraph"):
-                return Graph(object)
+                return Graph("{}_{}".format(object.GetName(), suffix), object)
             elif object.InheritsFrom("TText") or object.InheritsFrom("TLatex"):
                 return Text(object)
             raise NotImplementedError
