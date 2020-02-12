@@ -352,12 +352,6 @@ class Histo2D(MethodProxy, ROOT.TH2D):
             "xtitle": xtitle,
             "ytitle": ytitle,
         }
-        if logx:
-            raise NotImplementedError
-        if logy:
-            raise NotImplementedError
-        if logz:
-            raise NotImplementedError
         return frame
 
     def SetZMin(self, value):
@@ -529,7 +523,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
         for i, contour in enumerate(self._contours):
             contLevel = conts.At(i)
-            curv = contLevel.First()
+            curv = contLevel.First().Clone()
             graphs[contour].append(curv)
         return graphs
 
