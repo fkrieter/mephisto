@@ -29,6 +29,7 @@ class N1Plotter(MethodProxy):
         self._binning = {}
         self._configs = {"background": [], "signal": []}
         self._store = {}
+        self._preselection = []
         self._formatfields = ["varexp", "comparator", "cutvalue"]
         self._outputformat = "N-1_{varexp}_{cutvalue}.pdf"
         for key, value in self.GetTemplate(kwargs.get("template", "common")).items():
@@ -56,6 +57,14 @@ class N1Plotter(MethodProxy):
 
     def GetCuts(self):
         return self._cuts
+
+    def SetPreselection(self, *cuts):
+        if not isinstance(cuts, (str, list, tuple)):
+            raise TypeError
+        self._preselection = list(cuts)
+
+    def GetPreselection(self):
+        return self._preselection
 
     def SetBinning(self, varexp, *args):
         if len(args) == 3:
@@ -122,7 +131,11 @@ class N1Plotter(MethodProxy):
                         self._store[histotype][i][varexp, cutvalue],
                         varexp=varexp,
                         weight=config["Fill"].get("weight", "1"),
-                        cuts=list(config["Fill"].get("cuts", []) + reducedcuts),
+                        cuts=list(
+                            config["Fill"].get("cuts", [])
+                            + reducedcuts
+                            + self._preselection
+                        ),
                     )
         for factory in factories.values():
             factory.Run()
