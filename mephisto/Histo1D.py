@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import ROOT
 
+from math import sqrt
 from uuid import uuid4
 from array import array
 from collections import defaultdict
@@ -386,6 +387,30 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         raw_entries = self.GetEntries() + histo.GetEntries()
         super(Histo1D, self).Add(histo, scale)
         self.SetEntries(raw_entries)
+
+    def ApplyScaleFactor(self, scalefactor, uncertainty=0):
+        r"""Apply a scale factor to the histogram.
+
+        An uncertainty associated to the scale factor is included into the final per-bin
+        uncertainty.
+
+        :param scale: scale factor multiplied to current object
+        :param scale: ``float`
+
+        :param scale: absoulte uncertainty on the scale factor (default: 0)
+        :param scale: ``float``
+        """
+        self.Scale(scalefactor)
+        if uncertainty == 0:
+            return
+        for bn in range(0, self.GetNbinsX() + 2, 1):
+            self.SetBinError(
+                bn,
+                sqrt(
+                    self.GetBinError(bn) ** 2
+                    + (uncertainty * self.GetBinContent(bn)) ** 2
+                ),
+            )
 
     def SetLegendDrawOption(self, option):
         r"""Define the draw option for the histogram's legend.
