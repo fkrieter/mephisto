@@ -412,7 +412,7 @@ class Stack(MethodProxy, ROOT.THStack):
             plot.Register(
                 sensitivityscan,
                 pad=idx,
-                ytitle="Z_{N}-value",  # default (see template 'common')
+                ytitle="Z_{A}-value",
                 logy=False,
                 **properties["SensitivityScan"]
             )
