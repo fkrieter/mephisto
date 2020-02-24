@@ -386,13 +386,17 @@ class AsymptoticFormulae(object):
         s = float(s)
         b = float(b)
         db *= b
-        return sqrt(
-            2
-            * (
-                (s + b) * log(((s + b) * (b + db ** 2)) / (b ** 2 + (s + b) * db ** 2))
-                - ((b ** 2 / db ** 2) * log(1 + s * db ** 2 / (b * (b + db ** 2))))
+        try:
+            return sqrt(
+                2
+                * (
+                    (s + b)
+                    * log(((s + b) * (b + db ** 2)) / (b ** 2 + (s + b) * db ** 2))
+                    - ((b ** 2 / db ** 2) * log(1 + s * db ** 2 / (b * (b + db ** 2))))
+                )
             )
-        )
+        except ValueError:
+            return 0
 
     @staticmethod
     def AsimovExpCLs(s, b, db):
