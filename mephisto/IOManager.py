@@ -416,18 +416,20 @@ class IOManager(object):
                     cuts = array["({})*({})".format(options["weight"], options["cuts"])]
                     mask = np.where(cuts != 0)
                     rnp.fill_hist(histo, varexp[mask], weights=cuts[mask])
+            zeroentriesoptions = []
             for histo, options in self._store:
-                if histo.GetEntries() == 0:
+                options = {k:v for k, v in options.items() if not k in ["varexp", "append"]}
+                if histo.GetEntries() == 0 and options not in zeroentriesoptions:
                     logger.warning(
                         "No events have been extracted for tree '{}' in file '{}'"
-                        "using varexp='{}', cuts='{}', weight='{}'!".format(
+                        "using cuts='{}' and weight='{}'!".format(
                             self._treename,
                             self._filepath,
-                            options["varexp"],
                             options["cuts"],
                             options["weight"],
                         )
                     )
+                    zeroentriesoptions.append(options)
             logger.info(
                 "Filled {} histograms using tree '{}' in file '{}'.".format(
                     len(self._store), self._treename, self._filepath
