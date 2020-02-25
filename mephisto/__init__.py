@@ -26,6 +26,8 @@ from logger import logger
 from Canvas import Canvas
 from Histo1D import Histo1D
 from Histo2D import Histo2D
+from N1Plotter import N1Plotter
 from RatioPlot import RatioPlot
 from IOManager import IOManager
+from SensitivityScan import SensitivityScan
 from ContributionPlot import ContributionPlot
