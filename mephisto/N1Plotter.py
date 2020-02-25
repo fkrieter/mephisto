@@ -12,7 +12,7 @@ from Histo1D import Histo1D
 from CutMarker import CutMarker
 from IOManager import IOManager
 from SensitivityScan import SensitivityScan
-from Helpers import DissectProperties, MergeDicts, SplitCutExpr, clean_str
+from Helpers import DissectProperties, CheckPath, MergeDicts, SplitCutExpr, clean_str
 
 from uuid import uuid4
 
@@ -48,7 +48,8 @@ class N1Plotter(MethodProxy):
         self._drawcuts = []
         for cutexpr in tmpcutlist:
             if not "||" in cutexpr:
-                cutexpr = clean_str(cutexpr, remove="()")
+                cutexpr = cutexpr.lstrip("(")
+                cutexpr = cutexpr.rstrip(")")
                 splt = SplitCutExpr(cutexpr)
                 self._drawcuts.append(
                     (splt["varexp"], splt["comparator"], splt["value"])
@@ -163,6 +164,7 @@ class N1Plotter(MethodProxy):
         outputfilename = self._outputformat.format(**formatdict)
         return outputfilename
 
+    @CheckPath(mode="w")
     def Print(self, outputdir, **kwargs):
         # TODO: Use actual signal and background histograms for the SensitivityScan as
         # defined in Register instead of what is 'guessed' by Stack.Print.
@@ -206,7 +208,7 @@ if __name__ == "__main__":
         except IOError:
             pass
 
-    cuts = ["branch_4>1.5", "branch_5<2.5", "branch_6>=4.5"]
+    cuts = ["branch_4>1.5", "branch_5<2.5", "(branch_6>=4.5)&&(abs(branch_7)<=9.5)"]
 
     binnings = {
         "branch_4": [20, 0.0, 10.0],  # fixed bin width
@@ -214,6 +216,7 @@ if __name__ == "__main__":
         "branch_6": [
             [i * 0.25 for i in range(40)] + [10, 11, 12, 13, 14, 15, 17.5, 20]
         ],  # variable bin width
+        "abs(branch_7)": [10, 0.0, 10.0],
     }
 
     n1plotter = N1Plotter(cuts=cuts, binnings=binnings)
