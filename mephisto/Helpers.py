@@ -69,7 +69,7 @@ def DissectProperties(propdict, listofobj):
     return properties
 
 
-def CheckPath(mode="r"):
+def CheckPath(mode="r", clean=True):
     # Decorator for functions and methods with a filepath as their first argument (not
     # counting 'self' etc.).
 
@@ -82,6 +82,10 @@ def CheckPath(mode="r"):
             # If not raise an exception or if mkdir=True create them recursively.
             # Also formats relative paths or one with env vars as an absolute path.
             filepath = os.path.abspath(os.path.expandvars(filepath))
+            if mode == "w"  and clean:
+                filepath = clean_str(
+                    filepath, remove="""~!@#$%^&*()+=<>\[\]{},;`'"\|"""
+                )
             if os.path.isfile(filepath):
                 if mode == "w":
                     if overwrite:
