@@ -23,7 +23,7 @@ class Plot(MethodProxy):
     :class:`.Pad` onto a :class:`.Canvas`.
     """
 
-    def __init__(self, name=uuid4().hex[:8], **kwargs):
+    def __init__(self, name=None, **kwargs):
         r"""Initialize a plot.
 
         Create an instance of :class:`.Plot` with the specified **name**.
@@ -34,6 +34,8 @@ class Plot(MethodProxy):
         :param \**kwargs: :class:`.Plot` properties
         """
         MethodProxy.__init__(self)
+        if name is None:
+            name = uuid4().hex[:8]
         self._name = name
         self._npads = 1
         self._store = defaultdict(list)

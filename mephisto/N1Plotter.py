@@ -22,8 +22,10 @@ class N1Plotter(MethodProxy):
     r"""Class for N-1 plots.
     """
 
-    def __init__(self, name=uuid4().hex[:8], **kwargs):
+    def __init__(self, name=None, **kwargs):
         self._name = name
+        if name is None:
+            name = uuid4().hex[:8]
         self._cuts = []  # list of all common cuts
         self._drawcuts = []  # tuples of varexps and associated cut values to be drawn
         self._binning = {}

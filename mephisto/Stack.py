@@ -59,7 +59,7 @@ class Stack(MethodProxy, ROOT.THStack):
         "ztitle",
     ]
 
-    def __init__(self, name=uuid4().hex[:8], *args, **kwargs):
+    def __init__(self, name=None, *args, **kwargs):
         r"""Initialize a collection of 1-dimensional histograms.
 
         Create an instance of :class:`.Stack` with the specified **name**. Can also be
@@ -83,6 +83,8 @@ class Stack(MethodProxy, ROOT.THStack):
                 #. **stack** (``Stack``, ``THStack``) -- existing stack to be copied
         """
         MethodProxy.__init__(self)
+        if name is None:
+            name = uuid4().hex[:8]
         self._stacksumhisto = None
         self._stacksumproperties = {}
         self._stacksorting = None
