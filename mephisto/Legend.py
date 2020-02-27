@@ -15,6 +15,20 @@ from Helpers import DissectProperties, MergeDicts, MephistofyObject, cache
 
 @PreloadProperties
 class Legend(MethodProxy, ROOT.TLegend):
+
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = [
+        "bboxcenter",
+        "bboxcenterx",
+        "bboxcentery",
+        "bboxx1",
+        "bboxx2",
+        "bboxy1",
+        "bboxy2",
+        "defaults",
+        "name",
+    ]
+
     def __init__(self, name=uuid4().hex[:8], *args, **kwargs):
         MethodProxy.__init__(self)
         ROOT.TLegend.__init__(self, *args)

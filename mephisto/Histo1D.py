@@ -44,7 +44,28 @@ class Histo1D(MethodProxy, ROOT.TH1D):
     **ytitle** and **ztitle** are defined to be exclusive to the :class:`.Pad` class.
     """
 
-    _ignore_properties = ["name", "xtitle", "ytitle", "ztitle"]
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = [
+        "at",
+        "bincontent",
+        "binerror",
+        "bins",
+        "canextend",
+        "cellcontent",
+        "cellerror",
+        "content",
+        "entries",
+        "error",
+        "maximum",
+        "minimum",
+        "name",
+        "nametitle",
+        "statoverflows",
+        "stats",
+        "xtitle",
+        "ytitle",
+        "ztitle",
+    ]
 
     ROOT.TH1.SetDefaultSumw2(True)
 

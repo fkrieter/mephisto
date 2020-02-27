@@ -9,6 +9,18 @@ from MethodProxy import *
 
 @PreloadProperties
 class Line(MethodProxy, ROOT.TLine):
+
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = [
+        "bboxcenter",
+        "bboxcenterx",
+        "bboxcentery",
+        "bboxx1",
+        "bboxx2",
+        "bboxy1",
+        "bboxy2",
+    ]
+
     def __init__(self, *args, **kwargs):
         MethodProxy.__init__(self)
         ROOT.TLine.__init__(self, *args)

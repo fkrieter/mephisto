@@ -66,7 +66,27 @@ class Histo2D(MethodProxy, ROOT.TH2D):
     drawoption contains ``Z``) are tied to the ``Histo2D`` class.
     """
 
-    _ignore_properties = ["name", "xtitle", "ytitle"]
+    _ignore_properties = [
+        "at",
+        "bincontent",
+        "binerror",
+        "bins",
+        "canextend",
+        "cellcontent",
+        "cellerror",
+        "content",
+        "entries",
+        "error",
+        "maximum",
+        "minimum",
+        "name",
+        "nametitle",
+        "statoverflows",
+        "stats",
+        "xtitle",
+        "ytitle",
+        "ztitle",
+    ]
 
     ROOT.TH2.SetDefaultSumw2(True)
 

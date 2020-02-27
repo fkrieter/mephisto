@@ -12,6 +12,19 @@ from MethodProxy import *
 
 @PreloadProperties
 class Text(MethodProxy, ROOT.TLatex):
+
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = [
+        "bboxcenter",
+        "bboxcenterx",
+        "bboxcentery",
+        "bboxx1",
+        "bboxx2",
+        "bboxy1",
+        "bboxy2",
+        "mbtitle",
+    ]
+
     def __init__(self, *args, **kwargs):
         MethodProxy.__init__(self)
         ROOT.TLatex.__init__(self, *args)

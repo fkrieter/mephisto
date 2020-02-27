@@ -51,6 +51,39 @@ def ExtendMethods(cls):
 @ExtendMethods
 @PreloadProperties
 class Pad(MethodProxy, ROOT.TPad):
+
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = [
+        "attfillps",
+        "attlineps",
+        "attmarkerps",
+        "atttextps",
+        "bboxcenter",
+        "bboxcenterx",
+        "bboxcentery",
+        "bboxx1",
+        "bboxx2",
+        "bboxy1",
+        "bboxy2",
+        "canvas",
+        "canvassize",
+        "frame",
+        "maxpickdistance",
+        "name",
+        "ndivisions",
+        "number",
+        "pad",
+        "phi",
+        "theta",
+        "vertical",
+        "view",
+        "viewer3d",
+        "xfile",
+        "xstat",
+        "yfile",
+        "ystat",
+    ]
+
     def __init__(self, name="undefined", *args, **kwargs):
         MethodProxy.__init__(self)
         self._frame = None

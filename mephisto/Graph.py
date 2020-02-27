@@ -32,7 +32,23 @@ class Graph(MethodProxy, ROOT.TGraphAsymmErrors):
     **ytitle** and **ztitle** are defined to be exclusive to the :class:`.Pad` class.
     """
 
-    _ignore_properties = ["name", "point", "xtitle", "ytitle", "ztitle"]
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = [
+        "histogram",
+        "maximum",
+        "minimum",
+        "name",
+        "nametitle",
+        "point",
+        "pointerror",
+        "pointexhigh",
+        "pointexlow",
+        "pointeyhigh,",
+        "pointeylow",
+        "xtitle",
+        "ytitle",
+        "ztitle",
+    ]
 
     def __init__(self, name="Graph_{}".format(uuid4().hex[:8]), *args, **kwargs):
         r"""Initialize a graph.

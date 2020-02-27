@@ -9,6 +9,21 @@ from MethodProxy import *
 
 @PreloadProperties
 class Arrow(MethodProxy, ROOT.TArrow):
+
+    _ignore_properties = [
+        "bboxcenter",
+        "bboxcenterx",
+        "bboxcentery",
+        "bboxx1",
+        "bboxx2",
+        "bboxy1",
+        "bboxy2",
+        "bit",
+        "dtoronly",
+        "objectstat",
+        "uniqueid",
+    ]
+
     def __init__(self, *args, **kwargs):
         MethodProxy.__init__(self)
         ROOT.TArrow.__init__(self, *args)

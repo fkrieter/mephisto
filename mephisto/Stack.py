@@ -47,7 +47,17 @@ class Stack(MethodProxy, ROOT.THStack):
     :class:`.Pad` class.
     """
 
-    _ignore_properties = ["name", "xtitle", "ytitle", "ztitle", "histogram"]
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = [
+        "histogram",
+        "maximum",
+        "minimum",
+        "name",
+        "nametitle",
+        "xtitle",
+        "ytitle",
+        "ztitle",
+    ]
 
     def __init__(self, name=uuid4().hex[:8], *args, **kwargs):
         r"""Initialize a collection of 1-dimensional histograms.

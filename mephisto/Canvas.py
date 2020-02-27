@@ -8,7 +8,43 @@ from MethodProxy import *
 @PreloadProperties
 class Canvas(MethodProxy, ROOT.TCanvas):
 
+    # Properties not meant to be changed via keyword arguments:
     _ignore_properties = [
+        "attfillps",
+        "attlineps",
+        "attmarkerps",
+        "atttextps",
+        "bboxcenter",
+        "bboxcenterx",
+        "bboxcentery",
+        "bboxx1",
+        "bboxx2",
+        "bboxy1",
+        "bboxy2",
+        "canvas",
+        "canvasimp",
+        "clickselected",
+        "clickselectedpad",
+        "fixedaspectratio",
+        "maxpickdistance",
+        "name",
+        "number",
+        "pad",
+        "padsave",
+        "phi",
+        "retained",
+        "selectedpad",
+        "theta",
+        "vertical",
+        "view",
+        "viewer3d",
+        "windowposition",
+        "windowsize",
+        "xfile",
+        "xstat",
+        "yfile",
+        "ystat",
+        # Exclusive properties of Pad:
         "logx",
         "logy",
         "logz",
@@ -16,7 +52,7 @@ class Canvas(MethodProxy, ROOT.TCanvas):
         "bottommargin",
         "leftmargin",
         "rightmargin",
-    ]  # exclusive properties of Pad
+    ]
 
     def __init__(self, *args, **kwargs):
         MethodProxy.__init__(self)
