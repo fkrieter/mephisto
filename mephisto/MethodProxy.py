@@ -38,6 +38,28 @@ class MethodProxy(object):
         # 2. We don't want a proxy for getters (and their corresponding setters),
         #    which require an argument.
         # 3. For each getter there should be a setter.
+        cls._ignore_properties += [
+            "afile",
+            "astat",
+            "batch",
+            "bit",
+            "buffer",
+            "copygldevice",
+            "crosshair",
+            "cursor",
+            "defaultbuffersize",
+            "directory",
+            "doublebuffer",
+            "dtoronly",
+            "editable",
+            "folder",
+            "gldevice",
+            "objectstat",
+            "selected",
+            "supportgl",
+            "tooltiptext",
+            "uniqueid",
+        ]  # common properties to be ignored
         setter = [
             f for f in dir(cls) if f.startswith("Set") and callable(getattr(cls, f))
         ]
