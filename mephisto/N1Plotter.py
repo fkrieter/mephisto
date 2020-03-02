@@ -50,8 +50,8 @@ class N1Plotter(MethodProxy):
         self._drawcuts = []
         for cutexpr in tmpcutlist:
             if not "||" in cutexpr:
-                cutexpr = cutexpr.lstrip("(")
-                cutexpr = cutexpr.rstrip(")")
+                if cutexpr.startswith("(") and cutexpr.endswith(")"):
+                    cutexpr = cutexpr[1:-1]
                 splt = SplitCutExpr(cutexpr)
                 self._drawcuts.append(
                     (splt["varexp"], splt["comparator"], splt["value"])
@@ -210,11 +210,15 @@ if __name__ == "__main__":
         except IOError:
             pass
 
-    cuts = ["branch_4>1.5", "branch_5<2.5", "(branch_6>=4.5)&&(abs(branch_7)<=9.5)"]
+    cuts = [
+        "branch_4>1.5",
+        "(branch_1+branch_5)<3.75",
+        "(branch_6>=4.5)&&(abs(branch_7)<=9.5)",
+    ]
 
     binnings = {
         "branch_4": [20, 0.0, 10.0],  # fixed bin width
-        "branch_5": [20, 0.0, 10.0],
+        "branch_1+branch_5": [20, 0.0, 10.0],
         "branch_6": [
             [i * 0.25 for i in range(40)] + [10, 11, 12, 13, 14, 15, 17.5, 20]
         ],  # variable bin width

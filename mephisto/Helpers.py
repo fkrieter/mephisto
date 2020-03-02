@@ -354,7 +354,7 @@ def TeX2PDF(content, path, **kwargs):
 def SplitCutExpr(cutexpr):
     assert isinstance(cutexpr, str)
     rgx = (
-        "(?P<varexp>[A-Za-z0-9\_()]+)(?P<comparator>(>=|<=|==|>|<))"
+        "(?P<varexp>[A-Za-z0-9\_()+\-*\/^%]+)(?P<comparator>(>=|<=|==|>|<))"
         "(?P<value>[+-]?\d*\.?\d*$)"
     )
     match = re.match(rgx, cutexpr)
