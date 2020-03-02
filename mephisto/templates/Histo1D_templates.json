@@ -15,8 +15,7 @@
         "fillalpha":            1.0,
         "drawerrorband":        true,
         "errorbanddrawoption":  "E2",
-        "errorbandfillstyle":   3151,
-        "errorbandfillalpha":   1.0,
+        "errorbandfillstyle":   3254,
         "legenddrawoption":     "F"
     },
     "signal": {
@@ -25,15 +24,14 @@
         "linewidth":            5,
         "linecolor":            "#ff0000",
         "linealpha":            1.0,
-        "fillstyle":            1001,
+        "fillstyle":            0,
         "fillcolor":            "#ff0000",
         "fillalpha":            0.0,
         "drawerrorband":        false,
         "errorbanddrawoption":  "E2",
-        "errorbandfillstyle":   3151,
-        "errorbandfillalpha":   1.0,
+        "errorbandfillstyle":   3254,
         "legenddrawoption":     "L"
-        },
+    },
     "data": {
         "drawoption":           "P2LEX0",
         "linestyle":            0,
