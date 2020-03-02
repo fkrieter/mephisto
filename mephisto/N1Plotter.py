@@ -185,7 +185,7 @@ class N1Plotter(MethodProxy):
                 "drawarrow": any([s in comparator for s in "<>"]),
             }
             if kwargs.get("sensitivity"):
-                kwargs.setdefault("direction", direction)
+                kwargs["direction"] = direction
             cutmarker = CutMarker(float(cutvalue), **cutmarkerprops)
             stack.Print(
                 os.path.join(
