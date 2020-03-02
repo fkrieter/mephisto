@@ -354,7 +354,7 @@ class Stack(MethodProxy, ROOT.THStack):
                     "SensitivityScan pad!"
                 )
                 sensitivity = False
-        plot = Plot(npads=npads)
+        plot = Plot(npads=npads, **properties["Plot"])
         # Register the Stack to the upper Pad (pad=0):
         plot.Register(self, **MergeDicts(properties["Stack"], properties["Pad"]))
         if self._drawstacksum and self.GetNhists() > 1:
@@ -394,43 +394,29 @@ class Stack(MethodProxy, ROOT.THStack):
         }
         if contribution:
             contribplot = ContributionPlot(self)
-            properties["ContributionPlot"].update(xaxisprops)
+            properties["ContributionPlot"].update(
+                xaxisprops, **properties["ContributionPlot"]
+            )
             plot.Register(
-                contribplot,
-                pad=idx,
-                ytitle="Contrib.",
-                logy=False,
-                ymin=0,
-                ymax=1,
-                **properties["ContributionPlot"]
+                contribplot, pad=idx, ytitle="Contrib.", logy=False, ymin=0, ymax=1
             )
             idx += 1
         if ratio:
-            ratioplot = RatioPlot(*ratio)
+            ratioplot = RatioPlot(*ratio, **properties["RatioPlot"])
             properties["RatioPlot"].update(xaxisprops)
             plot.Register(
-                ratioplot,
-                pad=idx,
-                ytitle="Data / SM",
-                logy=False,
-                ymin=0.2,
-                ymax=1.8,
-                **properties["RatioPlot"]
+                ratioplot, pad=idx, ytitle="Data / SM", logy=False, ymin=0.2, ymax=1.8
             )
             idx += 1
         if sensitivity:
-            sensitivityscan = SensitivityScan(sensitivity, self._stacksumhisto)
+            sensitivityscan = SensitivityScan(
+                sensitivity, self._stacksumhisto, **properties["SensitivityScan"]
+            )
             properties["SensitivityScan"].update(xaxisprops)
             plot.Register(
-                sensitivityscan,
-                pad=idx,
-                ytitle="Z_{A}-value",
-                logy=False,
-                **properties["SensitivityScan"]
+                sensitivityscan, pad=idx, ytitle="Z_{A}-value", logy=False,
             )
-        plot.Print(
-            path, **MergeDicts(properties["Plot"], properties["Canvas"], injections)
-        )
+        plot.Print(path, **MergeDicts(properties["Canvas"], injections))
 
     @CheckPath(mode="w")
     def PrintYieldTable(self, path=None, **kwargs):
