@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
     cuts = [
         "branch_4>1.5",
-        "(branch_1+branch_5)<3.75",
+        "branch_1+branch_5<3.75",
         "(branch_6>=4.5)&&(abs(branch_7)<=9.5)",
     ]
 
