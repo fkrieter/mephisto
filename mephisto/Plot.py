@@ -105,6 +105,13 @@ class Plot(MethodProxy):
         self.AssertPadIndex(pad)
         properties = DissectProperties(kwargs, [object, Pad])
         objclsname = object.__class__.__name__
+        properties["Pad"].update(
+            {
+                key: properties[objclsname][key]
+                for key in ["xmin", "xmax", "ymin", "ymax"]
+                if key in properties[objclsname].keys()
+            }
+        )
         logger.debug(
             "Registering {} object {} ('{}') to Plot '{}'...".format(
                 objclsname,
