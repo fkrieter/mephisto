@@ -21,6 +21,9 @@ class SensitivityScan(MethodProxy):
     specified signal histograms.
     """
 
+    # Properties not meant to be changed via keyword arguments:
+    _ignore_properties = ["name"]
+
     def __init__(self, sighistos, bkghisto, **kwargs):
         r"""Initialize a sensitivity scan plot.
 
@@ -333,12 +336,9 @@ class SensitivityScan(MethodProxy):
 
     def Draw(self, option=None):
         # Draw all sensitivity histograms to the current TPad.
-        self.SetDrawOption(option)
-        suffix = ""
+        self.SetDrawOption(option.upper().replace("SAME", ""))
         for scan in self._sensitivityhistos:
-            scan.Draw(option + suffix)
-            if not option.endswith("SAME"):
-                suffix = "SAME"
+            scan.Draw(option + "SAME")
         self.DrawBenchmarkLines()
 
     def DrawBenchmarkLines(self):
