@@ -2,6 +2,7 @@
     "common": {
         "baselinedrawoption":           "HIST",
         "baselinefillalpha":            0.0,
+        "baselinelinewidth":            2,
         "baselinelinecolor":            "#000000",
         "baselineerrorbanddrawoption":  "E2",
         "baselineerrorbandfillcolor":   "#000000",
