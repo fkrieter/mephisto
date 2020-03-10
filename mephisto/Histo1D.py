@@ -228,7 +228,7 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._varexp = kwargs.get("varexp")
         self._cuts = kwargs.get("cuts", [])
         self._weight = kwargs.get("weight", "1")
-        if len(args) == 1 and isinstance(args[0], str):
+        if len(args) == 1 and isinstance(args[0], (str, unicode)):
             IOManager.FillHistogram(self, args[0], **kwargs)
             if not kwargs.get("append", False):
                 self._errorband.Reset()
@@ -328,13 +328,16 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         # Draw the histogram to the current TPad together with it's errorband.
         if option is not None:
             self.SetDrawOption(option)
-        self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
         if self._drawerrorband:
             self._errorband.Reset()
-            self._errorband.Add(self)  # making sure the erroband is up-to-date
+            self._errorband.Add(self)  # make sure the erroband is up-to-date
+            self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
             self._errorband.DrawCopy(
                 self._errorband.GetDrawOption() + "SAME", "_{}".format(uuid4().hex[:8])
             )
+        with UsingProperties(self, fillalpha=0):
+            # Histogram line must not be covered by the errorband:
+            self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
 
     def GetBinWidths(self):
         r"""Return a list of all bin widths.
