@@ -328,10 +328,10 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         # Draw the histogram to the current TPad together with it's errorband.
         if option is not None:
             self.SetDrawOption(option)
+        self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
         if self._drawerrorband:
             self._errorband.Reset()
             self._errorband.Add(self)  # make sure the erroband is up-to-date
-            self.DrawCopy(self.GetDrawOption(), "_{}".format(uuid4().hex[:8]))
             self._errorband.DrawCopy(
                 self._errorband.GetDrawOption() + "SAME", "_{}".format(uuid4().hex[:8])
             )
