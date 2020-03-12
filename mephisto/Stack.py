@@ -398,14 +398,26 @@ class Stack(MethodProxy, ROOT.THStack):
                 xaxisprops, **properties["ContributionPlot"]
             )
             plot.Register(
-                contribplot, pad=idx, ytitle="Contrib.", logy=False, ymin=0, ymax=1
+                contribplot,
+                pad=idx,
+                ytitle="Contrib.",
+                logy=False,
+                ymin=0,
+                ymax=1,
+                **{k: v for k, v in properties["Pad"].items() if k.startswith("x")}
             )
             idx += 1
         if ratio:
             ratioplot = RatioPlot(*ratio, **properties["RatioPlot"])
             properties["RatioPlot"].update(xaxisprops)
             plot.Register(
-                ratioplot, pad=idx, ytitle="Data / SM", logy=False, ymin=0.2, ymax=1.8
+                ratioplot,
+                pad=idx,
+                ytitle="Data / SM",
+                logy=False,
+                ymin=0.2,
+                ymax=1.8,
+                **{k: v for k, v in properties["Pad"].items() if k.startswith("x")}
             )
             idx += 1
         if sensitivity:
@@ -414,7 +426,11 @@ class Stack(MethodProxy, ROOT.THStack):
             )
             properties["SensitivityScan"].update(xaxisprops)
             plot.Register(
-                sensitivityscan, pad=idx, ytitle="Z_{A}-value", logy=False,
+                sensitivityscan,
+                pad=idx,
+                ytitle="Z_{A}-value",
+                logy=False,
+                **{k: v for k, v in properties["Pad"].items() if k.startswith("x")}
             )
         plot.Print(path, **MergeDicts(properties["Canvas"], injections))
 
