@@ -295,7 +295,7 @@ class Histo2D(MethodProxy, ROOT.TH2D):
             * **tree** (``str``) -- name of the input tree
 
             * **varexp** (``str``) -- name of the branch to be plotted on the x-axis and
-              y-axis (format 'x:y')
+              y-axis (format 'y:x')
 
             * **cuts** (``str``, ``list``, ``tuple``) -- string or list of strings of
               boolean expressions, the latter will default to a logical *AND* of all
@@ -361,9 +361,9 @@ class Histo2D(MethodProxy, ROOT.TH2D):
         xtitle = kwargs.pop("xtitle", None)
         ytitle = kwargs.pop("ytitle", None)
         if xtitle is None:
-            xtitle = self._varexp.split(":")[0] if self._varexp is not None else ""
+            xtitle = self._varexp.split(":")[1] if self._varexp is not None else ""
         if ytitle is None or ytitle == "Entries":  # Pad default
-            ytitle = self._varexp.split(":")[1] if self._varexp is not None else ""
+            ytitle = self._varexp.split(":")[0] if self._varexp is not None else ""
         frame = {
             "xmin": self._xlowbinedges[0],
             "xmax": self._xlowbinedges[self._nbinsx],
