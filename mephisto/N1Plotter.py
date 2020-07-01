@@ -29,6 +29,8 @@ class N1Plotter(MethodProxy):
         self._cuts = []  # list of all common cuts
         self._drawcuts = []  # tuples of varexps and associated cut values to be drawn
         self._binning = {}
+        self._vartitle = {}
+        self._varunits = {}
         self._configs = {"background": [], "signal": []}
         self._store = {}
         self._preselection = []
@@ -60,6 +62,24 @@ class N1Plotter(MethodProxy):
 
     def GetCuts(self):
         return self._cuts
+
+    def SetVariableTitle(self, varexp, title):
+        self._vartitle[varexp] = title
+
+    def GetVariableTitle(self, varexp):
+        return self._vartitle[varexp]
+
+    def SetVariableTitles(self, vartitledict):
+        self._vartitle.update(vartitledict)
+
+    def GetVariableTitles(self):
+        return self._vartitle
+
+    def SetVariableUnits(self, varunitsdict):
+        self._varunits.update(varunitsdict)
+
+    def GetVariableTitles(self):
+        return self._varunits
 
     def SetPreselection(self, *cuts):
         if not isinstance(cuts, (str, list, tuple)):
@@ -194,7 +214,10 @@ class N1Plotter(MethodProxy):
                         varexp=varexp, comparator=comparator, cutvalue=cutvalue
                     ),
                 ),
+                xtitle=self._vartitle.get(varexp, varexp),
+                xunits=self._varunits.get(varexp, None),
                 inject0=cutmarker,
+                mkdir=True,
                 **kwargs
             )
 
