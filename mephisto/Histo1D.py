@@ -124,6 +124,8 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         self._legenddrawoption = ""
         self._stack = False  # Stack property!
         self._attalpha = defaultdict(lambda: 1.0)
+        self._includeoverflow = False
+        self._includeunderflow = False
         if len(args) == 1:
             if args[0].InheritsFrom("TH1"):
                 ROOT.TH1D.__init__(self)
@@ -275,6 +277,35 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         plot.Print(
             path, **MergeDicts(properties["Plot"], properties["Canvas"], injections)
         )
+
+    def IncludeOverflow(self):
+        if not self._includeoverflow:
+            nbins = self.GetNbinsX()
+            oflow = self.GetBinContent(nbins + 1)
+            oflowerr = self.GetBinError(nbins + 1)
+            self.SetBinContent(nbins, self.GetBinContent(nbins) + oflow)
+            self.SetBinError(nbins, sqrt(self.GetBinError(nbins)**2 + oflowerr**2))
+            # Correct value for self.Integral(0, nbins):
+            self.SetBinContent(nbins + 1, 0)
+            self.SetBinError(nbins + 1, 0)
+            self._includeoverflow = True
+        else:
+            logger.debug("Overflow is already included into the last bin! Skipping...")
+
+    def IncludeUnderflow(self):
+        if not self._includeunderflow:
+            uflow = self.GetBinContent(0)
+            uflowerr = self.GetBinError(0)
+            self.SetBinContent(1, self.GetBinContent(1) + uflow)
+            self.SetBinError(1, sqrt(self.GetBinError(1)**2 + uflowerr**2))
+            # Correct value for self.Integral(0, nbins):
+            self.SetBinContent(0, 0)
+            self.SetBinError(0, 0)
+            self._includeunderflow = True
+        else:
+            logger.debug(
+                "Underflow is already included into the first bin! Skipping..."
+            )
 
     def SetDrawOption(self, option):
         r"""Define the draw option for the histogram.
@@ -428,13 +459,16 @@ class Histo1D(MethodProxy, ROOT.TH1D):
         if uncertainty == 0:
             return
         for bn in range(0, self.GetNbinsX() + 2, 1):
-            self.SetBinError(
-                bn,
-                sqrt(
-                    self.GetBinError(bn) ** 2
-                    + (uncertainty * self.GetBinContent(bn)) ** 2
-                ),
-            )
+            try:
+                self.SetBinError(
+                    bn,
+                    sqrt(
+                        (self.GetBinError(bn) / self.GetBinContent(bn)) ** 2
+                        + (uncertainty / scalefactor) ** 2
+                    ) * self.GetBinContent(bn),
+                )
+            except ZeroDivisionError:
+                pass
 
     def SetLegendDrawOption(self, option):
         r"""Define the draw option for the histogram's legend.
