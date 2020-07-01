@@ -268,34 +268,15 @@ def clean_str(string, **kwargs):
 
 
 def TeX2PDF(content, path, **kwargs):
+    __filedir__ = os.path.dirname(os.path.abspath(__file__))
     verbosity = kwargs.get("vebosity", 0)
     assert verbosity in range(3)
     crop = kwargs.get("crop", True)
     header = (
         r"\documentclass[11pt]{article}" + "\n"
-        r"\usepackage[utf8]{inputenc}" + "\n"
-        r"\usepackage{geometry}" + "\n"
-        r"\geometry{a3paper}" + "\n"
-        r"\usepackage{graphicx}" + "\n"
-        r"\usepackage{rotating}" + "\n"
-        r"\usepackage{booktabs}" + "\n"
-        r"\usepackage{array}" + "\n"
-        r"\usepackage{paralist}" + "\n"
-        r"\usepackage{verbatim}" + "\n"
-        r"\usepackage{subfig}" + "\n"
-        r"\usepackage{fancyhdr}" + "\n"
-        r"\pagestyle{fancy}" + "\n"
-        r"\renewcommand{\headrulewidth}{0pt}" + "\n"
-        r"\lhead{}\chead{}\rhead{}" + "\n"
-        r"\lfoot{}\cfoot{\thepage}\rfoot{}" + "\n"
-        r"\usepackage{sectsty}" + "\n"
-        r"\allsectionsfont{\sffamily\mdseries\upshape}" + "\n"
-        r"\usepackage[nottoc,notlof,notlot]{tocbibind}" + "\n"
-        r"\usepackage[titles,subfigure]{tocloft}" + "\n"
-        r"\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}" + "\n"
-        r"\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape}" + "\n"
+        r"\input{" + __filedir__ + r"/preamble}" + "\n"
         r"\begin{document}" + "\n"
-        r"\pagenumbering{gobble}"
+        r"\pagenumbering{gobble}" + "\n"
     )
     tmpname = "tmp_{}".format(uuid.uuid4().hex[:8])
     outdir = os.path.dirname(path)
