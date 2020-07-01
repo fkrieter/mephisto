@@ -449,6 +449,11 @@ class Stack(MethodProxy, ROOT.THStack):
 
         :Keyword argument:
 
+            * **aliases** (''dict'') -- set new title for each histogram that will be
+                shown in the table via a dictionary where the key is the histogram name
+                and the value is the new title (default: ''{}'': use current histogram
+                title)
+
             * **silent** (``bool``) -- do not print the table to ``stdout`` (default:
               ``False``)
 
@@ -468,6 +473,7 @@ class Stack(MethodProxy, ROOT.THStack):
         precision = kwargs.pop("precision", 2)
         crop = kwargs.pop("crop", True)  # get a nice PDF table!
         yields = [["Process", "Yield", "Stat. error", "Raw"]]
+        aliases = kwargs.pop("aliases", {})
         for histo in (
             sorted(
                 self._store["stack"],
@@ -483,6 +489,11 @@ class Stack(MethodProxy, ROOT.THStack):
         ):
             if histo is None:
                 continue
+            title = histo.GetTitle()
+            for histoname, alias in aliases.items():
+                if histoname in histo.GetName():
+                    title = alias
+                    break
             staterr = ROOT.Double(0)
             integral = "{:.{prec}f}".format(
                 histo.IntegralAndError(0, histo.GetNbinsX() + 1, staterr),
@@ -490,7 +501,12 @@ class Stack(MethodProxy, ROOT.THStack):
             )
             staterr = "{:.{prec}f}".format(staterr, prec=precision)
             raw = str(int(histo.GetEntries()))
-            yields.append([histo.GetTitle(), integral, staterr, raw])
+            if histo.GetDrawOption().upper().startswith("HIST") or "_totalstack" in histo.GetName():  # MC (?)
+                # if raw == "0":
+                #     title = "%" + title
+                yields.append([title, integral, staterr, raw])
+            else:  # Data (?)
+                yields.append([title, integral.split(".")[0], "", ""])
         colwidths = [
             max(w) for w in zip(*[[len(str(e)) for e in entries] for entries in yields])
         ]
@@ -512,7 +528,7 @@ class Stack(MethodProxy, ROOT.THStack):
                         out.write(";".join(row) + "\n")
             elif path.endswith((".tex", ".pdf")):
                 latextable = []
-                latextable.append("""\\begin{tabular}{lrlr}""")
+                latextable.append("""\\begin{tabular}[t]{lrlr}""")
                 latextable.append("""\\toprule""")
                 for i, row in enumerate(yields):
                     if i == 0:
@@ -524,11 +540,12 @@ class Stack(MethodProxy, ROOT.THStack):
                         latextable.append("""\\midrule""")
                     else:
                         latextable.append(
-                            """{} \\\\""".format(
+                            """{}{} \\\\""".format(
+                                "%" if row[3] == "0" else "",
                                 " & ".join(
                                     [
                                         r"$\pm$ " + e
-                                        if j == 2
+                                        if j == 2 and e
                                         else e.replace("#", "\\")
                                         for j, e in enumerate(row)
                                     ]
